@@ -37,6 +37,8 @@ BEGIN
     'roles',
     'memberships',
     'daily_schedules',
+    'families',
+    'devotees',
     'audit_logs'
   ]
   LOOP
