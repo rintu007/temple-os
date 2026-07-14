@@ -41,6 +41,7 @@ BEGIN
   LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
     EXECUTE format('ALTER TABLE public.%I FORCE ROW LEVEL SECURITY', t);
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', t || '_tenant_isolation', t);
     EXECUTE format(
       'CREATE POLICY %I ON public.%I USING (organization_id = app_current_org_id()) WITH CHECK (organization_id = app_current_org_id())',
       t || '_tenant_isolation', t
@@ -51,6 +52,7 @@ END $$;
 -- organizations: a tenant can only see its own row
 ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.organizations FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS organizations_tenant_isolation ON public.organizations;
 CREATE POLICY organizations_tenant_isolation ON public.organizations
   USING (id = app_current_org_id())
   WITH CHECK (id = app_current_org_id());
@@ -58,23 +60,20 @@ CREATE POLICY organizations_tenant_isolation ON public.organizations
 -- role_permissions: scoped through the owning role
 ALTER TABLE public.role_permissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.role_permissions FORCE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS role_permissions_tenant_isolation ON public.role_permissions;
 CREATE POLICY role_permissions_tenant_isolation ON public.role_permissions
   USING (EXISTS (
     SELECT 1 FROM public.roles r
     WHERE r.id = role_id AND r.organization_id = app_current_org_id()
   ));
 
--- users: global identities; readable when they share an org with the current tenant
+-- users: RLS on; identity-aware policies live in 0002_identity_policies.sql
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users FORCE ROW LEVEL SECURITY;
-CREATE POLICY users_same_org_read ON public.users FOR SELECT
-  USING (EXISTS (
-    SELECT 1 FROM public.memberships m
-    WHERE m.user_id = users.id AND m.organization_id = app_current_org_id()
-  ));
 
 -- permissions catalog: global, read-only reference data
 ALTER TABLE public.permissions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS permissions_read_all ON public.permissions;
 CREATE POLICY permissions_read_all ON public.permissions FOR SELECT USING (true);
 
 -- audit_logs: append-only — no UPDATE/DELETE policies exist, so both are denied by RLS.

@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["DATABASE_URL", "NEXT_PUBLIC_*", "SUPABASE_*", "NODE_ENV"],
+  "globalEnv": ["DATABASE_URL*", "NEXT_PUBLIC_*", "SUPABASE_*", "APP_DB_PASSWORD", "NODE_ENV"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
