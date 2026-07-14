@@ -1,0 +1,26 @@
+{
+  "name": "temple-os",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,css}\"",
+    "db:generate": "pnpm --filter @templeos/db db:generate"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1"
+  }
+}
