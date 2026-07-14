@@ -1,7 +1,7 @@
 import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import type { User } from '@templeos/auth';
-import type { MembershipSummary } from '@templeos/core';
+import type { MembershipSummary, TenantContext } from '@templeos/core';
 import { createClient } from './supabase/server';
 import { organizationService } from './services';
 
@@ -30,3 +30,26 @@ export const getActiveMembership = cache(
     return memberships[0] ?? null;
   },
 );
+
+export interface SessionWithTenant {
+  user: User;
+  membership: MembershipSummary;
+  ctx: TenantContext;
+}
+
+/** Auth + tenant guard for dashboard pages. Redirects when either is missing. */
+export async function requireTenantContext(): Promise<SessionWithTenant> {
+  const user = await requireUser();
+  const membership = await getActiveMembership(user.id);
+  if (!membership) redirect('/onboarding');
+  return {
+    user,
+    membership,
+    ctx: {
+      organizationId: membership.organizationId,
+      userId: user.id,
+      roleKey: membership.roleKey,
+      templeIds: null,
+    },
+  };
+}

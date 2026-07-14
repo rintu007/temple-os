@@ -36,6 +36,7 @@ BEGIN
     'domains',
     'roles',
     'memberships',
+    'daily_schedules',
     'audit_logs'
   ]
   LOOP

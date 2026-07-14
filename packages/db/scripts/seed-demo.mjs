@@ -13,10 +13,35 @@ const root = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? 'localhost';
 const hostname = `demo.${root}`;
 const sql = postgres(requireDatabaseUrl(), { prepare: false, max: 1, onnotice: () => {} });
 
+async function seedTemple(orgId) {
+  await sql.begin(async (tx) => {
+    await tx`SELECT set_config('app.current_org_id', ${orgId}, true)`;
+    const found = await tx`SELECT id FROM temples WHERE organization_id = ${orgId} AND slug = 'main'`;
+    if (found.length > 0) {
+      console.log('Demo temple already seeded');
+      return;
+    }
+    const templeId = randomUUID();
+    await tx`INSERT INTO temples (id, organization_id, name, slug, deity, city, state, country)
+             VALUES (${templeId}, ${orgId}, 'Sri Demo Kalibari', 'main', 'Maa Kali', 'Kolkata', 'West Bengal', 'IN')`;
+    for (const [title, start, end, note] of [
+      ['Mangala Aarti', '05:30', '06:00', 'Morning invocation'],
+      ['Pushpanjali', '09:00', '09:30', null],
+      ['Bhog & Prasad', '12:30', '13:30', 'Anna bhog distribution'],
+      ['Sandhya Aarti', '18:30', '19:15', 'Evening aarti with dhak'],
+    ]) {
+      await tx`INSERT INTO daily_schedules (id, organization_id, temple_id, title, start_time, end_time, description)
+               VALUES (${randomUUID()}, ${orgId}, ${templeId}, ${title}, ${start}, ${end}, ${note})`;
+    }
+    console.log('Seeded demo temple with daily schedule');
+  });
+}
+
 try {
   const existing = await sql`SELECT organization_id FROM domains WHERE hostname = ${hostname}`;
   if (existing.length > 0) {
     console.log(`Demo org already seeded (${hostname})`);
+    await seedTemple(existing[0].organization_id);
   } else {
     const orgId = randomUUID();
     await sql.begin(async (tx) => {
@@ -40,6 +65,8 @@ try {
                        ${JSON.stringify({ name: 'Sri Demo Kalibari', slug: 'demo', seed: true })}::jsonb)`;
     });
     console.log(`Seeded demo org at ${hostname}`);
+    const [row] = await sql`SELECT organization_id FROM domains WHERE hostname = ${hostname}`;
+    await seedTemple(row.organization_id);
   }
 } finally {
   await sql.end();

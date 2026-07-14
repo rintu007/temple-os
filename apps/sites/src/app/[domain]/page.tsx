@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { hostnameFromDomainParam, organizationService } from '@/lib/services';
+import { formatTime } from '@templeos/ui';
+import { hostnameFromDomainParam, organizationService, templeService } from '@/lib/services';
 
 interface TenantPageProps {
   params: Promise<{ domain: string }>;
@@ -19,29 +20,72 @@ export async function generateMetadata({ params }: TenantPageProps): Promise<Met
 }
 
 /**
- * Tenant homepage, resolved live from the database (host → domains → org).
- * The theme-driven CMS renderer with ISR replaces this placeholder in Phase 1.
+ * Tenant homepage, resolved live from the database. The theme-driven CMS
+ * renderer with ISR replaces this in Phase 1.
  */
 export default async function TenantHomePage({ params }: TenantPageProps) {
   const { domain } = await params;
   const site = await organizationService().resolveSiteByHostname(hostnameFromDomainParam(domain));
   if (!site) notFound();
 
+  const temples = await templeService().listPublicTemples(site.organizationId);
+
   return (
-    <main className="flex min-h-dvh items-center justify-center p-8">
-      <div className="w-full max-w-lg rounded-xl border border-border p-10 text-center shadow-sm">
-        <div className="mb-3 text-sm font-medium uppercase tracking-widest text-primary">
+    <main className="mx-auto max-w-3xl px-6 py-16">
+      <header className="text-center">
+        <div className="text-sm font-medium uppercase tracking-widest text-primary">
           Welcome to
         </div>
-        <h1 className="text-3xl font-semibold tracking-tight">{site.name}</h1>
-        <p className="mt-3 text-muted-foreground">
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight">{site.name}</h1>
+      </header>
+
+      {temples.length === 0 ? (
+        <p className="mt-12 text-center text-muted-foreground">
           Our website is being prepared. Soon you&apos;ll find our daily schedule, events,
           festivals and online donations here.
         </p>
-        <p className="mt-8 text-xs text-muted-foreground">
-          Powered by <span className="font-medium">TempleOS</span>
-        </p>
-      </div>
+      ) : (
+        <div className="mt-14 space-y-10">
+          {temples.map((temple) => (
+            <section key={temple.id} className="rounded-xl border border-border p-8">
+              <h2 className="text-2xl font-semibold tracking-tight">{temple.name}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {[temple.deity, temple.city].filter(Boolean).join(' · ')}
+              </p>
+
+              {temple.schedule.length > 0 ? (
+                <div className="mt-6">
+                  <h3 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                    Daily schedule
+                  </h3>
+                  <ul className="mt-3 divide-y divide-border">
+                    {temple.schedule.map((item) => (
+                      <li key={item.id} className="flex items-baseline justify-between gap-6 py-2.5">
+                        <div>
+                          <span className="font-medium">{item.title}</span>
+                          {item.description ? (
+                            <span className="ml-2 text-sm text-muted-foreground">
+                              {item.description}
+                            </span>
+                          ) : null}
+                        </div>
+                        <span className="whitespace-nowrap text-sm text-muted-foreground">
+                          {formatTime(item.startTime)}
+                          {item.endTime ? ` – ${formatTime(item.endTime)}` : ''}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </section>
+          ))}
+        </div>
+      )}
+
+      <footer className="mt-16 text-center text-xs text-muted-foreground">
+        Powered by <span className="font-medium">TempleOS</span>
+      </footer>
     </main>
   );
 }

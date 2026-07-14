@@ -1,8 +1,14 @@
-import { createOrganizationService, type OrganizationService } from '@templeos/core';
+import {
+  createOrganizationService,
+  createTempleService,
+  type OrganizationService,
+  type TempleService,
+} from '@templeos/core';
 import { getDb } from '@templeos/db';
 
-/** Lazy singleton — importing this module never touches env/DB at build time. */
+/** Lazy singletons — importing this module never touches env/DB at build time. */
 let _organizationService: OrganizationService | undefined;
+let _templeService: TempleService | undefined;
 
 export function organizationService(): OrganizationService {
   _organizationService ??= createOrganizationService({
@@ -10,6 +16,11 @@ export function organizationService(): OrganizationService {
     rootDomain: process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? 'localhost',
   });
   return _organizationService;
+}
+
+export function templeService(): TempleService {
+  _templeService ??= createTempleService({ db: getDb() });
+  return _templeService;
 }
 
 /** The middleware passes a subdomain slug or a full custom-domain hostname. */
