@@ -42,6 +42,7 @@ BEGIN
     'donation_categories',
     'donation_counters',
     'donations',
+    'events',
     'audit_logs'
   ]
   LOOP

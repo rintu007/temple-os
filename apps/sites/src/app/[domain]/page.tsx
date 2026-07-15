@@ -1,7 +1,18 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { formatTime } from '@templeos/ui';
-import { hostnameFromDomainParam, organizationService, templeService } from '@/lib/services';
+import { eventService, hostnameFromDomainParam, organizationService, templeService } from '@/lib/services';
+
+function formatEventWhen(startsAt: Date, endsAt: Date | null, allDay: boolean): string {
+  const dateOpts = { day: 'numeric', month: 'short', year: 'numeric' } as const;
+  const start = startsAt.toLocaleDateString('en-IN', dateOpts);
+  if (endsAt && endsAt.toDateString() !== startsAt.toDateString()) {
+    return `${start} – ${endsAt.toLocaleDateString('en-IN', dateOpts)}`;
+  }
+  if (allDay) return start;
+  const time = startsAt.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+  return `${start} · ${time}`;
+}
 
 interface TenantPageProps {
   params: Promise<{ domain: string }>;
@@ -28,7 +39,10 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
   const site = await organizationService().resolveSiteByHostname(hostnameFromDomainParam(domain));
   if (!site) notFound();
 
-  const temples = await templeService().listPublicTemples(site.organizationId);
+  const [temples, upcomingEvents] = await Promise.all([
+    templeService().listPublicTemples(site.organizationId),
+    eventService().listPublicUpcoming(site.organizationId, 8),
+  ]);
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
@@ -82,6 +96,41 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
           ))}
         </div>
       )}
+
+      {upcomingEvents.length > 0 ? (
+        <section className="mt-14">
+          <h2 className="text-center text-sm font-medium uppercase tracking-widest text-primary">
+            Upcoming events &amp; festivals
+          </h2>
+          <ul className="mt-6 space-y-3">
+            {upcomingEvents.map((e) => (
+              <li
+                key={e.id}
+                className="flex items-baseline justify-between gap-6 rounded-lg border border-border px-5 py-4"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 font-medium">
+                    {e.title}
+                    {e.kind === 'festival' ? (
+                      <span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-medium text-primary">
+                        Festival
+                      </span>
+                    ) : null}
+                  </div>
+                  {e.description || e.location ? (
+                    <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                      {[e.description, e.location].filter(Boolean).join(' · ')}
+                    </p>
+                  ) : null}
+                </div>
+                <span className="whitespace-nowrap text-sm text-muted-foreground">
+                  {formatEventWhen(e.startsAt, e.endsAt, e.allDay)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <footer className="mt-16 text-center text-xs text-muted-foreground">
         Powered by <span className="font-medium">TempleOS</span>

@@ -1,10 +1,12 @@
 import {
   createDevoteeService,
   createDonationService,
+  createEventService,
   createOrganizationService,
   createTempleService,
   type DevoteeService,
   type DonationService,
+  type EventService,
   type OrganizationService,
   type TempleService,
 } from '@templeos/core';
@@ -42,4 +44,11 @@ let _donationService: DonationService | undefined;
 export function donationService(): DonationService {
   _donationService ??= createDonationService({ db: getDb() });
   return _donationService;
+}
+
+let _eventService: EventService | undefined;
+
+export function eventService(): EventService {
+  _eventService ??= createEventService({ db: getDb() });
+  return _eventService;
 }

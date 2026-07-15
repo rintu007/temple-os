@@ -1,6 +1,8 @@
 import {
+  createEventService,
   createOrganizationService,
   createTempleService,
+  type EventService,
   type OrganizationService,
   type TempleService,
 } from '@templeos/core';
@@ -21,6 +23,13 @@ export function organizationService(): OrganizationService {
 export function templeService(): TempleService {
   _templeService ??= createTempleService({ db: getDb() });
   return _templeService;
+}
+
+let _eventService: EventService | undefined;
+
+export function eventService(): EventService {
+  _eventService ??= createEventService({ db: getDb() });
+  return _eventService;
 }
 
 /** The middleware passes a subdomain slug or a full custom-domain hostname. */

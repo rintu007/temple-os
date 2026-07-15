@@ -37,11 +37,30 @@ async function seedTemple(orgId) {
   });
 }
 
+async function seedEvents(orgId) {
+  await sql.begin(async (tx) => {
+    await tx`SELECT set_config('app.current_org_id', ${orgId}, true)`;
+    const found = await tx`SELECT id FROM events WHERE organization_id = ${orgId} LIMIT 1`;
+    if (found.length > 0) {
+      console.log('Demo events already seeded');
+      return;
+    }
+    const day = 86_400_000;
+    const at = (days, hours = 0) => new Date(Date.now() + days * day + hours * 3_600_000);
+    await tx`INSERT INTO events (id, organization_id, kind, title, description, location, starts_at, ends_at, all_day)
+             VALUES (${randomUUID()}, ${orgId}, 'event', 'Weekly Satsang', 'Bhajan and discourse, open to all', 'Main hall', ${at(5, 18)}, ${at(5, 20)}, false)`;
+    await tx`INSERT INTO events (id, organization_id, kind, title, description, starts_at, ends_at, all_day)
+             VALUES (${randomUUID()}, ${orgId}, 'festival', 'Janmashtami Celebration', 'Midnight abhishek and prasad distribution', ${at(21)}, ${at(22)}, true)`;
+    console.log('Seeded demo events');
+  });
+}
+
 try {
   const existing = await sql`SELECT organization_id FROM domains WHERE hostname = ${hostname}`;
   if (existing.length > 0) {
     console.log(`Demo org already seeded (${hostname})`);
     await seedTemple(existing[0].organization_id);
+    await seedEvents(existing[0].organization_id);
   } else {
     const orgId = randomUUID();
     await sql.begin(async (tx) => {
@@ -67,6 +86,7 @@ try {
     console.log(`Seeded demo org at ${hostname}`);
     const [row] = await sql`SELECT organization_id FROM domains WHERE hostname = ${hostname}`;
     await seedTemple(row.organization_id);
+    await seedEvents(row.organization_id);
   }
 } finally {
   await sql.end();

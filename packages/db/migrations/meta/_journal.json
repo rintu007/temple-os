@@ -29,6 +29,13 @@
       "when": 1784139720271,
       "tag": "0003_regular_warlock",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784140444685,
+      "tag": "0004_chubby_pestilence",
+      "breakpoints": true
     }
   ]
 }
