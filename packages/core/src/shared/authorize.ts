@@ -8,33 +8,50 @@ export type Permission =
   | 'temples:write'
   | 'schedules:write'
   | 'devotees:read'
-  | 'devotees:write';
+  | 'devotees:write'
+  | 'donations:read'
+  | 'donations:write'
+  | 'donations:void';
 
 /**
  * Interim role→permission map for the seeded system roles. Becomes a
  * table-driven lookup (roles/permissions/role_permissions) when custom roles
  * ship — the authorize() call sites do not change.
  */
+const ALL: readonly Permission[] = [
+  'organization:manage',
+  'temples:read',
+  'temples:write',
+  'schedules:write',
+  'devotees:read',
+  'devotees:write',
+  'donations:read',
+  'donations:write',
+  'donations:void',
+];
+
 const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
-  owner: [
-    'organization:manage',
+  owner: ALL,
+  admin: ALL,
+  manager: [
     'temples:read',
     'temples:write',
     'schedules:write',
     'devotees:read',
     'devotees:write',
+    'donations:read',
+    'donations:write',
+    'donations:void',
   ],
-  admin: [
-    'organization:manage',
+  staff: [
     'temples:read',
-    'temples:write',
     'schedules:write',
     'devotees:read',
     'devotees:write',
+    'donations:read',
+    'donations:write',
   ],
-  manager: ['temples:read', 'temples:write', 'schedules:write', 'devotees:read', 'devotees:write'],
-  staff: ['temples:read', 'schedules:write', 'devotees:read', 'devotees:write'],
-  viewer: ['temples:read', 'devotees:read'],
+  viewer: ['temples:read', 'devotees:read', 'donations:read'],
 };
 
 export function can(ctx: TenantContext, permission: Permission): boolean {

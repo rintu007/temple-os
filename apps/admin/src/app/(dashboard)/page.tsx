@@ -1,6 +1,7 @@
 import Link from 'next/link';
+import { formatMoney } from '@templeos/ui';
 import { requireTenantContext } from '@/lib/session';
-import { templeService } from '@/lib/services';
+import { donationService, templeService } from '@/lib/services';
 
 function siteUrl(slug: string): string {
   const root = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? 'localhost';
@@ -11,7 +12,10 @@ function siteUrl(slug: string): string {
 
 export default async function DashboardPage() {
   const { membership, ctx } = await requireTenantContext();
-  const temples = await templeService().listTemples(ctx);
+  const [temples, donationStats] = await Promise.all([
+    templeService().listTemples(ctx),
+    donationService().getStats(ctx),
+  ]);
   const templeCount = temples.ok ? temples.value.length : 0;
   const publicUrl = siteUrl(membership.organizationSlug);
 
@@ -43,6 +47,24 @@ export default async function DashboardPage() {
               <dd className="font-medium">{membership.currency}</dd>
             </div>
           </dl>
+        </section>
+
+        <section className="rounded-xl border border-border p-6">
+          <h2 className="text-sm font-medium text-muted-foreground">Donations this month</h2>
+          <p className="mt-4 text-3xl font-semibold">
+            {donationStats.ok
+              ? formatMoney(donationStats.value.monthTotal, donationStats.value.currency)
+              : '—'}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {donationStats.ok ? `${donationStats.value.monthCount} donation(s)` : ''}
+          </p>
+          <Link
+            href="/donations/new"
+            className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
+          >
+            Record a donation →
+          </Link>
         </section>
 
         <section className="rounded-xl border border-border p-6">

@@ -1,0 +1,155 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { Alert, Button, Input, cn, formatMoney } from '@templeos/ui';
+import { requireTenantContext } from '@/lib/session';
+import { donationService } from '@/lib/services';
+
+export const metadata: Metadata = { title: 'Donations' };
+
+interface DonationsPageProps {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}
+
+const METHOD_LABELS: Record<string, string> = {
+  cash: 'Cash',
+  upi: 'UPI',
+  bank_transfer: 'Bank',
+  card: 'Card',
+  online: 'Online',
+  other: 'Other',
+};
+
+export default async function DonationsPage({ searchParams }: DonationsPageProps) {
+  const { q, page } = await searchParams;
+  const { ctx } = await requireTenantContext();
+
+  const [result, stats] = await Promise.all([
+    donationService().listDonations(ctx, { search: q ?? '', page: page ?? 1 }),
+    donationService().getStats(ctx),
+  ]);
+  if (!result.ok) {
+    return <Alert tone="error">{result.error.message}</Alert>;
+  }
+  const { items, total, page: currentPage, pageSize } = result.value;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const pageHref = (p: number) =>
+    `/donations?${new URLSearchParams({ ...(q ? { q } : {}), page: String(p) })}`;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Donations</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Every donation gets a sequential receipt number. Records are never deleted — only
+            voided.
+          </p>
+        </div>
+        <Link
+          href="/donations/new"
+          className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90"
+        >
+          Record donation
+        </Link>
+      </div>
+
+      {stats.ok ? (
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-xl border border-border p-5">
+            <div className="text-sm text-muted-foreground">This month</div>
+            <div className="mt-1 text-2xl font-semibold">
+              {formatMoney(stats.value.monthTotal, stats.value.currency)}
+            </div>
+          </div>
+          <div className="rounded-xl border border-border p-5">
+            <div className="text-sm text-muted-foreground">Donations this month</div>
+            <div className="mt-1 text-2xl font-semibold">{stats.value.monthCount}</div>
+          </div>
+          <div className="rounded-xl border border-border p-5">
+            <div className="text-sm text-muted-foreground">All time</div>
+            <div className="mt-1 text-2xl font-semibold">
+              {formatMoney(stats.value.allTimeTotal, stats.value.currency)}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <form action="/donations" className="flex max-w-md gap-2">
+        <Input name="q" placeholder="Search by donor or receipt no…" defaultValue={q ?? ''} />
+        <Button type="submit" variant="outline">
+          Search
+        </Button>
+      </form>
+
+      {items.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border p-12 text-center">
+          <h2 className="font-medium">{q ? 'No matches' : 'No donations yet'}</h2>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+            {q
+              ? `Nothing found for “${q}”.`
+              : 'Record your first donation — cash, UPI or bank transfer.'}
+          </p>
+        </div>
+      ) : (
+        <>
+          <ul className="divide-y divide-border rounded-xl border border-border">
+            {items.map((d) => (
+              <li key={d.id}>
+                <Link
+                  href={`/donations/${d.id}`}
+                  className={cn(
+                    'flex items-center justify-between gap-4 p-4 hover:bg-muted/50',
+                    d.status === 'void' && 'opacity-50',
+                  )}
+                >
+                  <div className="min-w-0">
+                    <div className="font-medium">
+                      {d.donorName}
+                      {d.status === 'void' ? (
+                        <span className="ml-2 rounded bg-muted px-1.5 py-0.5 text-xs uppercase">
+                          void
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mt-0.5 truncate text-sm text-muted-foreground">
+                      #{d.receiptNumber} · {METHOD_LABELS[d.method] ?? d.method}
+                      {d.categoryName ? ` · ${d.categoryName}` : ''} ·{' '}
+                      {d.donatedAt.toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </div>
+                  </div>
+                  <div className="whitespace-nowrap font-semibold">
+                    {formatMoney(d.amount, d.currency)}
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">
+                Page {currentPage} of {totalPages} · {total} total
+              </span>
+              <div className="flex gap-2">
+                {currentPage > 1 && (
+                  <Link href={pageHref(currentPage - 1)} className="text-primary hover:underline">
+                    ← Previous
+                  </Link>
+                )}
+                {currentPage < totalPages && (
+                  <Link href={pageHref(currentPage + 1)} className="text-primary hover:underline">
+                    Next →
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}

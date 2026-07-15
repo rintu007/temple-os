@@ -39,6 +39,9 @@ BEGIN
     'daily_schedules',
     'families',
     'devotees',
+    'donation_categories',
+    'donation_counters',
+    'donations',
     'audit_logs'
   ]
   LOOP

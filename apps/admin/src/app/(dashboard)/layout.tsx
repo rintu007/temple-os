@@ -29,6 +29,9 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               <Link href="/devotees" className="rounded-md px-3 py-1.5 hover:bg-muted">
                 Devotees
               </Link>
+              <Link href="/donations" className="rounded-md px-3 py-1.5 hover:bg-muted">
+                Donations
+              </Link>
             </nav>
           </div>
           <div className="flex items-center gap-4">
