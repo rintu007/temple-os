@@ -25,17 +25,19 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isAuthPage = AUTH_PAGES.some((p) => path.startsWith(p));
   const isAuthFlow = path.startsWith('/auth'); // callback/confirm routes
+  const isInvitePage = path.startsWith('/invite'); // viewable signed-out
 
-  if (!user && !isAuthPage && !isAuthFlow) {
+  if (!user && !isAuthPage && !isAuthFlow && !isInvitePage) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
-    url.search = '';
+    url.search = path !== '/' ? `?next=${encodeURIComponent(path)}` : '';
     return NextResponse.redirect(url);
   }
 
   if (user && isAuthPage) {
+    const next = request.nextUrl.searchParams.get('next');
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    url.pathname = next?.startsWith('/') ? next : '/';
     url.search = '';
     return NextResponse.redirect(url);
   }

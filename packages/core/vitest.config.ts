@@ -16,5 +16,9 @@ export default defineConfig({
     environment: 'node',
     // Live-db tests share one connection budget; keep them sequential.
     fileParallelism: false,
+    // Tests run against the real Supabase pooler — multi-second latency
+    // spikes and occasional 30s+ stalls are normal from a home network.
+    testTimeout: 90_000,
+    hookTimeout: 90_000,
   },
 });

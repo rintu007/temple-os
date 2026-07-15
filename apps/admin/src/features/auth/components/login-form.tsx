@@ -5,11 +5,12 @@ import { Alert, Button, Input, Label } from '@templeos/ui';
 import { initialFormState } from '@/lib/form-state';
 import { signInAction } from '../actions';
 
-export function LoginForm() {
+export function LoginForm({ next }: { next?: string }) {
   const [state, action, pending] = useActionState(signInAction, initialFormState);
 
   return (
     <form action={action} className="space-y-4">
+      {next ? <input type="hidden" name="next" value={next} /> : null}
       {state.error ? <Alert tone="error">{state.error}</Alert> : null}
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>

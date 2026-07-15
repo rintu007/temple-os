@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:apply-rls": "node scripts/run-sql.mjs sql/0001_rls_policies.sql sql/0002_identity_policies.sql",
+    "db:apply-rls": "node scripts/run-sql.mjs sql/0001_rls_policies.sql sql/0002_identity_policies.sql sql/0003_invitation_policies.sql",
     "db:verify-rls": "node scripts/verify-rls.mjs",
     "db:seed-demo": "node scripts/seed-demo.mjs",
     "db:studio": "drizzle-kit studio"

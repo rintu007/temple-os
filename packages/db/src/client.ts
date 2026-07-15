@@ -11,8 +11,15 @@ export function createDb(connectionString?: string) {
   if (!url) {
     throw new Error('DATABASE_URL is not set');
   }
-  // prepare:false — required behind Supabase's transaction-mode pooler (pgBouncer)
-  const client = postgres(url, { prepare: false });
+  // prepare:false — required behind Supabase's pooler (pgBouncer).
+  // Small pool + idle recycling: pooler slots are a shared, scarce resource;
+  // serverless instances and test files each get their own client.
+  const client = postgres(url, {
+    prepare: false,
+    max: 4,
+    idle_timeout: 20,
+    connect_timeout: 30,
+  });
   return drizzle(client, { schema, casing: 'snake_case' });
 }
 
@@ -51,6 +58,22 @@ export async function withTenantContext<T>(
       SELECT set_config('app.current_org_id', ${gucs.organizationId ?? ''}, true),
              set_config('app.current_user_id', ${gucs.userId ?? ''}, true)
     `);
+    return fn(tx);
+  });
+}
+
+/**
+ * Opens a transaction scoped to one invitation token: the invitations
+ * token-read policy makes exactly that row visible. Used by the invite
+ * acceptance flow before any membership exists.
+ */
+export async function withInviteToken<T>(
+  db: Db,
+  token: string,
+  fn: (tx: Tx) => Promise<T>,
+): Promise<T> {
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT set_config('app.invite_token', ${token}, true)`);
     return fn(tx);
   });
 }

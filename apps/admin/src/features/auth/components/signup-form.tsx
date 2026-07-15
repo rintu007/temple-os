@@ -5,7 +5,7 @@ import { Alert, Button, Input, Label } from '@templeos/ui';
 import { initialFormState } from '@/lib/form-state';
 import { signUpAction } from '../actions';
 
-export function SignupForm() {
+export function SignupForm({ next }: { next?: string }) {
   const [state, action, pending] = useActionState(signUpAction, initialFormState);
 
   if (state.message) {
@@ -14,6 +14,7 @@ export function SignupForm() {
 
   return (
     <form action={action} className="space-y-4">
+      {next ? <input type="hidden" name="next" value={next} /> : null}
       {state.error ? <Alert tone="error">{state.error}</Alert> : null}
       <div className="space-y-2">
         <Label htmlFor="fullName">Your name</Label>

@@ -16,6 +16,12 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
   }
   const { fullName, email, password } = parsed.data;
 
+  const rawNext = formData.get('next');
+  const next =
+    typeof rawNext === 'string' && rawNext.startsWith('/') && !rawNext.startsWith('//')
+      ? rawNext
+      : '/onboarding';
+
   const supabase = await createClient();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
   const { data, error } = await supabase.auth.signUp({
@@ -23,7 +29,7 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
     password,
     options: {
       data: { full_name: fullName },
-      emailRedirectTo: `${appUrl}/auth/callback?next=/onboarding`,
+      emailRedirectTo: `${appUrl}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
   if (error) {
@@ -34,7 +40,7 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
       message: 'Almost there — check your inbox and click the confirmation link to continue.',
     };
   }
-  redirect('/onboarding');
+  redirect(next);
 }
 
 export async function signInAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -46,12 +52,18 @@ export async function signInAction(_prev: FormState, formData: FormData): Promis
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' };
   }
 
+  const rawNext = formData.get('next');
+  const next =
+    typeof rawNext === 'string' && rawNext.startsWith('/') && !rawNext.startsWith('//')
+      ? rawNext
+      : '/';
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
     return { error: error.message };
   }
-  redirect('/');
+  redirect(next);
 }
 
 export async function signOutAction(): Promise<void> {

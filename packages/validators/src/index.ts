@@ -5,3 +5,4 @@ export * from './temple';
 export * from './devotee';
 export * from './donation';
 export * from './event';
+export * from './invitation';
