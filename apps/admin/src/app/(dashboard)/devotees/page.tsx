@@ -31,12 +31,20 @@ export default async function DevoteesPage({ searchParams }: DevoteesPageProps) 
             {total} active devotee{total === 1 ? '' : 's'} in your community.
           </p>
         </div>
-        <Link
-          href="/devotees/new"
-          className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90"
-        >
-          Add devotee
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/devotees/import"
+            className="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-muted"
+          >
+            Import CSV
+          </Link>
+          <Link
+            href="/devotees/new"
+            className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90"
+          >
+            Add devotee
+          </Link>
+        </div>
       </div>
 
       <form action="/devotees" className="flex max-w-md gap-2">

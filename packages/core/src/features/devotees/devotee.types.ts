@@ -21,3 +21,15 @@ export interface DevoteePage {
   page: number;
   pageSize: number;
 }
+
+export interface ImportRowError {
+  /** 1-based line number in the uploaded file. */
+  line: number;
+  message: string;
+}
+
+export interface ImportResult {
+  imported: number;
+  duplicates: number;
+  errors: ImportRowError[];
+}

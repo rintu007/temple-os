@@ -1,4 +1,4 @@
-import { and, asc, count, eq, ilike, isNull, or, sql, type SQL } from 'drizzle-orm';
+import { and, asc, count, eq, ilike, inArray, isNull, or, sql, type SQL } from 'drizzle-orm';
 import {
   auditLogs,
   devotees,
@@ -183,6 +183,81 @@ export function createDevoteeRepository(db: Db) {
           after: { fullName: after.fullName, phone: after.phone },
         });
         return after;
+      });
+    },
+
+    /**
+     * Bulk import in one transaction. Skips rows whose phone or email already
+     * exists in the org (or repeats within the batch). Families are created
+     * once per distinct name.
+     */
+    async importMany(ctx: TenantContext, inputs: DevoteeInput[]) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const phones = inputs.map((i) => i.phone).filter((p): p is string => Boolean(p));
+        const emails = inputs.map((i) => i.email).filter((e): e is string => Boolean(e));
+
+        const seenPhones = new Set<string>();
+        const seenEmails = new Set<string>();
+        if (phones.length > 0 || emails.length > 0) {
+          const existing = await tx
+            .select({ phone: devotees.phone, email: devotees.email })
+            .from(devotees)
+            .where(
+              and(
+                eq(devotees.organizationId, ctx.organizationId),
+                notDeleted,
+                or(
+                  phones.length > 0 ? inArray(devotees.phone, phones) : undefined,
+                  emails.length > 0 ? inArray(devotees.email, emails) : undefined,
+                ),
+              ),
+            );
+          for (const row of existing) {
+            if (row.phone) seenPhones.add(row.phone);
+            if (row.email) seenEmails.add(row.email);
+          }
+        }
+
+        const familyCache = new Map<string, string>();
+        let imported = 0;
+        let duplicates = 0;
+
+        for (const input of inputs) {
+          if ((input.phone && seenPhones.has(input.phone)) || (input.email && seenEmails.has(input.email))) {
+            duplicates += 1;
+            continue;
+          }
+
+          let familyId: string | null = null;
+          if (input.familyName) {
+            const key = input.familyName.toLowerCase();
+            familyId =
+              familyCache.get(key) ??
+              (await findOrCreateFamily(tx, ctx.organizationId, input.familyName));
+            familyCache.set(key, familyId);
+          }
+
+          await tx.insert(devotees).values({
+            id: newId(),
+            organizationId: ctx.organizationId,
+            familyId,
+            ...devoteeValues(input),
+          });
+          if (input.phone) seenPhones.add(input.phone);
+          if (input.email) seenEmails.add(input.email);
+          imported += 1;
+        }
+
+        if (imported > 0) {
+          await tx.insert(auditLogs).values({
+            organizationId: ctx.organizationId,
+            actorUserId: ctx.userId,
+            action: 'devotees.imported',
+            entityType: 'devotee',
+            after: { imported, duplicates },
+          });
+        }
+        return { imported, duplicates };
       });
     },
 
