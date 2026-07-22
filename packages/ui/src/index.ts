@@ -2,5 +2,6 @@ export { cn } from './cn';
 export { formatMoney, formatTime } from './format';
 export { Button, type ButtonProps } from './button';
 export { Input, Select } from './input';
+export { Textarea } from './textarea';
 export { Label } from './label';
 export { Alert, type AlertProps } from './alert';

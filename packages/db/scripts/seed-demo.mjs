@@ -94,6 +94,26 @@ async function seedMembershipPlans(orgId) {
   });
 }
 
+async function seedSiteContent(orgId) {
+  await sql.begin(async (tx) => {
+    await tx`SELECT set_config('app.current_org_id', ${orgId}, true)`;
+    const found = await tx`SELECT organization_id FROM site_settings WHERE organization_id = ${orgId}`;
+    if (found.length > 0) {
+      console.log('Demo site content already seeded');
+      return;
+    }
+    await tx`INSERT INTO site_settings (organization_id, tagline, about_text, history_text, contact_email, contact_phone, address_text)
+             VALUES (${orgId},
+                     'A home of devotion in the heart of Kolkata',
+                     ${'Sri Demo Kalibari is dedicated to Maa Kali and serves devotees with daily worship, prasad distribution and festival celebrations.\n\nAll are welcome, every day of the year.'},
+                     ${'Founded in 1952 by local devotees, the temple began as a small shrine under a banyan tree and has grown into a beloved community institution.'},
+                     'office@demokalibari.example',
+                     '+91 90000 00000',
+                     ${'12 Temple Road\nKalighat, Kolkata 700026\nWest Bengal, India'})`;
+    console.log('Seeded demo site content');
+  });
+}
+
 try {
   const existing = await sql`SELECT organization_id FROM domains WHERE hostname = ${hostname}`;
   if (existing.length > 0) {
@@ -102,6 +122,7 @@ try {
     await seedEvents(existing[0].organization_id);
     await seedPujaTypes(existing[0].organization_id);
     await seedMembershipPlans(existing[0].organization_id);
+    await seedSiteContent(existing[0].organization_id);
   } else {
     const orgId = randomUUID();
     await sql.begin(async (tx) => {
@@ -130,6 +151,7 @@ try {
     await seedEvents(row.organization_id);
     await seedPujaTypes(row.organization_id);
     await seedMembershipPlans(row.organization_id);
+    await seedSiteContent(row.organization_id);
   }
 } finally {
   await sql.end();

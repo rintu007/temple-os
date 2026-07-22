@@ -198,9 +198,6 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
         </div>
       </section>
 
-      <footer className="mt-16 text-center text-xs text-muted-foreground">
-        Powered by <span className="font-medium">TempleOS</span>
-      </footer>
     </main>
   );
 }

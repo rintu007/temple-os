@@ -41,6 +41,8 @@ BEGIN
     'puja_bookings',
     'membership_plans',
     'membership_subscriptions',
+    'site_settings',
+    'contact_messages',
     'families',
     'devotees',
     'donation_categories',

@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import {
   createEventService,
   createMembershipService,
@@ -5,12 +6,14 @@ import {
   createPaymentService,
   createPujaService,
   createTempleService,
+  createWebsiteService,
   type EventService,
   type MembershipService,
   type OrganizationService,
   type PaymentService,
   type PujaService,
   type TempleService,
+  type WebsiteService,
 } from '@templeos/core';
 import { getDb } from '@templeos/db';
 
@@ -58,6 +61,18 @@ export function membershipService(): MembershipService {
   _membershipService ??= createMembershipService({ db: getDb() });
   return _membershipService;
 }
+
+let _websiteService: WebsiteService | undefined;
+
+export function websiteService(): WebsiteService {
+  _websiteService ??= createWebsiteService({ db: getDb() });
+  return _websiteService;
+}
+
+/** Per-request memoized host→tenant resolution (layout + page share one query). */
+export const resolveSite = cache((domainParam: string) =>
+  organizationService().resolveSiteByHostname(hostnameFromDomainParam(domainParam)),
+);
 
 /** The middleware passes a subdomain slug or a full custom-domain hostname. */
 export function hostnameFromDomainParam(domainParam: string): string {

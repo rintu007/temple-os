@@ -64,6 +64,13 @@
       "when": 1784741504511,
       "tag": "0008_next_the_fury",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784742949980,
+      "tag": "0009_cuddly_firebird",
+      "breakpoints": true
     }
   ]
 }
