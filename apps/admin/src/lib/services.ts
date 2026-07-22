@@ -2,6 +2,7 @@ import {
   createDevoteeService,
   createDonationService,
   createEventService,
+  createGalleryService,
   createMemberService,
   createMembershipService,
   createOrganizationService,
@@ -12,6 +13,7 @@ import {
   type DevoteeService,
   type DonationService,
   type EventService,
+  type GalleryService,
   type MemberService,
   type MembershipService,
   type OrganizationService,
@@ -96,4 +98,11 @@ let _websiteService: WebsiteService | undefined;
 export function websiteService(): WebsiteService {
   _websiteService ??= createWebsiteService({ db: getDb() });
   return _websiteService;
+}
+
+let _galleryService: GalleryService | undefined;
+
+export function galleryService(): GalleryService {
+  _galleryService ??= createGalleryService({ db: getDb() });
+  return _galleryService;
 }

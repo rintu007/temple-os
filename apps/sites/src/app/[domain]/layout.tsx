@@ -29,6 +29,9 @@ export default async function TenantLayout({ children, params }: TenantLayoutPro
             <Link href="/about" className="rounded-md px-3 py-1.5 hover:bg-muted">
               About
             </Link>
+            <Link href="/gallery" className="rounded-md px-3 py-1.5 hover:bg-muted">
+              Gallery
+            </Link>
             <Link href="/contact" className="rounded-md px-3 py-1.5 hover:bg-muted">
               Contact
             </Link>

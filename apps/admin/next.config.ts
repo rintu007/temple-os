@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
     '@templeos/ui',
     '@templeos/validators',
   ],
+  experimental: {
+    serverActions: {
+      // Gallery image uploads go through a server action (5 MB image cap + form overhead)
+      bodySizeLimit: '8mb',
+    },
+  },
 };
 
 export default nextConfig;

@@ -43,17 +43,25 @@ export default async function WebsitePage() {
             </a>
           </p>
         </div>
-        <Link
-          href="/website/messages"
-          className="relative inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-muted"
-        >
-          Messages
-          {newCount > 0 ? (
-            <span className="ml-2 rounded-full bg-primary px-1.5 py-0.5 text-xs font-semibold text-primary-foreground">
-              {newCount}
-            </span>
-          ) : null}
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/website/gallery"
+            className="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-muted"
+          >
+            Gallery
+          </Link>
+          <Link
+            href="/website/messages"
+            className="relative inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-muted"
+          >
+            Messages
+            {newCount > 0 ? (
+              <span className="ml-2 rounded-full bg-primary px-1.5 py-0.5 text-xs font-semibold text-primary-foreground">
+                {newCount}
+              </span>
+            ) : null}
+          </Link>
+        </div>
       </div>
 
       <div className="rounded-xl border border-border p-6">

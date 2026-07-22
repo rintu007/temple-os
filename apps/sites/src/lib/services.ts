@@ -1,6 +1,7 @@
 import { cache } from 'react';
 import {
   createEventService,
+  createGalleryService,
   createMembershipService,
   createOrganizationService,
   createPaymentService,
@@ -8,6 +9,7 @@ import {
   createTempleService,
   createWebsiteService,
   type EventService,
+  type GalleryService,
   type MembershipService,
   type OrganizationService,
   type PaymentService,
@@ -67,6 +69,13 @@ let _websiteService: WebsiteService | undefined;
 export function websiteService(): WebsiteService {
   _websiteService ??= createWebsiteService({ db: getDb() });
   return _websiteService;
+}
+
+let _galleryService: GalleryService | undefined;
+
+export function galleryService(): GalleryService {
+  _galleryService ??= createGalleryService({ db: getDb() });
+  return _galleryService;
 }
 
 /** Per-request memoized host→tenant resolution (layout + page share one query). */

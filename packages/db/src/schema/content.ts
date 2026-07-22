@@ -23,6 +23,21 @@ export const siteSettings = pgTable('site_settings', {
   ...timestamps,
 });
 
+/** Gallery images; the binary lives in Supabase Storage at storagePath. */
+export const galleryImages = pgTable(
+  'gallery_images',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    storagePath: text().notNull(),
+    caption: text(),
+    ...timestamps,
+  },
+  (t) => [index('gallery_images_org_idx').on(t.organizationId)],
+);
+
 export const contactMessageStatusEnum = pgEnum('contact_message_status', ['new', 'read']);
 
 /** Messages submitted through the public contact form. */

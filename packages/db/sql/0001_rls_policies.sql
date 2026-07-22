@@ -43,6 +43,7 @@ BEGIN
     'membership_subscriptions',
     'site_settings',
     'contact_messages',
+    'gallery_images',
     'families',
     'devotees',
     'donation_categories',
