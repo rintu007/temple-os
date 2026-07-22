@@ -325,7 +325,7 @@ export function createMembershipRepository(db: Db) {
             .where(eq(donations.reference, providerPaymentId))
             .limit(1);
           if (existing) {
-            return { kind: 'ok' as const, subscription, donation: existing };
+            return { kind: 'ok' as const, subscription, donation: existing, alreadyPaid: true };
           }
         }
 
@@ -378,7 +378,7 @@ export function createMembershipRepository(db: Db) {
           },
         });
 
-        return { kind: 'ok' as const, subscription: activated ?? subscription, donation };
+        return { kind: 'ok' as const, subscription: activated ?? subscription, donation, alreadyPaid: false };
       });
     },
   };

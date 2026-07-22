@@ -93,6 +93,7 @@ export function createPaymentService({ db }: { db: Db }) {
         amount: d.amount,
         currency: d.currency,
         donorName: d.donorName,
+        alreadyPaid: result.alreadyPaid,
       });
     },
   };

@@ -34,6 +34,7 @@ Set on **both** projects unless noted. Use *Production* scope (Preview can share
 | `RESEND_API_KEY` | `re_…` | receipts, invites, contact notifications |
 | `RESEND_FROM_EMAIL` | optional | after verifying a domain in Resend; sandbox sender otherwise (sandbox only delivers to your own inbox) |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | `rzp_test_…` | test mode until go-live |
+| `RAZORPAY_WEBHOOK_SECRET` | random string | sites only. Same value entered when registering the webhook in the Razorpay dashboard: URL `https://<sites-host>/api/webhooks/razorpay`, event `payment.captured`. Server-side confirmation fallback when the devotee closes the tab before Checkout's handler runs. |
 | `SUPABASE_SERVICE_ROLE_KEY` | `sb_secret_…` | gallery uploads; safe server-side only |
 
 **Never set `DATABASE_URL_ADMIN` on Vercel** — the BYPASSRLS role is for local

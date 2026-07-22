@@ -293,7 +293,7 @@ export function createPujaRepository(db: Db) {
             .where(eq(donations.reference, providerPaymentId))
             .limit(1);
           if (existing) {
-            return { kind: 'ok' as const, booking, donation: existing };
+            return { kind: 'ok' as const, booking, donation: existing, alreadyPaid: true };
           }
         }
 
@@ -336,7 +336,7 @@ export function createPujaRepository(db: Db) {
           },
         });
 
-        return { kind: 'ok' as const, booking: confirmed ?? booking, donation };
+        return { kind: 'ok' as const, booking: confirmed ?? booking, donation, alreadyPaid: false };
       });
     },
   };

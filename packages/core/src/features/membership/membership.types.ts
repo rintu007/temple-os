@@ -56,4 +56,6 @@ export interface ConfirmedJoin {
   amount: string;
   currency: 'INR' | 'BDT';
   expiresOn: string | null;
+  /** True when another path (client confirm or webhook) already recorded it. */
+  alreadyPaid: boolean;
 }

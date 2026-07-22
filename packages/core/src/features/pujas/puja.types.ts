@@ -51,4 +51,6 @@ export interface ConfirmedBooking {
   amount: string;
   currency: 'INR' | 'BDT';
   devoteeName: string;
+  /** True when another path (client confirm or webhook) already recorded it. */
+  alreadyPaid: boolean;
 }

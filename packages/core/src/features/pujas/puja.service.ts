@@ -237,6 +237,7 @@ export function createPujaService({ db }: { db: Db }) {
         amount: result.donation.amount,
         currency: result.donation.currency,
         devoteeName: result.booking.devoteeName,
+        alreadyPaid: result.alreadyPaid,
       });
     },
   };

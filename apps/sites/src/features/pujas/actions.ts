@@ -50,7 +50,8 @@ export async function confirmBooking(
   const result = await pujaService().confirmBooking(organizationId, input);
   if (!result.ok) return { ok: false, error: result.error.message };
 
-  if (input.email) {
+  // Skip the email when the webhook already recorded (and emailed) this payment.
+  if (input.email && !result.value.alreadyPaid) {
     const { subject, html } = renderDonationReceiptEmail({
       organizationName,
       donorName: result.value.devoteeName,

@@ -72,7 +72,9 @@ export function createPaymentOrderRepository(db: Db) {
             .from(donations)
             .where(eq(donations.id, order.donationId))
             .limit(1);
-          if (existing) return { kind: 'ok' as const, donation: existing };
+          if (existing) {
+            return { kind: 'ok' as const, donation: existing, email: order.email, alreadyPaid: true };
+          }
         }
 
         const [org] = await tx
@@ -122,7 +124,7 @@ export function createPaymentOrderRepository(db: Db) {
           },
         });
 
-        return { kind: 'ok' as const, donation };
+        return { kind: 'ok' as const, donation, email: order.email, alreadyPaid: false };
       });
     },
   };

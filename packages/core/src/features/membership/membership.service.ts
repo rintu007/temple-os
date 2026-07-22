@@ -238,6 +238,7 @@ export function createMembershipService({ db }: { db: Db }) {
         amount: result.donation.amount,
         currency: result.donation.currency,
         expiresOn: result.subscription.expiresOn,
+        alreadyPaid: result.alreadyPaid,
       });
     },
   };

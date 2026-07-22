@@ -11,4 +11,7 @@ export interface ConfirmedDonation {
   amount: string;
   currency: 'INR' | 'BDT';
   donorName: string;
+  /** True when this confirm was a no-op because another path (client confirm
+   *  or webhook) already recorded the payment — callers skip the receipt email. */
+  alreadyPaid: boolean;
 }

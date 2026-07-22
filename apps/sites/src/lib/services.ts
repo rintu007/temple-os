@@ -7,6 +7,7 @@ import {
   createPaymentService,
   createPujaService,
   createTempleService,
+  createWebhookService,
   createWebsiteService,
   type EventService,
   type GalleryService,
@@ -15,6 +16,7 @@ import {
   type PaymentService,
   type PujaService,
   type TempleService,
+  type WebhookService,
   type WebsiteService,
 } from '@templeos/core';
 import { getDb } from '@templeos/db';
@@ -62,6 +64,13 @@ let _membershipService: MembershipService | undefined;
 export function membershipService(): MembershipService {
   _membershipService ??= createMembershipService({ db: getDb() });
   return _membershipService;
+}
+
+let _webhookService: WebhookService | undefined;
+
+export function webhookService(): WebhookService {
+  _webhookService ??= createWebhookService({ db: getDb() });
+  return _webhookService;
 }
 
 let _websiteService: WebsiteService | undefined;
