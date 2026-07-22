@@ -1,5 +1,15 @@
 # TempleOS — Vercel Deployment Runbook
 
+## Current deployment (since 2026-07-23)
+
+- Admin: **https://templeos-admin.vercel.app** (Vercel team `rintu-kumar-chowdhurys-projects`)
+- Sites: **https://templeos-sites.vercel.app** — serves the demo org via a
+  `domains`-table custom-domain row (interim mode below); `NEXT_PUBLIC_ROOT_DOMAIN`
+  is set to `templeos.com` ahead of the real domain purchase.
+- Deploys are CLI-driven (`vercel --prod`), not git-triggered — connecting the
+  GitHub repo requires installing the Vercel GitHub app (Dashboard → Project →
+  Settings → Git → Connect), after which every push to `main` auto-deploys.
+
 Two Vercel projects from one repo (`rintu007/temple-os`):
 
 | Project | Root Directory | Serves |
