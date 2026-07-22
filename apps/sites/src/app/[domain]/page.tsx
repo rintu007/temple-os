@@ -2,11 +2,13 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { formatTime } from '@templeos/ui';
 import { DonateForm } from '@/features/donations/components/donate-form';
+import { BookPuja } from '@/features/pujas/components/book-puja';
 import {
   eventService,
   hostnameFromDomainParam,
   organizationService,
   paymentService,
+  pujaService,
   templeService,
 } from '@/lib/services';
 
@@ -46,9 +48,10 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
   const site = await organizationService().resolveSiteByHostname(hostnameFromDomainParam(domain));
   if (!site) notFound();
 
-  const [temples, upcomingEvents] = await Promise.all([
+  const [temples, upcomingEvents, pujaTypes] = await Promise.all([
     templeService().listPublicTemples(site.organizationId),
     eventService().listPublicUpcoming(site.organizationId, 8),
+    pujaService().listPublicPujaTypes(site.organizationId),
   ]);
   const checkoutAvailable = paymentService().isOnlineCheckoutAvailable(site.currency);
 
@@ -137,6 +140,22 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
               </li>
             ))}
           </ul>
+        </section>
+      ) : null}
+
+      {checkoutAvailable && pujaTypes.length > 0 ? (
+        <section id="book-puja" className="mt-14">
+          <h2 className="text-center text-sm font-medium uppercase tracking-widest text-primary">
+            Book a Puja
+          </h2>
+          <div className="mx-auto mt-6 max-w-md rounded-xl border border-border p-8">
+            <BookPuja
+              organizationId={site.organizationId}
+              organizationName={site.name}
+              currency={site.currency}
+              pujaTypes={pujaTypes}
+            />
+          </div>
         </section>
       ) : null}
 

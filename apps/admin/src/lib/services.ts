@@ -4,12 +4,14 @@ import {
   createEventService,
   createMemberService,
   createOrganizationService,
+  createPujaService,
   createTempleService,
   type DevoteeService,
   type DonationService,
   type EventService,
   type MemberService,
   type OrganizationService,
+  type PujaService,
   type TempleService,
 } from '@templeos/core';
 import { getDb } from '@templeos/db';
@@ -60,4 +62,11 @@ let _memberService: MemberService | undefined;
 export function memberService(): MemberService {
   _memberService ??= createMemberService({ db: getDb() });
   return _memberService;
+}
+
+let _pujaService: PujaService | undefined;
+
+export function pujaService(): PujaService {
+  _pujaService ??= createPujaService({ db: getDb() });
+  return _pujaService;
 }

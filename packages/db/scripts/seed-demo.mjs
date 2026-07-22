@@ -55,12 +55,33 @@ async function seedEvents(orgId) {
   });
 }
 
+async function seedPujaTypes(orgId) {
+  await sql.begin(async (tx) => {
+    await tx`SELECT set_config('app.current_org_id', ${orgId}, true)`;
+    const found = await tx`SELECT id FROM puja_types WHERE organization_id = ${orgId} LIMIT 1`;
+    if (found.length > 0) {
+      console.log('Demo puja types already seeded');
+      return;
+    }
+    for (const [name, price, description] of [
+      ['Satyanarayan Puja', '1100.00', 'Full puja with prasad, performed on your behalf'],
+      ['Archana', '251.00', 'Name-gotra archana in your name'],
+      ['Annadanam Sponsorship', '2100.00', 'Sponsor a day of prasad distribution'],
+    ]) {
+      await tx`INSERT INTO puja_types (id, organization_id, name, description, price, currency, is_active)
+               VALUES (${randomUUID()}, ${orgId}, ${name}, ${description}, ${price}, 'INR', true)`;
+    }
+    console.log('Seeded demo puja types');
+  });
+}
+
 try {
   const existing = await sql`SELECT organization_id FROM domains WHERE hostname = ${hostname}`;
   if (existing.length > 0) {
     console.log(`Demo org already seeded (${hostname})`);
     await seedTemple(existing[0].organization_id);
     await seedEvents(existing[0].organization_id);
+    await seedPujaTypes(existing[0].organization_id);
   } else {
     const orgId = randomUUID();
     await sql.begin(async (tx) => {
@@ -87,6 +108,7 @@ try {
     const [row] = await sql`SELECT organization_id FROM domains WHERE hostname = ${hostname}`;
     await seedTemple(row.organization_id);
     await seedEvents(row.organization_id);
+    await seedPujaTypes(row.organization_id);
   }
 } finally {
   await sql.end();

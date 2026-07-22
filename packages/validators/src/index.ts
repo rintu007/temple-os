@@ -7,3 +7,4 @@ export * from './donation';
 export * from './event';
 export * from './invitation';
 export * from './payment';
+export * from './puja';

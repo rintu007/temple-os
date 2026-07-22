@@ -37,6 +37,8 @@ BEGIN
     'roles',
     'memberships',
     'daily_schedules',
+    'puja_types',
+    'puja_bookings',
     'families',
     'devotees',
     'donation_categories',

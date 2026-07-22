@@ -13,7 +13,9 @@ export type Permission =
   | 'donations:write'
   | 'donations:void'
   | 'events:read'
-  | 'events:write';
+  | 'events:write'
+  | 'pujas:read'
+  | 'pujas:write';
 
 /**
  * Interim role→permission map for the seeded system roles. Becomes a
@@ -32,6 +34,8 @@ const ALL: readonly Permission[] = [
   'donations:void',
   'events:read',
   'events:write',
+  'pujas:read',
+  'pujas:write',
 ];
 
 const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
@@ -48,6 +52,8 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'donations:void',
     'events:read',
     'events:write',
+    'pujas:read',
+    'pujas:write',
   ],
   staff: [
     'temples:read',
@@ -58,8 +64,10 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'donations:write',
     'events:read',
     'events:write',
+    'pujas:read',
+    'pujas:write',
   ],
-  viewer: ['temples:read', 'devotees:read', 'donations:read', 'events:read'],
+  viewer: ['temples:read', 'devotees:read', 'donations:read', 'events:read', 'pujas:read'],
 };
 
 export function can(ctx: TenantContext, permission: Permission): boolean {
