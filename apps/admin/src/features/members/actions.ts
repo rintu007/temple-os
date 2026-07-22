@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { renderInvitationEmail, sendEmail } from '@templeos/email';
 import type { FormState } from '@/lib/form-state';
 import { memberService } from '@/lib/services';
 import { getSessionUser, requireTenantContext } from '@/lib/session';
@@ -10,13 +11,14 @@ import { createClient } from '@/lib/supabase/server';
 export interface InviteFormState extends FormState {
   /** Shareable link for the invitation just created. */
   inviteUrl?: string;
+  emailSent?: boolean;
 }
 
 export async function createInvitationAction(
   _prev: InviteFormState,
   formData: FormData,
 ): Promise<InviteFormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx, user, membership } = await requireTenantContext();
   const email = formData.get('email');
   const roleKey = formData.get('roleKey');
 
@@ -27,10 +29,22 @@ export async function createInvitationAction(
   if (!result.ok) return { error: result.error.message };
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+  const inviteUrl = `${appUrl}/invite/${result.value.token}`;
+
+  const invitedByName = user.user_metadata?.full_name;
+  const { subject, html } = renderInvitationEmail({
+    organizationName: membership.organizationName,
+    roleName: result.value.roleName,
+    inviteUrl,
+    invitedByName: typeof invitedByName === 'string' ? invitedByName : user.email,
+  });
+  const emailSent = await sendEmail({ to: result.value.email, subject, html });
+
   revalidatePath('/team');
   return {
     message: `Invitation created for ${result.value.email}`,
-    inviteUrl: `${appUrl}/invite/${result.value.token}`,
+    inviteUrl,
+    emailSent,
   };
 }
 

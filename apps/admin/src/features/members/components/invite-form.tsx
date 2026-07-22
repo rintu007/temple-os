@@ -44,7 +44,11 @@ export function InviteForm() {
       {state.inviteUrl ? (
         <Alert tone="success">
           <p className="font-medium">{state.message}</p>
-          <p className="mt-1">Share this link — it expires in 7 days:</p>
+          <p className="mt-1">
+            {state.emailSent
+              ? 'An email invitation was sent. You can also share this link directly — it expires in 7 days:'
+              : 'Could not send an email (check RESEND_API_KEY) — share this link directly instead, it expires in 7 days:'}
+          </p>
           <Input readOnly value={state.inviteUrl} className="mt-2 bg-background font-mono text-xs" onFocus={(e) => e.currentTarget.select()} />
         </Alert>
       ) : null}

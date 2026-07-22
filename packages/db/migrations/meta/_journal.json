@@ -43,6 +43,13 @@
       "when": 1784141918498,
       "tag": "0005_common_vargas",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784699601585,
+      "tag": "0006_polite_zuras",
+      "breakpoints": true
     }
   ]
 }

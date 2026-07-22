@@ -20,7 +20,8 @@ function searchFilter(search: string | null): SQL | undefined {
   return or(ilike(donations.donorName, term), ilike(donations.receiptNumber, term));
 }
 
-async function findOrCreateCategory(
+/** Shared with the payments feature — online donations file into the same category set. */
+export async function findOrCreateCategory(
   tx: Tx,
   organizationId: string,
   name: string,
@@ -45,8 +46,12 @@ async function findOrCreateCategory(
   return created.id;
 }
 
-/** Allocates the next org-scoped receipt sequence number atomically. */
-async function allocateReceiptNumber(tx: Tx, organizationId: string, year: number) {
+/**
+ * Allocates the next org-scoped receipt sequence number atomically. Shared
+ * with the payments feature so manual and online donations share one
+ * continuous per-organization sequence.
+ */
+export async function allocateReceiptNumber(tx: Tx, organizationId: string, year: number) {
   const [counter] = await tx
     .insert(donationCounters)
     .values({ organizationId, nextNumber: 2 })

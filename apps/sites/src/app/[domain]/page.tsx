@@ -1,7 +1,14 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { formatTime } from '@templeos/ui';
-import { eventService, hostnameFromDomainParam, organizationService, templeService } from '@/lib/services';
+import { DonateForm } from '@/features/donations/components/donate-form';
+import {
+  eventService,
+  hostnameFromDomainParam,
+  organizationService,
+  paymentService,
+  templeService,
+} from '@/lib/services';
 
 function formatEventWhen(startsAt: Date, endsAt: Date | null, allDay: boolean): string {
   const dateOpts = { day: 'numeric', month: 'short', year: 'numeric' } as const;
@@ -43,6 +50,7 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
     templeService().listPublicTemples(site.organizationId),
     eventService().listPublicUpcoming(site.organizationId, 8),
   ]);
+  const checkoutAvailable = paymentService().isOnlineCheckoutAvailable(site.currency);
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
@@ -131,6 +139,26 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
           </ul>
         </section>
       ) : null}
+
+      <section id="donate" className="mt-14">
+        <h2 className="text-center text-sm font-medium uppercase tracking-widest text-primary">
+          Donate
+        </h2>
+        <div className="mx-auto mt-6 max-w-md rounded-xl border border-border p-8">
+          {checkoutAvailable ? (
+            <DonateForm
+              organizationId={site.organizationId}
+              organizationName={site.name}
+              currency={site.currency}
+            />
+          ) : (
+            <p className="text-center text-sm text-muted-foreground">
+              Online donations are coming soon for {site.name}. Please contact the temple office
+              to donate in the meantime.
+            </p>
+          )}
+        </div>
+      </section>
 
       <footer className="mt-16 text-center text-xs text-muted-foreground">
         Powered by <span className="font-medium">TempleOS</span>

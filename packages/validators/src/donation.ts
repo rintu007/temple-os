@@ -33,6 +33,15 @@ export const recordDonationSchema = z
     categoryName: optionalTrimmed(120),
     reference: optionalTrimmed(120),
     note: optionalTrimmed(500),
+    /** Optional — if given, a receipt email is sent after recording. */
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .email('Enter a valid email address')
+      .or(z.literal(''))
+      .transform((v) => (v === '' ? null : v))
+      .nullish(),
     donatedOn: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')

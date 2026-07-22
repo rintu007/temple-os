@@ -10,7 +10,13 @@ if (existsSync(rootEnv)) {
 }
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@templeos/core', '@templeos/db', '@templeos/ui', '@templeos/validators'],
+  transpilePackages: [
+    '@templeos/core',
+    '@templeos/db',
+    '@templeos/email',
+    '@templeos/ui',
+    '@templeos/validators',
+  ],
 };
 
 export default nextConfig;

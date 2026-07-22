@@ -42,6 +42,7 @@ BEGIN
     'donation_categories',
     'donation_counters',
     'donations',
+    'payment_orders',
     'events',
     'invitations',
     'audit_logs'

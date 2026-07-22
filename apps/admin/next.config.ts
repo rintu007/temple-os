@@ -14,6 +14,7 @@ const nextConfig: NextConfig = {
     '@templeos/auth',
     '@templeos/core',
     '@templeos/db',
+    '@templeos/email',
     '@templeos/ui',
     '@templeos/validators',
   ],

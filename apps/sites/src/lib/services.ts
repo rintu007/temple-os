@@ -1,9 +1,11 @@
 import {
   createEventService,
   createOrganizationService,
+  createPaymentService,
   createTempleService,
   type EventService,
   type OrganizationService,
+  type PaymentService,
   type TempleService,
 } from '@templeos/core';
 import { getDb } from '@templeos/db';
@@ -30,6 +32,13 @@ let _eventService: EventService | undefined;
 export function eventService(): EventService {
   _eventService ??= createEventService({ db: getDb() });
   return _eventService;
+}
+
+let _paymentService: PaymentService | undefined;
+
+export function paymentService(): PaymentService {
+  _paymentService ??= createPaymentService({ db: getDb() });
+  return _paymentService;
 }
 
 /** The middleware passes a subdomain slug or a full custom-domain hostname. */

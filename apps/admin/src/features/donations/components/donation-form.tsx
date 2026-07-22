@@ -100,6 +100,11 @@ export function DonationForm({ devotees, currency }: DonationFormProps) {
           <Label htmlFor="note">Note</Label>
           <Input id="note" name="note" />
         </div>
+
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="email">Donor email (optional — emails a receipt)</Label>
+          <Input id="email" name="email" type="email" placeholder="donor@example.com" />
+        </div>
       </div>
 
       <Button type="submit" disabled={pending}>

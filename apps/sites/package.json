@@ -11,6 +11,7 @@
   "dependencies": {
     "@templeos/core": "workspace:*",
     "@templeos/db": "workspace:*",
+    "@templeos/email": "workspace:*",
     "@templeos/ui": "workspace:*",
     "@templeos/validators": "workspace:*",
     "next": "^15.1.3",
