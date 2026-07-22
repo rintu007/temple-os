@@ -2,10 +2,12 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { formatTime } from '@templeos/ui';
 import { DonateForm } from '@/features/donations/components/donate-form';
+import { JoinMembership } from '@/features/membership/components/join-membership';
 import { BookPuja } from '@/features/pujas/components/book-puja';
 import {
   eventService,
   hostnameFromDomainParam,
+  membershipService,
   organizationService,
   paymentService,
   pujaService,
@@ -48,10 +50,11 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
   const site = await organizationService().resolveSiteByHostname(hostnameFromDomainParam(domain));
   if (!site) notFound();
 
-  const [temples, upcomingEvents, pujaTypes] = await Promise.all([
+  const [temples, upcomingEvents, pujaTypes, membershipPlans] = await Promise.all([
     templeService().listPublicTemples(site.organizationId),
     eventService().listPublicUpcoming(site.organizationId, 8),
     pujaService().listPublicPujaTypes(site.organizationId),
+    membershipService().listPublicPlans(site.organizationId),
   ]);
   const checkoutAvailable = paymentService().isOnlineCheckoutAvailable(site.currency);
 
@@ -154,6 +157,22 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
               organizationName={site.name}
               currency={site.currency}
               pujaTypes={pujaTypes}
+            />
+          </div>
+        </section>
+      ) : null}
+
+      {checkoutAvailable && membershipPlans.length > 0 ? (
+        <section id="membership" className="mt-14">
+          <h2 className="text-center text-sm font-medium uppercase tracking-widest text-primary">
+            Become a Member
+          </h2>
+          <div className="mx-auto mt-6 max-w-md rounded-xl border border-border p-8">
+            <JoinMembership
+              organizationId={site.organizationId}
+              organizationName={site.name}
+              currency={site.currency}
+              plans={membershipPlans}
             />
           </div>
         </section>

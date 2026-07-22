@@ -75,6 +75,25 @@ async function seedPujaTypes(orgId) {
   });
 }
 
+async function seedMembershipPlans(orgId) {
+  await sql.begin(async (tx) => {
+    await tx`SELECT set_config('app.current_org_id', ${orgId}, true)`;
+    const found = await tx`SELECT id FROM membership_plans WHERE organization_id = ${orgId} LIMIT 1`;
+    if (found.length > 0) {
+      console.log('Demo membership plans already seeded');
+      return;
+    }
+    for (const [name, price, months, description] of [
+      ['Annual Member', '2100.00', 12, 'Priority darshan and festival invitations for a year'],
+      ['Life Patron', '25000.00', 600, 'Lifetime membership with special recognition'],
+    ]) {
+      await tx`INSERT INTO membership_plans (id, organization_id, name, description, price, currency, duration_months, is_active)
+               VALUES (${randomUUID()}, ${orgId}, ${name}, ${description}, ${price}, 'INR', ${months}, true)`;
+    }
+    console.log('Seeded demo membership plans');
+  });
+}
+
 try {
   const existing = await sql`SELECT organization_id FROM domains WHERE hostname = ${hostname}`;
   if (existing.length > 0) {
@@ -82,6 +101,7 @@ try {
     await seedTemple(existing[0].organization_id);
     await seedEvents(existing[0].organization_id);
     await seedPujaTypes(existing[0].organization_id);
+    await seedMembershipPlans(existing[0].organization_id);
   } else {
     const orgId = randomUUID();
     await sql.begin(async (tx) => {
@@ -109,6 +129,7 @@ try {
     await seedTemple(row.organization_id);
     await seedEvents(row.organization_id);
     await seedPujaTypes(row.organization_id);
+    await seedMembershipPlans(row.organization_id);
   }
 } finally {
   await sql.end();

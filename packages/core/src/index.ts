@@ -7,3 +7,4 @@ export * from './features/events';
 export * from './features/members';
 export * from './features/payments';
 export * from './features/pujas';
+export * from './features/membership';

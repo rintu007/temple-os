@@ -3,6 +3,7 @@ import {
   createDonationService,
   createEventService,
   createMemberService,
+  createMembershipService,
   createOrganizationService,
   createPujaService,
   createTempleService,
@@ -10,6 +11,7 @@ import {
   type DonationService,
   type EventService,
   type MemberService,
+  type MembershipService,
   type OrganizationService,
   type PujaService,
   type TempleService,
@@ -69,4 +71,11 @@ let _pujaService: PujaService | undefined;
 export function pujaService(): PujaService {
   _pujaService ??= createPujaService({ db: getDb() });
   return _pujaService;
+}
+
+let _membershipService: MembershipService | undefined;
+
+export function membershipService(): MembershipService {
+  _membershipService ??= createMembershipService({ db: getDb() });
+  return _membershipService;
 }

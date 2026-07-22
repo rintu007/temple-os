@@ -4,5 +4,6 @@ export * from './invitations';
 export * from './worship';
 export * from './community';
 export * from './finance';
+export * from './membership';
 export * from './events';
 export * from './audit';

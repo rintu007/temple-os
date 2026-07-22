@@ -39,6 +39,8 @@ BEGIN
     'daily_schedules',
     'puja_types',
     'puja_bookings',
+    'membership_plans',
+    'membership_subscriptions',
     'families',
     'devotees',
     'donation_categories',

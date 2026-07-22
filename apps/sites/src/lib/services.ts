@@ -1,10 +1,12 @@
 import {
   createEventService,
+  createMembershipService,
   createOrganizationService,
   createPaymentService,
   createPujaService,
   createTempleService,
   type EventService,
+  type MembershipService,
   type OrganizationService,
   type PaymentService,
   type PujaService,
@@ -48,6 +50,13 @@ let _pujaService: PujaService | undefined;
 export function pujaService(): PujaService {
   _pujaService ??= createPujaService({ db: getDb() });
   return _pujaService;
+}
+
+let _membershipService: MembershipService | undefined;
+
+export function membershipService(): MembershipService {
+  _membershipService ??= createMembershipService({ db: getDb() });
+  return _membershipService;
 }
 
 /** The middleware passes a subdomain slug or a full custom-domain hostname. */
