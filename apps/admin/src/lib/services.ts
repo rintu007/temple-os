@@ -2,6 +2,7 @@ import {
   createDevoteeService,
   createDonationService,
   createEventService,
+  createExpenseService,
   createGalleryService,
   createMemberService,
   createMembershipService,
@@ -13,6 +14,7 @@ import {
   type DevoteeService,
   type DonationService,
   type EventService,
+  type ExpenseService,
   type GalleryService,
   type MemberService,
   type MembershipService,
@@ -84,6 +86,13 @@ let _membershipService: MembershipService | undefined;
 export function membershipService(): MembershipService {
   _membershipService ??= createMembershipService({ db: getDb() });
   return _membershipService;
+}
+
+let _expenseService: ExpenseService | undefined;
+
+export function expenseService(): ExpenseService {
+  _expenseService ??= createExpenseService({ db: getDb() });
+  return _expenseService;
 }
 
 let _reportService: ReportService | undefined;

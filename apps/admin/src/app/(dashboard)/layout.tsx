@@ -4,6 +4,7 @@ import {
   Flame,
   Globe,
   HandCoins,
+  IndianRupee,
   IdCard,
   Landmark,
   LayoutDashboard,
@@ -55,6 +56,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Finance',
     items: [
       { href: '/donations', label: 'Donations', icon: HandCoins },
+      { href: '/expenses', label: 'Expenses', icon: IndianRupee },
       { href: '/reports', label: 'Reports', icon: BarChart3 },
     ],
   },

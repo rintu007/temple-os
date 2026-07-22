@@ -78,6 +78,13 @@
       "when": 1784743915266,
       "tag": "0010_misty_vulcan",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784749863062,
+      "tag": "0011_safe_jane_foster",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Alert, Button, Input, formatMoney } from '@templeos/ui';
 import { requireTenantContext } from '@/lib/session';
-import { reportService } from '@/lib/services';
+import { expenseService, reportService } from '@/lib/services';
 
 export const metadata: Metadata = { title: 'Reports' };
 
@@ -36,12 +36,18 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const to = params.to ?? todayIso();
   const { ctx } = await requireTenantContext();
 
-  const result = await reportService().getDonationReport(ctx, { from, to });
+  const [result, expenseResult] = await Promise.all([
+    reportService().getDonationReport(ctx, { from, to }),
+    expenseService().getRangeSummary(ctx, { from, to }),
+  ]);
   if (!result.ok) {
     return <Alert tone="error">{result.error.message}</Alert>;
   }
   const report = result.value;
+  const expenseTotal = expenseResult.ok ? expenseResult.value.total : '0.00';
+  const net = (Number(report.total) - Number(expenseTotal)).toFixed(2);
   const csvHref = `/reports/donations.csv?${new URLSearchParams({ from, to })}`;
+  const expenseCsvHref = `/reports/expenses.csv?${new URLSearchParams({ from, to })}`;
 
   return (
     <div className="space-y-6">
@@ -52,12 +58,20 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
             All income — donations, puja bookings and memberships — in one ledger.
           </p>
         </div>
-        <a
-          href={csvHref}
-          className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
-        >
-          Download CSV
-        </a>
+        <div className="flex gap-2">
+          <a
+            href={csvHref}
+            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+          >
+            Income CSV
+          </a>
+          <a
+            href={expenseCsvHref}
+            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+          >
+            Expenses CSV
+          </a>
+        </div>
       </div>
 
       <form action="/reports" className="flex flex-wrap items-end gap-3">
@@ -78,20 +92,30 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         </Button>
       </form>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-xl border border-border bg-card shadow-card p-5">
-          <div className="text-sm text-muted-foreground">Total received</div>
-          <div className="mt-1 text-2xl font-semibold">
+          <div className="text-sm text-muted-foreground">Income</div>
+          <div className="mt-1 text-2xl font-semibold text-success">
             {formatMoney(report.total, report.currency)}
+          </div>
+          <div className="mt-0.5 text-xs text-muted-foreground">
+            {report.count} receipt{report.count === 1 ? '' : 's'}
+            {report.voidCount > 0 ? ` · ${report.voidCount} voided` : ''}
           </div>
         </div>
         <div className="rounded-xl border border-border bg-card shadow-card p-5">
-          <div className="text-sm text-muted-foreground">Receipts</div>
-          <div className="mt-1 text-2xl font-semibold">{report.count}</div>
+          <div className="text-sm text-muted-foreground">Expenses</div>
+          <div className="mt-1 text-2xl font-semibold text-destructive">
+            {formatMoney(expenseTotal, report.currency)}
+          </div>
+          <div className="mt-0.5 text-xs text-muted-foreground">
+            {expenseResult.ok ? `${expenseResult.value.count} voucher${expenseResult.value.count === 1 ? '' : 's'}` : ''}
+          </div>
         </div>
-        <div className="rounded-xl border border-border bg-card shadow-card p-5">
-          <div className="text-sm text-muted-foreground">Voided</div>
-          <div className="mt-1 text-2xl font-semibold">{report.voidCount}</div>
+        <div className="rounded-xl border border-border bg-card shadow-card p-5 sm:col-span-2">
+          <div className="text-sm text-muted-foreground">Net for this period</div>
+          <div className="mt-1 text-2xl font-semibold">{formatMoney(net, report.currency)}</div>
+          <div className="mt-0.5 text-xs text-muted-foreground">Income minus expenses</div>
         </div>
       </div>
 

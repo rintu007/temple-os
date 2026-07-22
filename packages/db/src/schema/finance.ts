@@ -79,6 +79,69 @@ export const donations = pgTable(
   ],
 );
 
+export const expenseMethodEnum = pgEnum('expense_method', [
+  'cash',
+  'upi',
+  'bank_transfer',
+  'card',
+  'cheque',
+  'other',
+]);
+export const expenseStatusEnum = pgEnum('expense_status', ['recorded', 'void']);
+
+export const expenseCategories = pgTable(
+  'expense_categories',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    name: text().notNull(),
+    ...timestamps,
+  },
+  (t) => [index('expense_categories_org_name_idx').on(t.organizationId, t.name)],
+);
+
+/** Per-organization sequential voucher numbering — separate series from receipts. */
+export const expenseCounters = pgTable('expense_counters', {
+  organizationId: uuid()
+    .primaryKey()
+    .references(() => organizations.id),
+  nextNumber: integer().notNull().default(1),
+});
+
+/**
+ * An expense voucher — the outgoing side of the temple's books. Same ledger
+ * discipline as donations: sequentially numbered, never deleted, only voided.
+ */
+export const expenses = pgTable(
+  'expenses',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    templeId: uuid().references(() => temples.id),
+    categoryId: uuid().references(() => expenseCategories.id),
+    paidTo: text().notNull(),
+    amount: numeric({ precision: 12, scale: 2 }).notNull(),
+    currency: currencyEnum().notNull(),
+    method: expenseMethodEnum().notNull(),
+    reference: text(),
+    note: text(),
+    voucherNumber: text().notNull(),
+    spentAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    recordedByUserId: uuid(),
+    status: expenseStatusEnum().notNull().default('recorded'),
+    voidReason: text(),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex('expenses_org_voucher_uq').on(t.organizationId, t.voucherNumber),
+    index('expenses_org_date_idx').on(t.organizationId, t.spentAt),
+  ],
+);
+
 export const paymentOrderStatusEnum = pgEnum('payment_order_status', [
   'created',
   'paid',
