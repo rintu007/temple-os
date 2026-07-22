@@ -17,7 +17,8 @@ export type Permission =
   | 'pujas:read'
   | 'pujas:write'
   | 'membership:read'
-  | 'membership:write';
+  | 'membership:write'
+  | 'reports:read';
 
 /**
  * Interim role→permission map for the seeded system roles. Becomes a
@@ -40,6 +41,7 @@ const ALL: readonly Permission[] = [
   'pujas:write',
   'membership:read',
   'membership:write',
+  'reports:read',
 ];
 
 const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
@@ -60,6 +62,7 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'pujas:write',
     'membership:read',
     'membership:write',
+    'reports:read',
   ],
   staff: [
     'temples:read',

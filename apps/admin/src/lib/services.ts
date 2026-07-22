@@ -6,6 +6,7 @@ import {
   createMembershipService,
   createOrganizationService,
   createPujaService,
+  createReportService,
   createTempleService,
   type DevoteeService,
   type DonationService,
@@ -14,6 +15,7 @@ import {
   type MembershipService,
   type OrganizationService,
   type PujaService,
+  type ReportService,
   type TempleService,
 } from '@templeos/core';
 import { getDb } from '@templeos/db';
@@ -78,4 +80,11 @@ let _membershipService: MembershipService | undefined;
 export function membershipService(): MembershipService {
   _membershipService ??= createMembershipService({ db: getDb() });
   return _membershipService;
+}
+
+let _reportService: ReportService | undefined;
+
+export function reportService(): ReportService {
+  _reportService ??= createReportService({ db: getDb() });
+  return _reportService;
 }
