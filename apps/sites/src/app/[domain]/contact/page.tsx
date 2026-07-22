@@ -106,7 +106,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
           ) : null}
         </section>
 
-        <section className="rounded-xl border border-border p-6">
+        <section className="rounded-xl border border-border bg-card shadow-card p-6">
           <h2 className="mb-4 text-sm font-medium uppercase tracking-widest text-muted-foreground">
             Send a message
           </h2>

@@ -47,7 +47,7 @@ export default async function DonationsPage({ searchParams }: DonationsPageProps
         </div>
         <Link
           href="/donations/new"
-          className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90"
+          className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
         >
           Record donation
         </Link>
@@ -55,17 +55,17 @@ export default async function DonationsPage({ searchParams }: DonationsPageProps
 
       {stats.ok ? (
         <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-border p-5">
+          <div className="rounded-xl border border-border bg-card shadow-card p-5">
             <div className="text-sm text-muted-foreground">This month</div>
             <div className="mt-1 text-2xl font-semibold">
               {formatMoney(stats.value.monthTotal, stats.value.currency)}
             </div>
           </div>
-          <div className="rounded-xl border border-border p-5">
+          <div className="rounded-xl border border-border bg-card shadow-card p-5">
             <div className="text-sm text-muted-foreground">Donations this month</div>
             <div className="mt-1 text-2xl font-semibold">{stats.value.monthCount}</div>
           </div>
-          <div className="rounded-xl border border-border p-5">
+          <div className="rounded-xl border border-border bg-card shadow-card p-5">
             <div className="text-sm text-muted-foreground">All time</div>
             <div className="mt-1 text-2xl font-semibold">
               {formatMoney(stats.value.allTimeTotal, stats.value.currency)}
@@ -92,7 +92,7 @@ export default async function DonationsPage({ searchParams }: DonationsPageProps
         </div>
       ) : (
         <>
-          <ul className="divide-y divide-border rounded-xl border border-border">
+          <ul className="divide-y divide-border rounded-xl border border-border bg-card shadow-card">
             {items.map((d) => (
               <li key={d.id}>
                 <Link

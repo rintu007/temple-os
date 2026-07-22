@@ -15,7 +15,7 @@ export default async function NewPlanPage() {
           Devotees pay once and stay members for the plan duration.
         </p>
       </div>
-      <div className="rounded-xl border border-border p-6">
+      <div className="rounded-xl border border-border bg-card shadow-card p-6">
         <PlanForm
           action={createPlanAction}
           currency={membership.currency}

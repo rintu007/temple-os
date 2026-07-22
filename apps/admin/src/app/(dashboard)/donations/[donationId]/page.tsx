@@ -50,7 +50,7 @@ export default async function DonationDetailPage({ params }: DonationDetailProps
         </Alert>
       ) : null}
 
-      <section className="rounded-xl border border-border p-6">
+      <section className="rounded-xl border border-border bg-card shadow-card p-6">
         <h2 className="mb-4 text-sm font-medium text-muted-foreground">Details</h2>
         <dl className="space-y-3 text-sm">
           <div className="flex justify-between">
@@ -101,7 +101,7 @@ export default async function DonationDetailPage({ params }: DonationDetailProps
       </section>
 
       {d.status === 'recorded' && can(ctx, 'donations:void') ? (
-        <section className="rounded-xl border border-border p-6">
+        <section className="rounded-xl border border-border bg-card shadow-card p-6">
           <h2 className="text-sm font-medium text-muted-foreground">Void this donation</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Voiding keeps the record and receipt number for the audit trail but removes it from

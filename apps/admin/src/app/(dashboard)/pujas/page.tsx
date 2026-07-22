@@ -26,13 +26,13 @@ export default async function PujasPage() {
         <div className="flex gap-2">
           <Link
             href="/pujas/bookings"
-            className="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-muted"
+            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
           >
             View bookings
           </Link>
           <Link
             href="/pujas/new"
-            className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90"
+            className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
           >
             Add puja
           </Link>
@@ -53,7 +53,7 @@ export default async function PujasPage() {
           </Link>
         </div>
       ) : (
-        <ul className="divide-y divide-border rounded-xl border border-border">
+        <ul className="divide-y divide-border rounded-xl border border-border bg-card shadow-card">
           {types.map((t) => (
             <li key={t.id}>
               <Link

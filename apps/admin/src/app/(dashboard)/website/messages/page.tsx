@@ -49,7 +49,7 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
               <li
                 key={m.id}
                 className={cn(
-                  'rounded-xl border border-border p-5',
+                  'rounded-xl border border-border bg-card shadow-card p-5',
                   m.status === 'new' && 'border-primary/40 bg-primary/5',
                 )}
               >

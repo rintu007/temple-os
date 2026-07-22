@@ -1,21 +1,56 @@
-/* TempleOS design tokens — consumed by both apps via @import "@templeos/ui/styles.css" */
+/* TempleOS design tokens — consumed by both apps via @import "@templeos/ui/styles.css".
+   Warm neutral scale tuned to sit well with the saffron brand color. */
 :root {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  --border: 240 5.9% 90%;
-  --primary: 24 95% 47%; /* saffron */
+  --background: 40 25% 98.5%;
+  --foreground: 24 12% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 24 12% 10%;
+  --muted: 34 14% 94%;
+  --muted-foreground: 26 7% 42%;
+  --border: 32 14% 89.5%;
+  --input: 32 12% 84%;
+  --primary: 24 90% 47%; /* saffron */
   --primary-foreground: 0 0% 100%;
-  --radius: 0.5rem;
+  --secondary: 34 14% 93%;
+  --secondary-foreground: 24 12% 14%;
+  --accent: 28 85% 95.5%; /* saffron tint for active states */
+  --accent-foreground: 22 80% 32%;
+  --destructive: 0 72% 44%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 152 55% 32%;
+  --success-foreground: 0 0% 100%;
+  --warning: 36 90% 38%;
+  --warning-foreground: 0 0% 100%;
+  --ring: 24 90% 47%;
+  --sidebar: 36 22% 96.5%;
+  --sidebar-foreground: 24 10% 24%;
+  --sidebar-border: 32 14% 90%;
+  --radius: 0.625rem;
 }
 
 .dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --border: 240 3.7% 15.9%;
-  --primary: 24 95% 53%;
-  --primary-foreground: 0 0% 100%;
+  --background: 24 10% 6.5%;
+  --foreground: 34 18% 93%;
+  --card: 24 9% 9%;
+  --card-foreground: 34 18% 93%;
+  --muted: 24 7% 14%;
+  --muted-foreground: 28 8% 62%;
+  --border: 24 7% 16.5%;
+  --input: 24 7% 22%;
+  --primary: 26 92% 55%;
+  --primary-foreground: 24 30% 8%;
+  --secondary: 24 7% 15%;
+  --secondary-foreground: 34 18% 90%;
+  --accent: 25 45% 15%;
+  --accent-foreground: 30 90% 78%;
+  --destructive: 0 66% 54%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 152 50% 44%;
+  --success-foreground: 150 40% 8%;
+  --warning: 38 92% 54%;
+  --warning-foreground: 36 40% 8%;
+  --ring: 26 92% 55%;
+  --sidebar: 24 10% 8%;
+  --sidebar-foreground: 30 12% 72%;
+  --sidebar-border: 24 8% 14%;
 }

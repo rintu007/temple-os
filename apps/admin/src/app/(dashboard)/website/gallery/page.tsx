@@ -31,7 +31,7 @@ export default async function GalleryAdminPage() {
           environment to enable the gallery.
         </Alert>
       ) : (
-        <div className="rounded-xl border border-border p-6">
+        <div className="rounded-xl border border-border bg-card shadow-card p-6">
           <UploadImageForm />
         </div>
       )}

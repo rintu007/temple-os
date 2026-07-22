@@ -29,7 +29,7 @@ export default async function DevoteeDetailPage({ params }: DevoteeDetailProps) 
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">{devotee.value.fullName}</h1>
       </div>
 
-      <section className="rounded-xl border border-border p-6">
+      <section className="rounded-xl border border-border bg-card shadow-card p-6">
         <h2 className="mb-4 text-sm font-medium text-muted-foreground">Profile</h2>
         <DevoteeForm
           action={updateDevoteeAction.bind(null, devoteeId)}
@@ -38,7 +38,7 @@ export default async function DevoteeDetailPage({ params }: DevoteeDetailProps) 
         />
       </section>
 
-      <section className="rounded-xl border border-border p-6">
+      <section className="rounded-xl border border-border bg-card shadow-card p-6">
         <h2 className="text-sm font-medium text-muted-foreground">Archive</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Removes this devotee from the active directory. Their history is kept and they can be

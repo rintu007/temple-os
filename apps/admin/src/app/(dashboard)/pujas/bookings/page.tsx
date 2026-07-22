@@ -69,7 +69,7 @@ export default async function PujaBookingsPage({ searchParams }: BookingsPagePro
         </div>
       ) : (
         <>
-          <ul className="divide-y divide-border rounded-xl border border-border">
+          <ul className="divide-y divide-border rounded-xl border border-border bg-card shadow-card">
             {items.map((b) => (
               <li key={b.id} className="flex flex-wrap items-center justify-between gap-4 p-4">
                 <div className="min-w-0">

@@ -27,7 +27,7 @@ export default async function TeamPage() {
         </p>
       </div>
 
-      <section className="rounded-xl border border-border p-6">
+      <section className="rounded-xl border border-border bg-card shadow-card p-6">
         <h2 className="mb-4 text-sm font-medium text-muted-foreground">Invite a team member</h2>
         <InviteForm />
       </section>
@@ -36,7 +36,7 @@ export default async function TeamPage() {
         <h2 className="mb-3 text-sm font-medium text-muted-foreground">
           Members ({members.value.length})
         </h2>
-        <ul className="divide-y divide-border rounded-xl border border-border">
+        <ul className="divide-y divide-border rounded-xl border border-border bg-card shadow-card">
           {members.value.map((m) => (
             <li key={m.membershipId} className="flex items-center justify-between gap-4 p-4">
               <div>
@@ -61,7 +61,7 @@ export default async function TeamPage() {
           <h2 className="mb-3 text-sm font-medium text-muted-foreground">
             Pending invitations ({invites.value.length})
           </h2>
-          <ul className="divide-y divide-border rounded-xl border border-border">
+          <ul className="divide-y divide-border rounded-xl border border-border bg-card shadow-card">
             {invites.value.map((inv) => (
               <li key={inv.id} className="flex items-center justify-between gap-4 p-4">
                 <div className="min-w-0">

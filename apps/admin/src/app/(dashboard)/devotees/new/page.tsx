@@ -13,7 +13,7 @@ export default function NewDevoteePage() {
           Only the name is required — add contact details as you have them.
         </p>
       </div>
-      <div className="rounded-xl border border-border p-6">
+      <div className="rounded-xl border border-border bg-card shadow-card p-6">
         <DevoteeForm action={createDevoteeAction} submitLabel="Add devotee" />
       </div>
     </div>

@@ -29,7 +29,7 @@ export default async function PlanDetailPage({ params }: PlanDetailProps) {
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">{plan.value.name}</h1>
       </div>
 
-      <section className="rounded-xl border border-border p-6">
+      <section className="rounded-xl border border-border bg-card shadow-card p-6">
         <h2 className="mb-4 text-sm font-medium text-muted-foreground">Details</h2>
         <PlanForm
           action={updatePlanAction.bind(null, planId)}
@@ -42,7 +42,7 @@ export default async function PlanDetailPage({ params }: PlanDetailProps) {
         </p>
       </section>
 
-      <section className="rounded-xl border border-border p-6">
+      <section className="rounded-xl border border-border bg-card shadow-card p-6">
         <h2 className="text-sm font-medium text-muted-foreground">Delete</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Removes this plan from your website. Existing members are kept.

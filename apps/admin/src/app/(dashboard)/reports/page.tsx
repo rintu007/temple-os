@@ -54,7 +54,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         </div>
         <a
           href={csvHref}
-          className="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-muted"
+          className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
         >
           Download CSV
         </a>
@@ -79,17 +79,17 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       </form>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-border p-5">
+        <div className="rounded-xl border border-border bg-card shadow-card p-5">
           <div className="text-sm text-muted-foreground">Total received</div>
           <div className="mt-1 text-2xl font-semibold">
             {formatMoney(report.total, report.currency)}
           </div>
         </div>
-        <div className="rounded-xl border border-border p-5">
+        <div className="rounded-xl border border-border bg-card shadow-card p-5">
           <div className="text-sm text-muted-foreground">Receipts</div>
           <div className="mt-1 text-2xl font-semibold">{report.count}</div>
         </div>
-        <div className="rounded-xl border border-border p-5">
+        <div className="rounded-xl border border-border bg-card shadow-card p-5">
           <div className="text-sm text-muted-foreground">Voided</div>
           <div className="mt-1 text-2xl font-semibold">{report.voidCount}</div>
         </div>

@@ -13,7 +13,7 @@ export default function NewTemplePage() {
           The profile appears on your public website. You can edit everything later.
         </p>
       </div>
-      <div className="rounded-xl border border-border p-6">
+      <div className="rounded-xl border border-border bg-card shadow-card p-6">
         <TempleForm action={createTempleAction} submitLabel="Create temple" />
       </div>
     </div>

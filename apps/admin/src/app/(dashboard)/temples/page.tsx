@@ -26,7 +26,7 @@ export default async function TemplesPage() {
         </div>
         <Link
           href="/temples/new"
-          className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90"
+          className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
         >
           Add temple
         </Link>
@@ -46,7 +46,7 @@ export default async function TemplesPage() {
           </Link>
         </div>
       ) : (
-        <ul className="divide-y divide-border rounded-xl border border-border">
+        <ul className="divide-y divide-border rounded-xl border border-border bg-card shadow-card">
           {temples.map((t) => (
             <li key={t.id}>
               <Link href={`/temples/${t.id}`} className="flex items-center justify-between p-4 hover:bg-muted/50">

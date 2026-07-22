@@ -4,10 +4,9 @@ import { cn } from './cn';
 type Tone = 'error' | 'success' | 'info';
 
 const toneClasses: Record<Tone, string> = {
-  error: 'border-red-300 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200',
-  success:
-    'border-green-300 bg-green-50 text-green-800 dark:border-green-900 dark:bg-green-950 dark:text-green-200',
-  info: 'border-border bg-muted text-foreground',
+  error: 'border-destructive/25 bg-destructive/8 text-destructive dark:bg-destructive/12',
+  success: 'border-success/25 bg-success/8 text-success dark:bg-success/12',
+  info: 'border-border bg-muted/60 text-foreground',
 };
 
 export interface AlertProps extends HTMLAttributes<HTMLDivElement> {
@@ -18,7 +17,7 @@ export function Alert({ className, tone = 'info', ...props }: AlertProps) {
   return (
     <div
       role={tone === 'error' ? 'alert' : 'status'}
-      className={cn('rounded-md border px-4 py-3 text-sm', toneClasses[tone], className)}
+      className={cn('rounded-lg border px-4 py-3 text-sm font-medium', toneClasses[tone], className)}
       {...props}
     />
   );

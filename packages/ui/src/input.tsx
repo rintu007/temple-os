@@ -5,9 +5,9 @@ export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElem
   return (
     <input
       className={cn(
-        'h-10 w-full rounded-md border border-border bg-background px-3 text-sm',
+        'h-9.5 w-full rounded-lg border border-input bg-card px-3 text-sm shadow-card transition-colors',
         'placeholder:text-muted-foreground',
-        'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary',
+        'focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring/40',
         'disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}
@@ -20,8 +20,8 @@ export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectE
   return (
     <select
       className={cn(
-        'h-10 w-full rounded-md border border-border bg-background px-3 text-sm',
-        'focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-primary',
+        'h-9.5 w-full rounded-lg border border-input bg-card px-3 text-sm shadow-card transition-colors',
+        'focus-visible:border-ring focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ring/40',
         'disabled:cursor-not-allowed disabled:opacity-50',
         className,
       )}

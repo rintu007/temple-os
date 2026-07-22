@@ -15,7 +15,7 @@ export default async function NewPujaPage() {
           Devotees will be able to book and pay for this puja online.
         </p>
       </div>
-      <div className="rounded-xl border border-border p-6">
+      <div className="rounded-xl border border-border bg-card shadow-card p-6">
         <PujaTypeForm
           action={createPujaTypeAction}
           currency={membership.currency}

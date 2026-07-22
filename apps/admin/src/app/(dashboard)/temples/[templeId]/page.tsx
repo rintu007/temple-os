@@ -36,7 +36,7 @@ export default async function TempleDetailPage({ params }: TempleDetailProps) {
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">{temple.value.name}</h1>
       </div>
 
-      <section className="rounded-xl border border-border p-6">
+      <section className="rounded-xl border border-border bg-card shadow-card p-6">
         <h2 className="mb-4 text-sm font-medium text-muted-foreground">Profile</h2>
         <TempleForm
           action={updateTempleAction.bind(null, templeId)}
@@ -45,7 +45,7 @@ export default async function TempleDetailPage({ params }: TempleDetailProps) {
         />
       </section>
 
-      <section className="rounded-xl border border-border p-6">
+      <section className="rounded-xl border border-border bg-card shadow-card p-6">
         <h2 className="text-sm font-medium text-muted-foreground">Daily schedule</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Shown on your public website. Times are local to the temple.

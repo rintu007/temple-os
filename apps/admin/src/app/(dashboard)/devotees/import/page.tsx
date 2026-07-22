@@ -18,11 +18,11 @@ export default function ImportDevoteesPage() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border p-6">
+      <div className="rounded-xl border border-border bg-card shadow-card p-6">
         <ImportForm />
       </div>
 
-      <div className="rounded-xl border border-border p-6 text-sm">
+      <div className="rounded-xl border border-border bg-card shadow-card p-6 text-sm">
         <h2 className="font-medium">Supported columns</h2>
         <p className="mt-1 text-muted-foreground">
           Only <strong>name</strong> is required. Header names are flexible — these all work:

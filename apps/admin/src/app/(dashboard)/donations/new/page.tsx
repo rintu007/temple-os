@@ -17,7 +17,7 @@ export default async function NewDonationPage() {
           A sequential receipt number is assigned automatically.
         </p>
       </div>
-      <div className="rounded-xl border border-border p-6">
+      <div className="rounded-xl border border-border bg-card shadow-card p-6">
         <DonationForm
           devotees={devotees.ok ? devotees.value.items : []}
           currency={membership.currency}

@@ -72,7 +72,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
         </div>
       ) : (
         <>
-          <ul className="divide-y divide-border rounded-xl border border-border">
+          <ul className="divide-y divide-border rounded-xl border border-border bg-card shadow-card">
             {items.map((m) => (
               <li key={m.id} className="flex flex-wrap items-center justify-between gap-4 p-4">
                 <div className="min-w-0">

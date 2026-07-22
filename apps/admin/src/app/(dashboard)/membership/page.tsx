@@ -33,13 +33,13 @@ export default async function MembershipPage() {
         <div className="flex gap-2">
           <Link
             href="/membership/members"
-            className="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-muted"
+            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
           >
             View members
           </Link>
           <Link
             href="/membership/new"
-            className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90"
+            className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
           >
             Add plan
           </Link>
@@ -60,7 +60,7 @@ export default async function MembershipPage() {
           </Link>
         </div>
       ) : (
-        <ul className="divide-y divide-border rounded-xl border border-border">
+        <ul className="divide-y divide-border rounded-xl border border-border bg-card shadow-card">
           {plans.map((p) => (
             <li key={p.id}>
               <Link

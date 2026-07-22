@@ -46,13 +46,13 @@ export default async function WebsitePage() {
         <div className="flex gap-2">
           <Link
             href="/website/gallery"
-            className="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-muted"
+            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
           >
             Gallery
           </Link>
           <Link
             href="/website/messages"
-            className="relative inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-muted"
+            className="relative inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
           >
             Messages
             {newCount > 0 ? (
@@ -64,7 +64,7 @@ export default async function WebsitePage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-border p-6">
+      <div className="rounded-xl border border-border bg-card shadow-card p-6">
         <SettingsForm settings={settings.value} />
       </div>
     </div>

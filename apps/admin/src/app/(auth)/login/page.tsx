@@ -11,7 +11,7 @@ interface LoginPageProps {
 export default async function LoginPage({ searchParams }: LoginPageProps) {
   const { next } = await searchParams;
   return (
-    <div className="rounded-xl border border-border bg-background p-8 shadow-sm">
+    <div className="rounded-2xl border border-border bg-card p-8 shadow-raised">
       <h1 className="text-xl font-semibold tracking-tight">Welcome back</h1>
       <p className="mb-6 mt-1 text-sm text-muted-foreground">Sign in to your temple portal.</p>
       <LoginForm next={next} />
