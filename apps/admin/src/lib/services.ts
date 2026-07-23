@@ -9,6 +9,7 @@ import {
   createMemberService,
   createMembershipService,
   createOrganizationService,
+  createOverviewService,
   createPujaService,
   createReportService,
   createTempleService,
@@ -24,6 +25,7 @@ import {
   type MemberService,
   type MembershipService,
   type OrganizationService,
+  type OverviewService,
   type PujaService,
   type ReportService,
   type TempleService,
@@ -141,4 +143,11 @@ let _galleryService: GalleryService | undefined;
 export function galleryService(): GalleryService {
   _galleryService ??= createGalleryService({ db: getDb() });
   return _galleryService;
+}
+
+let _overviewService: OverviewService | undefined;
+
+export function overviewService(): OverviewService {
+  _overviewService ??= createOverviewService({ db: getDb() });
+  return _overviewService;
 }
