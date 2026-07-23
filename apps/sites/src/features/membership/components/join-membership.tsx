@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Alert, Button, Input, Label, Select, formatMoney } from '@templeos/ui';
+import { getDict, type Locale } from '@/i18n/dictionaries';
 import { loadRazorpayCheckout } from '@/features/donations/razorpay-types';
 import { confirmJoin, createJoinOrder } from '../actions';
 
@@ -15,6 +16,7 @@ interface PlanOption {
 }
 
 interface JoinMembershipProps {
+  locale: Locale;
   organizationId: string;
   organizationName: string;
   currency: 'INR' | 'BDT';
@@ -31,11 +33,13 @@ function durationLabel(months: number): string {
 }
 
 export function JoinMembership({
+  locale,
   organizationId,
   organizationName,
   currency,
   plans,
 }: JoinMembershipProps) {
+  const t = getDict(locale);
   const [planId, setPlanId] = useState(plans[0]?.id ?? '');
   const [memberName, setMemberName] = useState('');
   const [email, setEmail] = useState('');
@@ -134,7 +138,7 @@ export function JoinMembership({
       {step === 'error' && error ? <Alert tone="error">{error}</Alert> : null}
 
       <div className="space-y-2">
-        <Label htmlFor="plan">Choose a plan</Label>
+        <Label htmlFor="plan">{t.forms.choosePlan}</Label>
         <Select id="plan" value={planId} onChange={(e) => setPlanId(e.target.value)} required>
           {plans.map((p) => (
             <option key={p.id} value={p.id}>
@@ -148,7 +152,7 @@ export function JoinMembership({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="member-name">Your name</Label>
+        <Label htmlFor="member-name">{t.forms.yourName}</Label>
         <Input
           id="member-name"
           value={memberName}
@@ -159,7 +163,7 @@ export function JoinMembership({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="member-email">Email (for your receipt)</Label>
+          <Label htmlFor="member-email">{t.forms.emailForReceipt}</Label>
           <Input
             id="member-email"
             type="email"
@@ -168,7 +172,7 @@ export function JoinMembership({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="member-phone">Phone</Label>
+          <Label htmlFor="member-phone">{t.forms.phone}</Label>
           <Input
             id="member-phone"
             type="tel"
@@ -180,13 +184,13 @@ export function JoinMembership({
 
       <Button type="submit" className="w-full" disabled={step === 'processing'}>
         {step === 'processing'
-          ? 'Opening checkout…'
+          ? t.forms.processing
           : selected
-            ? `Join for ${formatMoney(selected.price, selected.currency)}`
-            : 'Join'}
+            ? t.forms.joinFor(formatMoney(selected.price, selected.currency))
+            : t.forms.join}
       </Button>
       <p className="text-center text-xs text-muted-foreground">
-        Secure checkout powered by Razorpay.
+        {t.forms.poweredBy('Razorpay')}
       </p>
     </form>
   );

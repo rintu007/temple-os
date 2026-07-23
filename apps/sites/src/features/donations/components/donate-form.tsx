@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import { Alert, Button, Input, Label } from '@templeos/ui';
+import { getDict, type Locale } from '@/i18n/dictionaries';
 import { confirmDonationOrder, createDonationOrder } from '../actions';
 import { loadRazorpayCheckout } from '../razorpay-types';
 
 interface DonateFormProps {
+  locale: Locale;
   organizationId: string;
   organizationName: string;
   currency: 'INR' | 'BDT';
@@ -15,7 +17,8 @@ const SUGGESTED_AMOUNTS = [101, 501, 1101, 2101];
 
 type Step = 'form' | 'processing' | 'success' | 'error';
 
-export function DonateForm({ organizationId, organizationName, currency }: DonateFormProps) {
+export function DonateForm({ locale, organizationId, organizationName, currency }: DonateFormProps) {
+  const t = getDict(locale);
   const [amount, setAmount] = useState('501');
   const [donorName, setDonorName] = useState('');
   const [email, setEmail] = useState('');
@@ -125,7 +128,7 @@ export function DonateForm({ organizationId, organizationName, currency }: Donat
       {step === 'error' && error ? <Alert tone="error">{error}</Alert> : null}
 
       <div className="space-y-2">
-        <Label htmlFor="donate-amount">Amount ({currency})</Label>
+        <Label htmlFor="donate-amount">{t.forms.amount(currency)}</Label>
         <div className="mb-2 flex flex-wrap gap-2">
           {SUGGESTED_AMOUNTS.map((a) => (
             <button
@@ -154,7 +157,7 @@ export function DonateForm({ organizationId, organizationName, currency }: Donat
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="donate-name">Your name</Label>
+        <Label htmlFor="donate-name">{t.forms.yourName}</Label>
         <Input
           id="donate-name"
           value={donorName}
@@ -165,7 +168,7 @@ export function DonateForm({ organizationId, organizationName, currency }: Donat
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="donate-email">Email (for your receipt)</Label>
+          <Label htmlFor="donate-email">{t.forms.emailForReceipt}</Label>
           <Input
             id="donate-email"
             type="email"
@@ -174,18 +177,18 @@ export function DonateForm({ organizationId, organizationName, currency }: Donat
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="donate-phone">Phone</Label>
+          <Label htmlFor="donate-phone">{t.forms.phone}</Label>
           <Input id="donate-phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
         </div>
       </div>
 
       <Button type="submit" className="w-full" disabled={step === 'processing'}>
         {step === 'processing'
-          ? 'Opening checkout…'
-          : `Donate ${currency === 'INR' ? '₹' : '৳'}${amount || '0'}`}
+          ? t.forms.processing
+          : t.forms.donateFor(`${currency === 'INR' ? '₹' : '৳'}${amount || '0'}`)}
       </Button>
       <p className="text-center text-xs text-muted-foreground">
-        Secure checkout powered by {currency === 'INR' ? 'Razorpay' : 'SSLCommerz'}.
+        {t.forms.poweredBy(currency === 'INR' ? 'Razorpay' : 'SSLCommerz')}
       </p>
     </form>
   );

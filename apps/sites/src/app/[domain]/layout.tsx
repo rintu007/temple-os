@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
+import { LanguageSwitcher } from '@/components/language-switcher';
+import { getDict } from '@/i18n/dictionaries';
+import { getLocale } from '@/i18n/locale';
 import { resolveSite } from '@/lib/services';
 
 interface TenantLayoutProps {
@@ -8,17 +11,20 @@ interface TenantLayoutProps {
   params: Promise<{ domain: string }>;
 }
 
-const NAV_LINKS = [
-  { href: '/', label: 'Home' },
-  { href: '/about', label: 'About' },
-  { href: '/gallery', label: 'Gallery' },
-  { href: '/contact', label: 'Contact' },
-] as const;
-
 export default async function TenantLayout({ children, params }: TenantLayoutProps) {
   const { domain } = await params;
   const site = await resolveSite(domain);
   if (!site) notFound();
+
+  const locale = await getLocale();
+  const t = getDict(locale);
+
+  const navLinks = [
+    { href: '/', label: t.nav.home },
+    { href: '/about', label: t.nav.about },
+    { href: '/gallery', label: t.nav.gallery },
+    { href: '/contact', label: t.nav.contact },
+  ];
 
   // Links are root-relative to the public hostname — the middleware rewrites
   // them into the /[domain] segment internally, so no prefix here.
@@ -33,7 +39,7 @@ export default async function TenantLayout({ children, params }: TenantLayoutPro
             {site.name}
           </Link>
           <nav className="flex shrink-0 items-center gap-0.5 text-sm">
-            {NAV_LINKS.map(({ href, label }) => (
+            {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
                 href={href}
@@ -46,13 +52,16 @@ export default async function TenantLayout({ children, params }: TenantLayoutPro
               href="/#donate"
               className="ml-2 rounded-full bg-primary px-4 py-1.5 font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
             >
-              Donate
+              {t.nav.donate}
             </Link>
+            <div className="ml-2">
+              <LanguageSwitcher current={locale} />
+            </div>
           </nav>
         </div>
         {/* Mobile nav */}
         <nav className="flex items-center gap-1 overflow-x-auto border-t border-border/60 px-4 py-1.5 text-sm sm:hidden">
-          {NAV_LINKS.map(({ href, label }) => (
+          {navLinks.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
@@ -72,17 +81,17 @@ export default async function TenantLayout({ children, params }: TenantLayoutPro
             {site.name}
           </div>
           <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-            {NAV_LINKS.map(({ href, label }) => (
+            {navLinks.map(({ href, label }) => (
               <Link key={href} href={href} className="hover:text-foreground">
                 {label}
               </Link>
             ))}
             <Link href="/#donate" className="hover:text-foreground">
-              Donate
+              {t.nav.donate}
             </Link>
           </nav>
           <div className="text-xs text-muted-foreground">
-            Powered by <span className="font-semibold text-foreground">TempleOS</span>
+            {t.footer.poweredBy} <span className="font-semibold text-foreground">TempleOS</span>
           </div>
         </div>
       </footer>

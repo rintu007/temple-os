@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Alert, Button, Input, Label, Select, formatMoney } from '@templeos/ui';
+import { getDict, type Locale } from '@/i18n/dictionaries';
 import { loadRazorpayCheckout } from '@/features/donations/razorpay-types';
 import { confirmBooking, createBookingOrder } from '../actions';
 
@@ -14,6 +15,7 @@ interface PujaOption {
 }
 
 interface BookPujaProps {
+  locale: Locale;
   organizationId: string;
   organizationName: string;
   currency: 'INR' | 'BDT';
@@ -22,7 +24,8 @@ interface BookPujaProps {
 
 type Step = 'form' | 'processing' | 'success' | 'error';
 
-export function BookPuja({ organizationId, organizationName, currency, pujaTypes }: BookPujaProps) {
+export function BookPuja({ locale, organizationId, organizationName, currency, pujaTypes }: BookPujaProps) {
+  const t = getDict(locale);
   const [pujaTypeId, setPujaTypeId] = useState(pujaTypes[0]?.id ?? '');
   const [devoteeName, setDevoteeName] = useState('');
   const [email, setEmail] = useState('');
@@ -117,7 +120,7 @@ export function BookPuja({ organizationId, organizationName, currency, pujaTypes
       {step === 'error' && error ? <Alert tone="error">{error}</Alert> : null}
 
       <div className="space-y-2">
-        <Label htmlFor="puja-type">Choose a puja</Label>
+        <Label htmlFor="puja-type">{t.forms.choosePuja}</Label>
         <Select
           id="puja-type"
           value={pujaTypeId}
@@ -136,7 +139,7 @@ export function BookPuja({ organizationId, organizationName, currency, pujaTypes
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="booking-name">Your name</Label>
+        <Label htmlFor="booking-name">{t.forms.yourName}</Label>
         <Input
           id="booking-name"
           value={devoteeName}
@@ -147,7 +150,7 @@ export function BookPuja({ organizationId, organizationName, currency, pujaTypes
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="booking-email">Email (for your receipt)</Label>
+          <Label htmlFor="booking-email">{t.forms.emailForReceipt}</Label>
           <Input
             id="booking-email"
             type="email"
@@ -156,7 +159,7 @@ export function BookPuja({ organizationId, organizationName, currency, pujaTypes
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="booking-phone">Phone</Label>
+          <Label htmlFor="booking-phone">{t.forms.phone}</Label>
           <Input
             id="booking-phone"
             type="tel"
@@ -167,7 +170,7 @@ export function BookPuja({ organizationId, organizationName, currency, pujaTypes
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="booking-date">Preferred date (optional)</Label>
+        <Label htmlFor="booking-date">{t.forms.preferredDate}</Label>
         <Input
           id="booking-date"
           type="date"
@@ -178,13 +181,13 @@ export function BookPuja({ organizationId, organizationName, currency, pujaTypes
 
       <Button type="submit" className="w-full" disabled={step === 'processing'}>
         {step === 'processing'
-          ? 'Opening checkout…'
+          ? t.forms.processing
           : selected
-            ? `Book for ${formatMoney(selected.price, selected.currency)}`
-            : 'Book puja'}
+            ? t.forms.bookFor(formatMoney(selected.price, selected.currency))
+            : t.forms.bookPuja}
       </Button>
       <p className="text-center text-xs text-muted-foreground">
-        Secure checkout powered by Razorpay.
+        {t.forms.poweredBy('Razorpay')}
       </p>
     </form>
   );

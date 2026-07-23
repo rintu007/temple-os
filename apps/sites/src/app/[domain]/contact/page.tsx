@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ContactForm } from '@/features/contact/components/contact-form';
 import { resolveSite, websiteService } from '@/lib/services';
+import { getDict } from '@/i18n/dictionaries';
+import { getLocale } from '@/i18n/locale';
 
 interface ContactPageProps {
   params: Promise<{ domain: string }>;
@@ -22,6 +24,8 @@ export default async function ContactPage({ params }: ContactPageProps) {
   const site = await resolveSite(domain);
   if (!site) notFound();
 
+  const locale = await getLocale();
+  const t = getDict(locale);
   const content = await websiteService().getPublicContent(site.organizationId);
   const hasDetails = Boolean(content.addressText || content.contactPhone || content.contactEmail);
   const socials = [
@@ -33,7 +37,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <header className="text-center">
-        <div className="text-sm font-medium uppercase tracking-widest text-primary">Contact</div>
+        <div className="text-sm font-medium uppercase tracking-widest text-primary">{t.contact.eyebrow}</div>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight">{site.name}</h1>
       </header>
 
@@ -44,7 +48,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
               {content.addressText ? (
                 <div>
                   <h2 className="font-medium uppercase tracking-widest text-muted-foreground">
-                    Address
+                    {t.contact.address}
                   </h2>
                   <p className="mt-2 whitespace-pre-line leading-relaxed">{content.addressText}</p>
                 </div>
@@ -52,7 +56,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
               {content.contactPhone ? (
                 <div>
                   <h2 className="font-medium uppercase tracking-widest text-muted-foreground">
-                    Phone
+                    {t.contact.phone}
                   </h2>
                   <p className="mt-2">
                     <a href={`tel:${content.contactPhone}`} className="hover:underline">
@@ -64,7 +68,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
               {content.contactEmail ? (
                 <div>
                   <h2 className="font-medium uppercase tracking-widest text-muted-foreground">
-                    Email
+                    {t.contact.email}
                   </h2>
                   <p className="mt-2">
                     <a
@@ -79,14 +83,14 @@ export default async function ContactPage({ params }: ContactPageProps) {
             </>
           ) : (
             <p className="text-muted-foreground">
-              Send us a message using the form and we&apos;ll get back to you.
+              {t.contact.formIntro}
             </p>
           )}
 
           {socials.length > 0 ? (
             <div>
               <h2 className="font-medium uppercase tracking-widest text-muted-foreground">
-                Follow us
+                {t.contact.followUs}
               </h2>
               <ul className="mt-2 space-y-1">
                 {socials.map((s) => (
@@ -108,9 +112,9 @@ export default async function ContactPage({ params }: ContactPageProps) {
 
         <section className="rounded-xl border border-border bg-card shadow-card p-6">
           <h2 className="mb-4 text-sm font-medium uppercase tracking-widest text-muted-foreground">
-            Send a message
+            {t.contact.sendMessage}
           </h2>
-          <ContactForm organizationId={site.organizationId} organizationName={site.name} />
+          <ContactForm locale={locale} organizationId={site.organizationId} organizationName={site.name} />
         </section>
       </div>
     </main>

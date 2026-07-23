@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { galleryService, resolveSite } from '@/lib/services';
+import { getDict } from '@/i18n/dictionaries';
+import { getLocale } from '@/i18n/locale';
 
 interface GalleryPageProps {
   params: Promise<{ domain: string }>;
@@ -22,20 +24,22 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
   const site = await resolveSite(domain);
   if (!site) notFound();
 
+  const locale = await getLocale();
+  const t = getDict(locale);
   const images = await galleryService().listPublicImages(site.organizationId);
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
       <header className="text-center">
-        <div className="text-sm font-medium uppercase tracking-widest text-primary">Gallery</div>
+        <div className="text-sm font-medium uppercase tracking-widest text-primary">{t.gallery.eyebrow}</div>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight">{site.name}</h1>
       </header>
 
       {images.length === 0 ? (
         <p className="mt-12 text-center text-muted-foreground">
-          Photos are coming soon. Meanwhile, see our{' '}
+          {t.gallery.comingSoon}{' '}
           <Link href="/" className="text-primary hover:underline">
-            daily schedule and events
+            {t.gallery.seeSchedule}
           </Link>
           .
         </p>

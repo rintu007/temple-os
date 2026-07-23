@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Badge, formatTime } from '@templeos/ui';
+import { getDict } from '@/i18n/dictionaries';
+import { getLocale } from '@/i18n/locale';
 import { DonateForm } from '@/features/donations/components/donate-form';
 import { JoinMembership } from '@/features/membership/components/join-membership';
 import { BookPuja } from '@/features/pujas/components/book-puja';
@@ -68,6 +70,8 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
     pujaService().listPublicPujaTypes(site.organizationId),
     membershipService().listPublicPlans(site.organizationId),
   ]);
+  const locale = await getLocale();
+  const t = getDict(locale);
   const checkoutAvailable = paymentService().isOnlineCheckoutAvailable(site.currency);
   // Puja booking + membership checkout are Razorpay-modal flows — INR only for now.
   const inrCheckoutAvailable = site.currency === 'INR' && checkoutAvailable;
@@ -82,28 +86,27 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
         />
         <div className="relative mx-auto max-w-3xl px-6 py-20 text-center sm:py-28">
           <div className="text-xs font-semibold tracking-[0.25em] text-primary uppercase">
-            Welcome to
+            {t.hero.welcomeTo}
           </div>
           <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
             {site.name}
           </h1>
           <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-            Daily worship, festivals and community — join us in person or support the temple
-            online.
+            {t.hero.tagline}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link
               href="/#donate"
               className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-raised transition-colors hover:bg-primary/90"
             >
-              Make a donation
+              {t.hero.makeDonation}
             </Link>
             {inrCheckoutAvailable && pujaTypes.length > 0 ? (
               <Link
                 href="/#book-puja"
                 className="rounded-full border border-input bg-card px-6 py-2.5 text-sm font-semibold shadow-card transition-colors hover:bg-muted/60"
               >
-                Book a puja
+                {t.hero.bookPuja}
               </Link>
             ) : null}
           </div>
@@ -112,10 +115,7 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
 
       <div className="mx-auto max-w-3xl px-6 pb-20">
         {temples.length === 0 ? (
-          <p className="mt-16 text-center text-muted-foreground">
-            Our website is being prepared. Soon you&apos;ll find our daily schedule, events,
-            festivals and online donations here.
-          </p>
+          <p className="mt-16 text-center text-muted-foreground">{t.home.sitePreparing}</p>
         ) : (
           <div className="mt-16 space-y-10">
             {temples.map((temple) => (
@@ -133,7 +133,7 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
                 {temple.schedule.length > 0 ? (
                   <div className="mt-6">
                     <h3 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                      Daily schedule
+                      {t.home.dailySchedule}
                     </h3>
                     <ul className="mt-3 divide-y divide-border">
                       {temple.schedule.map((item) => (
@@ -165,7 +165,7 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
 
         {upcomingEvents.length > 0 ? (
           <section className="mt-20">
-            <SectionHeading eyebrow="Calendar" title="Upcoming Events & Festivals" />
+            <SectionHeading eyebrow={t.home.calendarEyebrow} title={t.home.upcomingEvents} />
             <ul className="mt-8 space-y-3">
               {upcomingEvents.map((e) => (
                 <li
@@ -175,7 +175,7 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 font-medium">
                       {e.title}
-                      {e.kind === 'festival' ? <Badge variant="primary">Festival</Badge> : null}
+                      {e.kind === 'festival' ? <Badge variant="primary">{t.home.festival}</Badge> : null}
                     </div>
                     {e.description || e.location ? (
                       <p className="mt-0.5 truncate text-sm text-muted-foreground">
@@ -194,9 +194,10 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
 
         {inrCheckoutAvailable && pujaTypes.length > 0 ? (
           <section id="book-puja" className="mt-20 scroll-mt-24">
-            <SectionHeading eyebrow="Services" title="Book a Puja" />
+            <SectionHeading eyebrow={t.home.servicesEyebrow} title={t.home.bookPuja} />
             <div className="mx-auto mt-8 max-w-md rounded-2xl border border-border bg-card p-8 shadow-card">
               <BookPuja
+                locale={locale}
                 organizationId={site.organizationId}
                 organizationName={site.name}
                 currency={site.currency}
@@ -208,9 +209,10 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
 
         {inrCheckoutAvailable && membershipPlans.length > 0 ? (
           <section id="membership" className="mt-20 scroll-mt-24">
-            <SectionHeading eyebrow="Community" title="Become a Member" />
+            <SectionHeading eyebrow={t.home.communityEyebrow} title={t.home.becomeMember} />
             <div className="mx-auto mt-8 max-w-md rounded-2xl border border-border bg-card p-8 shadow-card">
               <JoinMembership
+                locale={locale}
                 organizationId={site.organizationId}
                 organizationName={site.name}
                 currency={site.currency}
@@ -221,19 +223,17 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
         ) : null}
 
         <section id="donate" className="mt-20 scroll-mt-24">
-          <SectionHeading eyebrow="Support us" title="Make a Donation" />
+          <SectionHeading eyebrow={t.home.supportEyebrow} title={t.home.makeDonation} />
           <div className="mx-auto mt-8 max-w-md rounded-2xl border border-border bg-card p-8 shadow-card">
             {checkoutAvailable ? (
               <DonateForm
+                locale={locale}
                 organizationId={site.organizationId}
                 organizationName={site.name}
                 currency={site.currency}
               />
             ) : (
-              <p className="text-center text-sm text-muted-foreground">
-                Online donations are coming soon for {site.name}. Please contact the temple
-                office to donate in the meantime.
-              </p>
+              <p className="text-center text-sm text-muted-foreground">{t.home.donationsComingSoon(site.name)}</p>
             )}
           </div>
         </section>

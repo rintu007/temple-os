@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { resolveSite } from '@/lib/services';
+import { getDict } from '@/i18n/dictionaries';
+import { getLocale } from '@/i18n/locale';
 
 interface DonationCompleteProps {
   params: Promise<{ domain: string }>;
@@ -16,6 +18,8 @@ export default async function DonationCompletePage({ params, searchParams }: Don
   const site = await resolveSite(domain);
   if (!site) notFound();
 
+  const locale = await getLocale();
+  const t = getDict(locale);
   const success = status === 'ok' && receipt;
 
   return (
@@ -26,12 +30,10 @@ export default async function DonationCompletePage({ params, searchParams }: Don
             🙏
           </div>
           <h1 className="mt-6 font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight">
-            Thank you for your donation
+            {t.donationComplete.thankYouTitle}
           </h1>
           <p className="mt-3 text-muted-foreground">
-            Your gift to {site.name} was received. Your receipt number is{' '}
-            <strong className="text-foreground">{receipt}</strong>
-            {' — '}a copy has been emailed to you if you provided an address.
+            {t.donationComplete.thankYouBody(site.name, receipt ?? '')}
           </p>
         </>
       ) : (
@@ -40,12 +42,10 @@ export default async function DonationCompletePage({ params, searchParams }: Don
             !
           </div>
           <h1 className="mt-6 font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight">
-            {status === 'cancelled' ? 'Payment cancelled' : 'Payment not completed'}
+            {status === 'cancelled' ? t.donationComplete.cancelledTitle : t.donationComplete.failedTitle}
           </h1>
           <p className="mt-3 text-muted-foreground">
-            {status === 'cancelled'
-              ? 'You cancelled the payment — nothing was charged.'
-              : 'The payment could not be completed. No money has been recorded. Please try again.'}
+            {status === 'cancelled' ? t.donationComplete.cancelledBody : t.donationComplete.failedBody}
           </p>
         </>
       )}
@@ -53,7 +53,7 @@ export default async function DonationCompletePage({ params, searchParams }: Don
         href="/#donate"
         className="mt-8 inline-flex rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
       >
-        {success ? 'Make another donation' : 'Try again'}
+        {success ? t.donationComplete.donateAgain : t.donationComplete.tryAgain}
       </Link>
     </main>
   );
