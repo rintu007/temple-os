@@ -2,6 +2,7 @@ import { cache } from 'react';
 import {
   createCampaignService,
   createEventService,
+  createFacilityService,
   createGalleryService,
   createMembershipService,
   createOrganizationService,
@@ -13,6 +14,7 @@ import {
   createWebsiteService,
   type CampaignService,
   type EventService,
+  type FacilityService,
   type GalleryService,
   type MembershipService,
   type OrganizationService,
@@ -47,6 +49,13 @@ let _campaignService: CampaignService | undefined;
 export function campaignService(): CampaignService {
   _campaignService ??= createCampaignService({ db: getDb() });
   return _campaignService;
+}
+
+let _facilityService: FacilityService | undefined;
+
+export function facilityService(): FacilityService {
+  _facilityService ??= createFacilityService({ db: getDb() });
+  return _facilityService;
 }
 
 let _eventService: EventService | undefined;

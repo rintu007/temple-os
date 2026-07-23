@@ -1,6 +1,7 @@
 import {
   BarChart3,
   CalendarDays,
+  Building2,
   Flame,
   Globe,
   HandCoins,
@@ -44,6 +45,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/temples', label: 'Temples', icon: Landmark },
       { href: '/pujas', label: 'Pujas', icon: Flame },
       { href: '/events', label: 'Events', icon: CalendarDays },
+      { href: '/facilities', label: 'Facilities', icon: Building2 },
     ],
   },
   {

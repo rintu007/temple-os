@@ -113,6 +113,13 @@
       "when": 1784832806042,
       "tag": "0015_living_vector",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1784833733840,
+      "tag": "0016_public_skin",
+      "breakpoints": true
     }
   ]
 }

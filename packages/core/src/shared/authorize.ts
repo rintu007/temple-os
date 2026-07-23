@@ -25,7 +25,9 @@ export type Permission =
   | 'website:read'
   | 'website:write'
   | 'volunteers:read'
-  | 'volunteers:write';
+  | 'volunteers:write'
+  | 'facilities:read'
+  | 'facilities:write';
 
 /**
  * Interim role→permission map for the seeded system roles. Becomes a
@@ -56,6 +58,8 @@ const ALL: readonly Permission[] = [
   'website:write',
   'volunteers:read',
   'volunteers:write',
+  'facilities:read',
+  'facilities:write',
 ];
 
 const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
@@ -84,6 +88,8 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'website:write',
     'volunteers:read',
     'volunteers:write',
+    'facilities:read',
+    'facilities:write',
   ],
   staff: [
     'temples:read',
@@ -103,6 +109,8 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'website:read',
     'volunteers:read',
     'volunteers:write',
+    'facilities:read',
+    'facilities:write',
   ],
   viewer: [
     'temples:read',
@@ -114,6 +122,7 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'membership:read',
     'website:read',
     'volunteers:read',
+    'facilities:read',
   ],
 };
 

@@ -57,6 +57,8 @@ BEGIN
     'expenses',
     'payment_orders',
     'events',
+    'facilities',
+    'facility_bookings',
     'volunteer_opportunities',
     'volunteer_signups',
     'invitations',

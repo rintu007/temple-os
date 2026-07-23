@@ -17,8 +17,25 @@ export interface Dict {
     contact: string;
     donate: string;
     volunteer: string;
+    facilities: string;
   };
   footer: { poweredBy: string };
+  facilities: {
+    eyebrow: string;
+    title: string;
+    intro: string;
+    none: string;
+    capacity: (n: number) => string;
+    request: string;
+    requesting: string;
+    thanks: (facility: string) => string;
+    yourName: string;
+    phone: string;
+    email: string;
+    date: string;
+    purpose: string;
+    note: string;
+  };
   volunteer: {
     eyebrow: string;
     title: string;
@@ -119,8 +136,26 @@ const en: Dict = {
     contact: 'Contact',
     donate: 'Donate',
     volunteer: 'Volunteer',
+    facilities: 'Halls',
   },
   footer: { poweredBy: 'Powered by' },
+  facilities: {
+    eyebrow: 'Book a space',
+    title: 'Halls & Facilities',
+    intro: 'Reserve a hall for weddings, ceremonies and gatherings.',
+    none: 'No facilities are available for booking right now. Please check back soon.',
+    capacity: (n) => `Up to ${n} guests`,
+    request: 'Request this date',
+    requesting: 'Sending…',
+    thanks: (facility) =>
+      `Thank you! Your request for ${facility} was received. The temple will confirm availability.`,
+    yourName: 'Your name',
+    phone: 'Phone',
+    email: 'Email (optional)',
+    date: 'Preferred date',
+    purpose: 'Purpose (e.g. wedding)',
+    note: 'Note (optional)',
+  },
   volunteer: {
     eyebrow: 'Get involved',
     title: 'Volunteer With Us',
@@ -226,8 +261,26 @@ const bn: Dict = {
     contact: 'যোগাযোগ',
     donate: 'দান করুন',
     volunteer: 'স্বেচ্ছাসেবা',
+    facilities: 'হল',
   },
   footer: { poweredBy: 'পরিচালনায়' },
+  facilities: {
+    eyebrow: 'স্থান বুক করুন',
+    title: 'হল ও সুবিধা',
+    intro: 'বিবাহ, অনুষ্ঠান ও সমাবেশের জন্য হল সংরক্ষণ করুন।',
+    none: 'এই মুহূর্তে বুকিংয়ের জন্য কোনো সুবিধা নেই। শীঘ্রই আবার দেখুন।',
+    capacity: (n) => `সর্বোচ্চ ${n} জন অতিথি`,
+    request: 'এই তারিখের জন্য অনুরোধ করুন',
+    requesting: 'পাঠানো হচ্ছে…',
+    thanks: (facility) =>
+      `ধন্যবাদ! ${facility}-এর জন্য আপনার অনুরোধ গৃহীত হয়েছে। মন্দির উপলব্ধতা নিশ্চিত করবে।`,
+    yourName: 'আপনার নাম',
+    phone: 'ফোন',
+    email: 'ইমেইল (ঐচ্ছিক)',
+    date: 'পছন্দের তারিখ',
+    purpose: 'উদ্দেশ্য (যেমন বিবাহ)',
+    note: 'মন্তব্য (ঐচ্ছিক)',
+  },
   volunteer: {
     eyebrow: 'যুক্ত হন',
     title: 'স্বেচ্ছাসেবক হন',
