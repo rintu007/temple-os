@@ -1,4 +1,5 @@
 export * from './shared';
+export * from './campaign';
 export * from './organization';
 export * from './auth';
 export * from './temple';

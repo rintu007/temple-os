@@ -1,6 +1,7 @@
 import {
   createDevoteeService,
   createDonationService,
+  createCampaignService,
   createEventService,
   createExpenseService,
   createGalleryService,
@@ -13,6 +14,7 @@ import {
   createWebsiteService,
   type DevoteeService,
   type DonationService,
+  type CampaignService,
   type EventService,
   type ExpenseService,
   type GalleryService,
@@ -58,6 +60,13 @@ let _donationService: DonationService | undefined;
 export function donationService(): DonationService {
   _donationService ??= createDonationService({ db: getDb() });
   return _donationService;
+}
+
+let _campaignService: CampaignService | undefined;
+
+export function campaignService(): CampaignService {
+  _campaignService ??= createCampaignService({ db: getDb() });
+  return _campaignService;
 }
 
 let _eventService: EventService | undefined;

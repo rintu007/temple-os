@@ -19,6 +19,9 @@ export interface Dict {
     bookPuja: string;
   };
   home: {
+    campaignsEyebrow: string;
+    campaignsTitle: string;
+    raisedOf: (raised: string, goal: string) => string;
     noticesEyebrow: string;
     notices: string;
     sitePreparing: string;
@@ -98,6 +101,9 @@ const en: Dict = {
     bookPuja: 'Book a puja',
   },
   home: {
+    campaignsEyebrow: 'Fundraising',
+    campaignsTitle: 'Our Campaigns',
+    raisedOf: (raised, goal) => `${raised} raised of ${goal}`,
     noticesEyebrow: 'Notice board',
     notices: 'Announcements',
     sitePreparing:
@@ -187,6 +193,9 @@ const bn: Dict = {
     bookPuja: 'পূজা বুক করুন',
   },
   home: {
+    campaignsEyebrow: 'তহবিল সংগ্রহ',
+    campaignsTitle: 'আমাদের অভিযান',
+    raisedOf: (raised, goal) => `${goal}-এর মধ্যে ${raised} সংগৃহীত`,
     noticesEyebrow: 'বিজ্ঞপ্তি',
     notices: 'ঘোষণা',
     sitePreparing:

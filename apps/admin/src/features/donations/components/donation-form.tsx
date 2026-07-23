@@ -10,8 +10,14 @@ interface DevoteeOption {
   fullName: string;
 }
 
+interface CampaignOption {
+  id: string;
+  title: string;
+}
+
 interface DonationFormProps {
   devotees: DevoteeOption[];
+  campaigns: CampaignOption[];
   currency: string;
 }
 
@@ -23,7 +29,7 @@ const METHODS = [
   { value: 'other', label: 'Other' },
 ];
 
-export function DonationForm({ devotees, currency }: DonationFormProps) {
+export function DonationForm({ devotees, campaigns, currency }: DonationFormProps) {
   const [state, formAction, pending] = useActionState(recordDonationAction, initialFormState);
   const today = new Date().toISOString().slice(0, 10);
 
@@ -91,6 +97,20 @@ export function DonationForm({ devotees, currency }: DonationFormProps) {
           <Label htmlFor="donatedOn">Date</Label>
           <Input id="donatedOn" name="donatedOn" type="date" defaultValue={today} />
         </div>
+
+        {campaigns.length > 0 ? (
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="campaignId">Campaign (optional)</Label>
+            <Select id="campaignId" name="campaignId" defaultValue="">
+              <option value="">— Not part of a campaign —</option>
+              {campaigns.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : null}
 
         <div className="space-y-2">
           <Label htmlFor="reference">Reference (UPI/cheque no.)</Label>

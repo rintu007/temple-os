@@ -48,6 +48,7 @@ BEGIN
     'gallery_images',
     'families',
     'devotees',
+    'campaigns',
     'donation_categories',
     'donation_counters',
     'donations',

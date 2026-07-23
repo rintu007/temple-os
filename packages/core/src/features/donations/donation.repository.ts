@@ -135,6 +135,7 @@ export function createDonationRepository(db: Db) {
             organizationId: ctx.organizationId,
             devoteeId: input.devoteeId ?? null,
             categoryId,
+            campaignId: input.campaignId ?? null,
             donorName,
             amount: input.amount.toFixed(2),
             currency: org.currency,

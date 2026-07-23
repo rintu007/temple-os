@@ -13,6 +13,30 @@ import { id, timestamps } from './helpers';
 import { devotees } from './community';
 import { currencyEnum, organizations, temples } from './tenancy';
 
+export const campaignStatusEnum = pgEnum('campaign_status', ['active', 'completed', 'archived']);
+
+/**
+ * A fundraising campaign with a monetary goal (renovation, festival fund).
+ * Progress is derived — the sum of recorded donations earmarked to it — so
+ * there is no denormalized total to drift out of sync.
+ */
+export const campaigns = pgTable(
+  'campaigns',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    title: text().notNull(),
+    description: text(),
+    goalAmount: numeric({ precision: 12, scale: 2 }).notNull(),
+    currency: currencyEnum().notNull(),
+    status: campaignStatusEnum().notNull().default('active'),
+    ...timestamps,
+  },
+  (t) => [index('campaigns_org_status_idx').on(t.organizationId, t.status)],
+);
+
 export const donationMethodEnum = pgEnum('donation_method', [
   'cash',
   'upi',
@@ -59,6 +83,7 @@ export const donations = pgTable(
     templeId: uuid().references(() => temples.id),
     devoteeId: uuid().references(() => devotees.id),
     categoryId: uuid().references(() => donationCategories.id),
+    campaignId: uuid().references(() => campaigns.id),
     donorName: text().notNull(),
     amount: numeric({ precision: 12, scale: 2 }).notNull(),
     currency: currencyEnum().notNull(),
@@ -169,6 +194,7 @@ export const paymentOrders = pgTable(
     email: text(),
     phone: text(),
     categoryName: text(),
+    campaignId: uuid().references(() => campaigns.id),
     status: paymentOrderStatusEnum().notNull().default('created'),
     donationId: uuid().references(() => donations.id),
     ...timestamps,

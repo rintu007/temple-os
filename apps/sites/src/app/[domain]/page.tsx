@@ -1,13 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Badge, formatTime } from '@templeos/ui';
+import { Badge, formatMoney, formatTime } from '@templeos/ui';
 import { getDict } from '@/i18n/dictionaries';
 import { getLocale } from '@/i18n/locale';
 import { DonateForm } from '@/features/donations/components/donate-form';
 import { JoinMembership } from '@/features/membership/components/join-membership';
 import { BookPuja } from '@/features/pujas/components/book-puja';
 import {
+  campaignService,
   eventService,
   hostnameFromDomainParam,
   membershipService,
@@ -65,12 +66,13 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
   const site = await organizationService().resolveSiteByHostname(hostnameFromDomainParam(domain));
   if (!site) notFound();
 
-  const [temples, upcomingEvents, pujaTypes, membershipPlans, notices] = await Promise.all([
+  const [temples, upcomingEvents, pujaTypes, membershipPlans, notices, campaigns] = await Promise.all([
     templeService().listPublicTemples(site.organizationId),
     eventService().listPublicUpcoming(site.organizationId, 8),
     pujaService().listPublicPujaTypes(site.organizationId),
     membershipService().listPublicPlans(site.organizationId),
     websiteService().listPublicAnnouncements(site.organizationId, 3),
+    campaignService().listPublicCampaigns(site.organizationId),
   ]);
   const locale = await getLocale();
   const t = getDict(locale);
@@ -139,6 +141,41 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
                 ) : null}
               </div>
             ))}
+          </section>
+        ) : null}
+
+        {campaigns.length > 0 ? (
+          <section className="mt-16">
+            <SectionHeading eyebrow={t.home.campaignsEyebrow} title={t.home.campaignsTitle} />
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
+              {campaigns.map((c) => (
+                <div key={c.id} className="rounded-2xl border border-border bg-card p-6 shadow-card">
+                  <h3 className="font-medium">{c.title}</h3>
+                  {c.description ? (
+                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{c.description}</p>
+                  ) : null}
+                  <div className="mt-4 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all"
+                      style={{ width: `${c.percent}%` }}
+                    />
+                  </div>
+                  <div className="mt-2 flex items-baseline justify-between text-sm">
+                    <span className="font-semibold">{formatMoney(c.raisedAmount, c.currency)}</span>
+                    <span className="text-muted-foreground">{c.percent}%</span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t.home.raisedOf(formatMoney(c.raisedAmount, c.currency), formatMoney(c.goalAmount, c.currency))}
+                  </p>
+                  <a
+                    href="/#donate"
+                    className="mt-4 inline-flex rounded-full bg-primary px-4 py-1.5 text-sm font-semibold text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
+                  >
+                    {t.hero.makeDonation}
+                  </a>
+                </div>
+              ))}
+            </div>
           </section>
         ) : null}
 
