@@ -1,4 +1,4 @@
-import { index, pgEnum, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import { index, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { id, timestamps } from './helpers';
 import { organizations } from './tenancy';
 
@@ -22,6 +22,29 @@ export const siteSettings = pgTable('site_settings', {
   youtubeUrl: text(),
   ...timestamps,
 });
+
+export const announcementStatusEnum = pgEnum('announcement_status', ['draft', 'published']);
+
+/**
+ * Notices posted by the temple office — special timings, closures, appeals.
+ * Published announcements appear on the public site immediately; drafts are
+ * only visible in the admin.
+ */
+export const announcements = pgTable(
+  'announcements',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    title: text().notNull(),
+    body: text(),
+    status: announcementStatusEnum().notNull().default('draft'),
+    publishedAt: timestamp({ withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [index('announcements_org_status_idx').on(t.organizationId, t.status)],
+);
 
 /** Gallery images; the binary lives in Supabase Storage at storagePath. */
 export const galleryImages = pgTable(

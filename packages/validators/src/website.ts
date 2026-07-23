@@ -57,3 +57,15 @@ export const contactMessageSchema = z
     path: ['email'],
   });
 export type ContactMessageInput = z.infer<typeof contactMessageSchema>;
+
+/** Notice posted by the temple office. */
+export const announcementSchema = z.object({
+  title: z.string().trim().min(3, 'Title must be at least 3 characters').max(200),
+  body: z
+    .string()
+    .trim()
+    .max(2000)
+    .transform((v) => (v === '' ? null : v))
+    .nullish(),
+});
+export type AnnouncementInput = z.infer<typeof announcementSchema>;

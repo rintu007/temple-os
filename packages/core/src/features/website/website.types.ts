@@ -39,3 +39,12 @@ export interface ContactMessagePage {
   page: number;
   pageSize: number;
 }
+
+export interface AnnouncementSummary {
+  id: string;
+  title: string;
+  body: string | null;
+  status: 'draft' | 'published';
+  publishedAt: Date | null;
+  createdAt: Date;
+}

@@ -42,6 +42,7 @@ BEGIN
     'puja_bookings',
     'membership_plans',
     'membership_subscriptions',
+    'announcements',
     'site_settings',
     'contact_messages',
     'gallery_images',

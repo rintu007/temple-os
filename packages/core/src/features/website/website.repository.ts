@@ -1,5 +1,6 @@
 import { and, count, desc, eq } from 'drizzle-orm';
 import {
+  announcements,
   auditLogs,
   contactMessages,
   newId,
@@ -7,7 +8,11 @@ import {
   withTenantContext,
   type Db,
 } from '@templeos/db';
-import type { ContactMessageInput, SiteSettingsInput } from '@templeos/validators';
+import type {
+  AnnouncementInput,
+  ContactMessageInput,
+  SiteSettingsInput,
+} from '@templeos/validators';
 import type { TenantContext } from '../../shared';
 
 function settingsValues(input: SiteSettingsInput) {
@@ -116,6 +121,103 @@ export function createWebsiteRepository(db: Db) {
           .returning();
         return updated ?? null;
       });
+    },
+
+    // ---- Announcements ----
+    async createAnnouncement(ctx: TenantContext, input: AnnouncementInput) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [row] = await tx
+          .insert(announcements)
+          .values({
+            id: newId(),
+            organizationId: ctx.organizationId,
+            title: input.title,
+            body: input.body ?? null,
+          })
+          .returning();
+        if (!row) throw new Error('announcement insert returned no row');
+
+        await tx.insert(auditLogs).values({
+          organizationId: ctx.organizationId,
+          actorUserId: ctx.userId,
+          action: 'announcement.created',
+          entityType: 'announcement',
+          entityId: row.id,
+          after: { title: row.title },
+        });
+        return row;
+      });
+    },
+
+    async listAnnouncements(ctx: TenantContext) {
+      return withTenantContext(db, guc(ctx), (tx) =>
+        tx
+          .select()
+          .from(announcements)
+          .where(eq(announcements.organizationId, ctx.organizationId))
+          .orderBy(desc(announcements.createdAt)),
+      );
+    },
+
+    async setAnnouncementStatus(
+      ctx: TenantContext,
+      announcementId: string,
+      status: 'draft' | 'published',
+    ) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [updated] = await tx
+          .update(announcements)
+          .set({ status, publishedAt: status === 'published' ? new Date() : null })
+          .where(eq(announcements.id, announcementId))
+          .returning();
+        if (!updated) return null;
+
+        await tx.insert(auditLogs).values({
+          organizationId: ctx.organizationId,
+          actorUserId: ctx.userId,
+          action: status === 'published' ? 'announcement.published' : 'announcement.unpublished',
+          entityType: 'announcement',
+          entityId: announcementId,
+        });
+        return updated;
+      });
+    },
+
+    async deleteAnnouncement(ctx: TenantContext, announcementId: string) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [deleted] = await tx
+          .delete(announcements)
+          .where(eq(announcements.id, announcementId))
+          .returning({ id: announcements.id, title: announcements.title });
+        if (!deleted) return null;
+
+        await tx.insert(auditLogs).values({
+          organizationId: ctx.organizationId,
+          actorUserId: ctx.userId,
+          action: 'announcement.deleted',
+          entityType: 'announcement',
+          entityId: announcementId,
+          after: { title: deleted.title },
+        });
+        return deleted;
+      });
+    },
+
+    /** Public site: latest published notices, newest first. */
+    async listPublicAnnouncements(organizationId: string, limit: number) {
+      return withTenantContext(db, { organizationId }, (tx) =>
+        tx
+          .select()
+          .from(announcements)
+          .where(
+            and(
+              eq(announcements.organizationId, organizationId),
+              eq(announcements.status, 'published'),
+            ),
+          )
+          .orderBy(desc(announcements.publishedAt))
+          .limit(limit),
+      );
     },
   };
 }

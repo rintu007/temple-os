@@ -15,6 +15,7 @@ import {
   paymentService,
   pujaService,
   templeService,
+  websiteService,
 } from '@/lib/services';
 
 function formatEventWhen(startsAt: Date, endsAt: Date | null, allDay: boolean): string {
@@ -64,11 +65,12 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
   const site = await organizationService().resolveSiteByHostname(hostnameFromDomainParam(domain));
   if (!site) notFound();
 
-  const [temples, upcomingEvents, pujaTypes, membershipPlans] = await Promise.all([
+  const [temples, upcomingEvents, pujaTypes, membershipPlans, notices] = await Promise.all([
     templeService().listPublicTemples(site.organizationId),
     eventService().listPublicUpcoming(site.organizationId, 8),
     pujaService().listPublicPujaTypes(site.organizationId),
     membershipService().listPublicPlans(site.organizationId),
+    websiteService().listPublicAnnouncements(site.organizationId, 3),
   ]);
   const locale = await getLocale();
   const t = getDict(locale);
@@ -114,6 +116,32 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
       </section>
 
       <div className="mx-auto max-w-3xl px-6 pb-20">
+        {notices.length > 0 ? (
+          <section className="mt-12 space-y-3">
+            {notices.map((n) => (
+              <div
+                key={n.id}
+                className="rounded-xl border border-primary/25 bg-accent/60 px-5 py-4"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold tracking-widest text-primary uppercase">
+                    {t.home.noticesEyebrow}
+                  </span>
+                  {n.publishedAt ? (
+                    <span className="text-xs text-muted-foreground">
+                      {n.publishedAt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="mt-1 font-medium">{n.title}</div>
+                {n.body ? (
+                  <p className="mt-1 text-sm whitespace-pre-line text-muted-foreground">{n.body}</p>
+                ) : null}
+              </div>
+            ))}
+          </section>
+        ) : null}
+
         {temples.length === 0 ? (
           <p className="mt-16 text-center text-muted-foreground">{t.home.sitePreparing}</p>
         ) : (

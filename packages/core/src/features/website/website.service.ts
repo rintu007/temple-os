@@ -1,5 +1,9 @@
 import type { Db } from '@templeos/db';
-import { contactMessageSchema, siteSettingsSchema } from '@templeos/validators';
+import {
+  announcementSchema,
+  contactMessageSchema,
+  siteSettingsSchema,
+} from '@templeos/validators';
 import {
   authorize,
   domainError,
@@ -12,6 +16,7 @@ import {
 import { createWebsiteRepository } from './website.repository';
 import {
   EMPTY_SITE_SETTINGS,
+  type AnnouncementSummary,
   type ContactMessagePage,
   type ContactMessageSummary,
   type SiteSettings,
@@ -42,6 +47,24 @@ function toSettings(row: {
     facebookUrl: row.facebookUrl,
     instagramUrl: row.instagramUrl,
     youtubeUrl: row.youtubeUrl,
+  };
+}
+
+function toAnnouncement(row: {
+  id: string;
+  title: string;
+  body: string | null;
+  status: 'draft' | 'published';
+  publishedAt: Date | null;
+  createdAt: Date;
+}): AnnouncementSummary {
+  return {
+    id: row.id,
+    title: row.title,
+    body: row.body,
+    status: row.status,
+    publishedAt: row.publishedAt,
+    createdAt: row.createdAt,
   };
 }
 
@@ -115,6 +138,55 @@ export function createWebsiteService({ db }: { db: Db }) {
       const updated = await repo.markMessageRead(ctx, messageId);
       if (!updated) return err(notFound('Message'));
       return ok(null);
+    },
+
+    // ---- Announcements ----
+    async listAnnouncements(ctx: TenantContext): Promise<Result<AnnouncementSummary[]>> {
+      const auth = authorize(ctx, 'website:read');
+      if (!auth.ok) return auth;
+      const rows = await repo.listAnnouncements(ctx);
+      return ok(rows.map(toAnnouncement));
+    },
+
+    async createAnnouncement(
+      ctx: TenantContext,
+      rawInput: unknown,
+    ): Promise<Result<AnnouncementSummary>> {
+      const auth = authorize(ctx, 'website:write');
+      if (!auth.ok) return auth;
+      const parsed = announcementSchema.safeParse(rawInput);
+      if (!parsed.success) return err(firstIssue(parsed.error));
+      const row = await repo.createAnnouncement(ctx, parsed.data);
+      return ok(toAnnouncement(row));
+    },
+
+    async setAnnouncementStatus(
+      ctx: TenantContext,
+      announcementId: string,
+      status: 'draft' | 'published',
+    ): Promise<Result<null>> {
+      const auth = authorize(ctx, 'website:write');
+      if (!auth.ok) return auth;
+      const updated = await repo.setAnnouncementStatus(ctx, announcementId, status);
+      if (!updated) return err(notFound('Announcement'));
+      return ok(null);
+    },
+
+    async deleteAnnouncement(ctx: TenantContext, announcementId: string): Promise<Result<null>> {
+      const auth = authorize(ctx, 'website:write');
+      if (!auth.ok) return auth;
+      const deleted = await repo.deleteAnnouncement(ctx, announcementId);
+      if (!deleted) return err(notFound('Announcement'));
+      return ok(null);
+    },
+
+    /** Public site — latest published notices. */
+    async listPublicAnnouncements(
+      organizationId: string,
+      limit = 3,
+    ): Promise<AnnouncementSummary[]> {
+      const rows = await repo.listPublicAnnouncements(organizationId, limit);
+      return rows.map(toAnnouncement);
     },
   };
 }

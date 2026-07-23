@@ -19,6 +19,8 @@ export interface Dict {
     bookPuja: string;
   };
   home: {
+    noticesEyebrow: string;
+    notices: string;
     sitePreparing: string;
     dailySchedule: string;
     calendarEyebrow: string;
@@ -96,6 +98,8 @@ const en: Dict = {
     bookPuja: 'Book a puja',
   },
   home: {
+    noticesEyebrow: 'Notice board',
+    notices: 'Announcements',
     sitePreparing:
       "Our website is being prepared. Soon you'll find our daily schedule, events, festivals and online donations here.",
     dailySchedule: 'Daily schedule',
@@ -183,6 +187,8 @@ const bn: Dict = {
     bookPuja: 'পূজা বুক করুন',
   },
   home: {
+    noticesEyebrow: 'বিজ্ঞপ্তি',
+    notices: 'ঘোষণা',
     sitePreparing:
       'আমাদের ওয়েবসাইট প্রস্তুত হচ্ছে। শীঘ্রই এখানে দৈনিক সূচি, অনুষ্ঠান, উৎসব ও অনলাইন দানের ব্যবস্থা পাবেন।',
     dailySchedule: 'দৈনিক সূচি',
