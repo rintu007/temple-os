@@ -41,6 +41,12 @@ export default async function ExpenseDetailPage({ params }: ExpenseDetailProps) 
           <h1 className="text-2xl font-semibold tracking-tight">Voucher {e.voucherNumber}</h1>
           <span className="text-2xl font-semibold">{formatMoney(e.amount, e.currency)}</span>
         </div>
+        <Link
+          href={`/expenses/${expenseId}/voucher`}
+          className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
+        >
+          Print payment voucher →
+        </Link>
       </div>
 
       {e.status === 'void' ? (

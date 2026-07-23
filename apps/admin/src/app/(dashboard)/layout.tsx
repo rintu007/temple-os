@@ -94,7 +94,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   return (
     <div className="flex min-h-dvh">
       {/* Sidebar — desktop */}
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex">
+      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar lg:flex print:lg:hidden">
         <div className="flex h-14 items-center border-b border-sidebar-border px-5">
           <Link href="/" className="text-[15px] font-semibold tracking-tight">
             Temple<span className="text-primary">OS</span>
@@ -121,7 +121,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Topbar */}
-        <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur">
+        <header className="sticky top-0 z-10 border-b border-border bg-background/90 backdrop-blur print:hidden">
           <div className="flex h-14 items-center justify-between gap-4 px-4 sm:px-6">
             <div className="flex min-w-0 items-center gap-3">
               <Link href="/" className="font-semibold tracking-tight lg:hidden">

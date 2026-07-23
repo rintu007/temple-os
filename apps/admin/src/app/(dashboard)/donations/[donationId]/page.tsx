@@ -41,6 +41,12 @@ export default async function DonationDetailPage({ params }: DonationDetailProps
           <h1 className="text-2xl font-semibold tracking-tight">Receipt #{d.receiptNumber}</h1>
           <span className="text-2xl font-semibold">{formatMoney(d.amount, d.currency)}</span>
         </div>
+        <Link
+          href={`/donations/${donationId}/receipt`}
+          className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
+        >
+          Print official receipt →
+        </Link>
       </div>
 
       {d.status === 'void' ? (
