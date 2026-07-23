@@ -28,6 +28,18 @@ export interface PujaBookingSummary {
   note: string | null;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   createdAt: Date;
+  priestId: string | null;
+  priestName: string | null;
+  scheduledOn: string | null;
+  scheduledTime: string | null;
+}
+
+export interface PriestSummary {
+  id: string;
+  name: string;
+  phone: string | null;
+  specialty: string | null;
+  isActive: boolean;
 }
 
 export interface PujaBookingPage {

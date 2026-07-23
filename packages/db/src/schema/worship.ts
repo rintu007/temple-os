@@ -61,6 +61,27 @@ export const pujaTypes = pgTable(
   (t) => [index('puja_types_org_idx').on(t.organizationId)],
 );
 
+/**
+ * Priest / pujari roster. Priests are not login users — they are people the
+ * temple assigns to sevas; staff manage the roster and the day schedule.
+ */
+export const priests = pgTable(
+  'priests',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    templeId: uuid().references(() => temples.id),
+    name: text().notNull(),
+    phone: text(),
+    specialty: text(),
+    isActive: boolean().notNull().default(true),
+    ...timestamps,
+  },
+  (t) => [index('priests_org_idx').on(t.organizationId)],
+);
+
 export const pujaBookingStatusEnum = pgEnum('puja_booking_status', [
   'pending',
   'confirmed',
@@ -91,6 +112,10 @@ export const pujaBookings = pgTable(
     currency: currencyEnum().notNull(),
     preferredDate: date(),
     note: text(),
+    /** Seva scheduling — set by staff after the booking is confirmed. */
+    priestId: uuid().references(() => priests.id),
+    scheduledOn: date(),
+    scheduledTime: time(),
     status: pujaBookingStatusEnum().notNull().default('pending'),
     provider: text(),
     providerOrderId: text(),

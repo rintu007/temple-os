@@ -1,15 +1,16 @@
-import { and, asc, count, desc, eq, isNull } from 'drizzle-orm';
+import { and, asc, count, desc, eq, isNull, sql } from 'drizzle-orm';
 import {
   auditLogs,
   donations,
   newId,
   organizations,
+  priests,
   pujaBookings,
   pujaTypes,
   withTenantContext,
   type Db,
 } from '@templeos/db';
-import type { PujaTypeInput } from '@templeos/validators';
+import type { AssignSevaInput, PriestInput, PujaTypeInput } from '@templeos/validators';
 import { allocateReceiptNumber, findOrCreateCategory } from '../donations/donation.repository';
 import type { TenantContext } from '../../shared';
 
@@ -150,15 +151,127 @@ export function createPujaRepository(db: Db) {
 
         const [items, [totalRow]] = await Promise.all([
           tx
-            .select()
+            .select({
+              booking: pujaBookings,
+              priestName: priests.name,
+            })
             .from(pujaBookings)
+            .leftJoin(priests, eq(pujaBookings.priestId, priests.id))
             .where(where)
             .orderBy(desc(pujaBookings.createdAt))
             .limit(query.pageSize)
             .offset((query.page - 1) * query.pageSize),
           tx.select({ value: count() }).from(pujaBookings).where(where),
         ]);
-        return { items, total: totalRow?.value ?? 0 };
+        return {
+          items: items.map((r) => ({ ...r.booking, priestName: r.priestName })),
+          total: totalRow?.value ?? 0,
+        };
+      });
+    },
+
+    // ---- Seva scheduling ----
+    async listPriests(ctx: TenantContext) {
+      return withTenantContext(db, guc(ctx), (tx) =>
+        tx
+          .select()
+          .from(priests)
+          .where(eq(priests.organizationId, ctx.organizationId))
+          .orderBy(priests.name),
+      );
+    },
+
+    async createPriest(ctx: TenantContext, input: PriestInput) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [priest] = await tx
+          .insert(priests)
+          .values({
+            id: newId(),
+            organizationId: ctx.organizationId,
+            name: input.name,
+            phone: input.phone ?? null,
+            specialty: input.specialty ?? null,
+            isActive: input.isActive,
+          })
+          .returning();
+        if (!priest) throw new Error('priest insert returned no row');
+
+        await tx.insert(auditLogs).values({
+          organizationId: ctx.organizationId,
+          actorUserId: ctx.userId,
+          action: 'priest.created',
+          entityType: 'priest',
+          entityId: priest.id,
+          after: { name: priest.name },
+        });
+        return priest;
+      });
+    },
+
+    async setPriestActive(ctx: TenantContext, priestId: string, isActive: boolean) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [updated] = await tx
+          .update(priests)
+          .set({ isActive })
+          .where(eq(priests.id, priestId))
+          .returning();
+        return updated ?? null;
+      });
+    },
+
+    async assignSeva(ctx: TenantContext, bookingId: string, input: AssignSevaInput) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        if (input.priestId) {
+          const [priest] = await tx
+            .select({ id: priests.id })
+            .from(priests)
+            .where(eq(priests.id, input.priestId))
+            .limit(1);
+          if (!priest) return { kind: 'priest_not_found' as const };
+        }
+
+        const [updated] = await tx
+          .update(pujaBookings)
+          .set({
+            priestId: input.priestId ?? null,
+            scheduledOn: input.scheduledOn ?? null,
+            scheduledTime: input.scheduledTime ?? null,
+          })
+          .where(eq(pujaBookings.id, bookingId))
+          .returning();
+        if (!updated) return { kind: 'booking_not_found' as const };
+
+        await tx.insert(auditLogs).values({
+          organizationId: ctx.organizationId,
+          actorUserId: ctx.userId,
+          action: 'puja_booking.seva_assigned',
+          entityType: 'puja_booking',
+          entityId: bookingId,
+          after: {
+            priestId: input.priestId ?? null,
+            scheduledOn: input.scheduledOn ?? null,
+            scheduledTime: input.scheduledTime ?? null,
+          },
+        });
+        return { kind: 'ok' as const, booking: updated };
+      });
+    },
+
+    /** All sevas scheduled for a calendar day, earliest first, unscheduled-time last. */
+    async listSevaDay(ctx: TenantContext, day: string) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const rows = await tx
+          .select({ booking: pujaBookings, priestName: priests.name })
+          .from(pujaBookings)
+          .leftJoin(priests, eq(pujaBookings.priestId, priests.id))
+          .where(
+            and(
+              eq(pujaBookings.organizationId, ctx.organizationId),
+              eq(pujaBookings.scheduledOn, day),
+            ),
+          )
+          .orderBy(sql`${pujaBookings.scheduledTime} NULLS LAST`, pujaBookings.createdAt);
+        return rows.map((r) => ({ ...r.booking, priestName: r.priestName }));
       });
     },
 

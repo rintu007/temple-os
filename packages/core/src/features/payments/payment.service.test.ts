@@ -18,6 +18,7 @@ import { systemContext } from '../../shared';
 import { createOrganizationService } from '../organizations/organization.service';
 import { createPaymentService } from './payment.service';
 import { razorpayFromEnv } from './razorpay';
+import { sslcommerzFromEnv } from './sslcommerz';
 
 const hasDb = Boolean(process.env.DATABASE_URL && process.env.DATABASE_URL_ADMIN);
 const hasRazorpay = razorpayFromEnv() !== null;
@@ -70,9 +71,10 @@ describe.skipIf(!hasDb || !hasRazorpay)('payments: order + confirm (live Razorpa
     if (a.ok) orgId = a.value.id;
   });
 
-  it('reports online checkout as available for INR', () => {
+  it('reports online checkout availability per provider configuration', () => {
     expect(service.isOnlineCheckoutAvailable('INR')).toBe(true);
-    expect(service.isOnlineCheckoutAvailable('BDT')).toBe(false);
+    // BDT rides on SSLCommerz — available exactly when its credentials exist.
+    expect(service.isOnlineCheckoutAvailable('BDT')).toBe(sslcommerzFromEnv() !== null);
   });
 
   it('rejects a malformed order request', async () => {

@@ -1,7 +1,9 @@
 import type { Db } from '@templeos/db';
 import {
+  assignSevaSchema,
   confirmDonationOrderSchema,
   createBookingOrderSchema,
+  priestSchema,
   pujaTypeSchema,
 } from '@templeos/validators';
 import {
@@ -18,6 +20,7 @@ import { createPujaRepository } from './puja.repository';
 import type {
   BookingOrder,
   ConfirmedBooking,
+  PriestSummary,
   PublicPujaType,
   PujaBookingPage,
   PujaBookingSummary,
@@ -59,6 +62,10 @@ export function createPujaService({ db }: { db: Db }) {
     note: string | null;
     status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
     createdAt: Date;
+    priestId?: string | null;
+    priestName?: string | null;
+    scheduledOn?: string | null;
+    scheduledTime?: string | null;
   }): PujaBookingSummary => ({
     id: b.id,
     pujaName: b.pujaName,
@@ -71,6 +78,10 @@ export function createPujaService({ db }: { db: Db }) {
     note: b.note,
     status: b.status,
     createdAt: b.createdAt,
+    priestId: b.priestId ?? null,
+    priestName: b.priestName ?? null,
+    scheduledOn: b.scheduledOn ?? null,
+    scheduledTime: b.scheduledTime ?? null,
   });
 
   return {
@@ -154,6 +165,75 @@ export function createPujaService({ db }: { db: Db }) {
       const updated = await repo.setBookingStatus(ctx, bookingId, 'cancelled');
       if (!updated) return err(notFound('Booking'));
       return ok(null);
+    },
+
+    // ---- Seva scheduling ----
+    async listPriests(ctx: TenantContext): Promise<Result<PriestSummary[]>> {
+      const auth = authorize(ctx, 'pujas:read');
+      if (!auth.ok) return auth;
+      const rows = await repo.listPriests(ctx);
+      return ok(
+        rows.map((p) => ({
+          id: p.id,
+          name: p.name,
+          phone: p.phone,
+          specialty: p.specialty,
+          isActive: p.isActive,
+        })),
+      );
+    },
+
+    async createPriest(ctx: TenantContext, rawInput: unknown): Promise<Result<PriestSummary>> {
+      const auth = authorize(ctx, 'pujas:write');
+      if (!auth.ok) return auth;
+      const parsed = priestSchema.safeParse(rawInput);
+      if (!parsed.success) return err(firstIssue(parsed.error));
+      const p = await repo.createPriest(ctx, parsed.data);
+      return ok({
+        id: p.id,
+        name: p.name,
+        phone: p.phone,
+        specialty: p.specialty,
+        isActive: p.isActive,
+      });
+    },
+
+    async setPriestActive(
+      ctx: TenantContext,
+      priestId: string,
+      isActive: boolean,
+    ): Promise<Result<null>> {
+      const auth = authorize(ctx, 'pujas:write');
+      if (!auth.ok) return auth;
+      const updated = await repo.setPriestActive(ctx, priestId, isActive);
+      if (!updated) return err(notFound('Priest'));
+      return ok(null);
+    },
+
+    async assignSeva(
+      ctx: TenantContext,
+      bookingId: string,
+      rawInput: unknown,
+    ): Promise<Result<null>> {
+      const auth = authorize(ctx, 'pujas:write');
+      if (!auth.ok) return auth;
+      const parsed = assignSevaSchema.safeParse(rawInput);
+      if (!parsed.success) return err(firstIssue(parsed.error));
+      const result = await repo.assignSeva(ctx, bookingId, parsed.data);
+      if (result.kind === 'priest_not_found') return err(notFound('Priest'));
+      if (result.kind === 'booking_not_found') return err(notFound('Booking'));
+      return ok(null);
+    },
+
+    /** The day's seva schedule — scheduled bookings for a calendar date. */
+    async listSevaDay(ctx: TenantContext, day: string): Promise<Result<PujaBookingSummary[]>> {
+      const auth = authorize(ctx, 'pujas:read');
+      if (!auth.ok) return auth;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) {
+        return err(domainError('VALIDATION', 'Use YYYY-MM-DD'));
+      }
+      const rows = await repo.listSevaDay(ctx, day);
+      return ok(rows.map(toBookingSummary));
     },
 
     // ---- Public: catalog + booking checkout ----

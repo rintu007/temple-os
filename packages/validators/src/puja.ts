@@ -41,3 +41,35 @@ export const createBookingOrderSchema = z.object({
   note: optionalTrimmed(500),
 });
 export type CreateBookingOrderInput = z.infer<typeof createBookingOrderSchema>;
+
+/** Priest / pujari roster entry. */
+export const priestSchema = z.object({
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(120),
+  phone: optionalTrimmed(20),
+  specialty: optionalTrimmed(160),
+  isActive: z.boolean().default(true),
+});
+export type PriestInput = z.infer<typeof priestSchema>;
+
+/** Assigning a priest + slot to a confirmed booking. Empty strings clear the field. */
+export const assignSevaSchema = z.object({
+  priestId: z
+    .string()
+    .uuid()
+    .or(z.literal(''))
+    .transform((v) => (v === '' ? null : v))
+    .nullish(),
+  scheduledOn: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
+    .or(z.literal(''))
+    .transform((v) => (v === '' ? null : v))
+    .nullish(),
+  scheduledTime: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/, 'Use HH:MM')
+    .or(z.literal(''))
+    .transform((v) => (v === '' ? null : v))
+    .nullish(),
+});
+export type AssignSevaInput = z.infer<typeof assignSevaSchema>;

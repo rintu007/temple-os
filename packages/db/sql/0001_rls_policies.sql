@@ -37,6 +37,7 @@ BEGIN
     'roles',
     'memberships',
     'daily_schedules',
+    'priests',
     'puja_types',
     'puja_bookings',
     'membership_plans',
