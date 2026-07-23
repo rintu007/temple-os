@@ -1,6 +1,8 @@
 import {
+  date,
   index,
   integer,
+  jsonb,
   numeric,
   pgEnum,
   pgTable,
@@ -203,4 +205,37 @@ export const paymentOrders = pgTable(
     uniqueIndex('payment_orders_provider_order_uq').on(t.provider, t.providerOrderId),
     index('payment_orders_org_idx').on(t.organizationId),
   ],
+);
+
+/**
+ * A single counting of a temple offering box (hundi / pranami / donation box).
+ * The money is real donation income, so every collection also creates a
+ * `donations` row (method 'cash', category "Hundi") via the shared receipt
+ * sequence — that's what feeds the ledger, reports and overview. This table
+ * keeps the box-specific detail: which box, when counted, and the optional
+ * denomination breakdown that was tallied to reach the total.
+ */
+export const hundiCollections = pgTable(
+  'hundi_collections',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    templeId: uuid().references(() => temples.id),
+    boxName: text().notNull(),
+    countedOn: date().notNull(),
+    /** Array of { value, count } tallied — null when only a total was entered. */
+    denominations: jsonb().$type<{ value: number; count: number }[]>(),
+    totalAmount: numeric({ precision: 12, scale: 2 }).notNull(),
+    currency: currencyEnum().notNull(),
+    note: text(),
+    /** The ledger entry this counting produced. */
+    donationId: uuid()
+      .notNull()
+      .references(() => donations.id),
+    countedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [index('hundi_collections_org_date_idx').on(t.organizationId, t.countedOn)],
 );

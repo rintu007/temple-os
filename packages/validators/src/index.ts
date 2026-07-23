@@ -8,6 +8,7 @@ export * from './donation';
 export * from './expense';
 export * from './facility';
 export * from './event';
+export * from './hundi';
 export * from './invitation';
 export * from './payment';
 export * from './puja';

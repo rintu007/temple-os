@@ -2,6 +2,7 @@ import {
   BarChart3,
   CalendarDays,
   Building2,
+  Coins,
   Flame,
   Globe,
   HandCoins,
@@ -61,6 +62,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Finance',
     items: [
       { href: '/donations', label: 'Donations', icon: HandCoins },
+      { href: '/hundi', label: 'Hundi', icon: Coins },
       { href: '/campaigns', label: 'Campaigns', icon: HeartHandshake },
       { href: '/expenses', label: 'Expenses', icon: IndianRupee },
       { href: '/reports', label: 'Reports', icon: BarChart3 },

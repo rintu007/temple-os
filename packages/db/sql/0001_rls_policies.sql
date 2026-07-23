@@ -55,6 +55,7 @@ BEGIN
     'expense_categories',
     'expense_counters',
     'expenses',
+    'hundi_collections',
     'payment_orders',
     'events',
     'facilities',

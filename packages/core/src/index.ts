@@ -7,6 +7,7 @@ export * from './features/donations';
 export * from './features/expenses';
 export * from './features/events';
 export * from './features/facilities';
+export * from './features/hundi';
 export * from './features/members';
 export * from './features/payments';
 export * from './features/pujas';

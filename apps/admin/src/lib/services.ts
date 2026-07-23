@@ -6,6 +6,7 @@ import {
   createFacilityService,
   createExpenseService,
   createGalleryService,
+  createHundiService,
   createMemberService,
   createMembershipService,
   createOrganizationService,
@@ -22,6 +23,7 @@ import {
   type FacilityService,
   type ExpenseService,
   type GalleryService,
+  type HundiService,
   type MemberService,
   type MembershipService,
   type OrganizationService,
@@ -150,4 +152,11 @@ let _overviewService: OverviewService | undefined;
 export function overviewService(): OverviewService {
   _overviewService ??= createOverviewService({ db: getDb() });
   return _overviewService;
+}
+
+let _hundiService: HundiService | undefined;
+
+export function hundiService(): HundiService {
+  _hundiService ??= createHundiService({ db: getDb() });
+  return _hundiService;
 }
