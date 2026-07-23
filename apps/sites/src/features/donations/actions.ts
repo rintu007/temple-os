@@ -1,14 +1,26 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { renderDonationReceiptEmail, sendEmail } from '@templeos/email';
 import { paymentService } from '@/lib/services';
 
 export interface CreateOrderResult {
   ok: boolean;
   error?: string;
+  /** Razorpay: open the in-page modal with these. */
   orderId?: string;
   amountPaise?: number;
   keyId?: string;
+  /** SSLCommerz: redirect the browser here. */
+  redirectUrl?: string;
+}
+
+/** The tenant site's public origin — redirect providers return here. */
+async function callbackBaseUrl(): Promise<string> {
+  const h = await headers();
+  const host = h.get('x-forwarded-host') ?? h.get('host') ?? 'localhost';
+  const proto = h.get('x-forwarded-proto') ?? (host.startsWith('localhost') ? 'http' : 'https');
+  return `${proto}://${host}`;
 }
 
 /** organizationId/organizationName/currency are bound server-side from the resolved tenant page. */
@@ -27,14 +39,19 @@ export async function createDonationOrder(
     organizationId,
     organizationCurrency,
     rawInput: input,
+    callbackBaseUrl: await callbackBaseUrl(),
   });
   if (!result.ok) return { ok: false, error: result.error.message };
-  return {
-    ok: true,
-    orderId: result.value.orderId,
-    amountPaise: result.value.amountPaise,
-    keyId: result.value.keyId,
-  };
+
+  if (result.value.kind === 'razorpay') {
+    return {
+      ok: true,
+      orderId: result.value.orderId,
+      amountPaise: result.value.amountPaise,
+      keyId: result.value.keyId,
+    };
+  }
+  return { ok: true, redirectUrl: result.value.gatewayUrl };
 }
 
 export interface ConfirmOrderResult {

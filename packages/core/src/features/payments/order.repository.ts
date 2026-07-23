@@ -12,6 +12,7 @@ import { allocateReceiptNumber, findOrCreateCategory } from '../donations/donati
 
 export interface CreatePaymentOrderValues {
   providerOrderId: string;
+  provider: 'razorpay' | 'sslcommerz';
   amount: string;
   currency: 'INR' | 'BDT';
   donorName: string;
@@ -29,7 +30,7 @@ export function createPaymentOrderRepository(db: Db) {
           .values({
             id: newId(),
             organizationId,
-            provider: 'razorpay',
+            provider: values.provider,
             providerOrderId: values.providerOrderId,
             amount: values.amount,
             currency: values.currency,
@@ -42,6 +43,23 @@ export function createPaymentOrderRepository(db: Db) {
           .returning();
         if (!row) throw new Error('payment order insert returned no row');
         return row;
+      });
+    },
+
+    /** Order row lookup for pre-confirm cross-checks (amount/currency/provider). */
+    async findByProviderOrderId(organizationId: string, providerOrderId: string) {
+      return withTenantContext(db, { organizationId }, async (tx) => {
+        const [order] = await tx
+          .select()
+          .from(paymentOrders)
+          .where(
+            and(
+              eq(paymentOrders.organizationId, organizationId),
+              eq(paymentOrders.providerOrderId, providerOrderId),
+            ),
+          )
+          .limit(1);
+        return order ?? null;
       });
     },
 

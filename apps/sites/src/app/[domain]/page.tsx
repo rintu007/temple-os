@@ -69,6 +69,8 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
     membershipService().listPublicPlans(site.organizationId),
   ]);
   const checkoutAvailable = paymentService().isOnlineCheckoutAvailable(site.currency);
+  // Puja booking + membership checkout are Razorpay-modal flows — INR only for now.
+  const inrCheckoutAvailable = site.currency === 'INR' && checkoutAvailable;
 
   return (
     <main>
@@ -96,7 +98,7 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
             >
               Make a donation
             </Link>
-            {checkoutAvailable && pujaTypes.length > 0 ? (
+            {inrCheckoutAvailable && pujaTypes.length > 0 ? (
               <Link
                 href="/#book-puja"
                 className="rounded-full border border-input bg-card px-6 py-2.5 text-sm font-semibold shadow-card transition-colors hover:bg-muted/60"
@@ -190,7 +192,7 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
           </section>
         ) : null}
 
-        {checkoutAvailable && pujaTypes.length > 0 ? (
+        {inrCheckoutAvailable && pujaTypes.length > 0 ? (
           <section id="book-puja" className="mt-20 scroll-mt-24">
             <SectionHeading eyebrow="Services" title="Book a Puja" />
             <div className="mx-auto mt-8 max-w-md rounded-2xl border border-border bg-card p-8 shadow-card">
@@ -204,7 +206,7 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
           </section>
         ) : null}
 
-        {checkoutAvailable && membershipPlans.length > 0 ? (
+        {inrCheckoutAvailable && membershipPlans.length > 0 ? (
           <section id="membership" className="mt-20 scroll-mt-24">
             <SectionHeading eyebrow="Community" title="Become a Member" />
             <div className="mx-auto mt-8 max-w-md rounded-2xl border border-border bg-card p-8 shadow-card">

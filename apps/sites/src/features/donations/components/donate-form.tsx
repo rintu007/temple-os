@@ -29,6 +29,25 @@ export function DonateForm({ organizationId, organizationName, currency }: Donat
     setError('');
     setStep('processing');
 
+    // BDT: SSLCommerz hosted checkout — the whole page redirects to the
+    // gateway and returns via /donation-complete. No script to load.
+    if (currency === 'BDT') {
+      const created = await createDonationOrder(organizationId, currency, {
+        amount,
+        donorName,
+        email,
+        phone,
+        categoryName: '',
+      });
+      if (!created.ok || !created.redirectUrl) {
+        setError(created.error ?? 'Could not start checkout. Please try again.');
+        setStep('error');
+        return;
+      }
+      window.location.assign(created.redirectUrl);
+      return;
+    }
+
     const scriptLoaded = await loadRazorpayCheckout();
     if (!scriptLoaded || !window.Razorpay) {
       setError('Could not load the payment form. Please check your connection and try again.');
@@ -161,10 +180,12 @@ export function DonateForm({ organizationId, organizationName, currency }: Donat
       </div>
 
       <Button type="submit" className="w-full" disabled={step === 'processing'}>
-        {step === 'processing' ? 'Opening checkout…' : `Donate ₹${amount || '0'}`}
+        {step === 'processing'
+          ? 'Opening checkout…'
+          : `Donate ${currency === 'INR' ? '₹' : '৳'}${amount || '0'}`}
       </Button>
       <p className="text-center text-xs text-muted-foreground">
-        Secure checkout powered by Razorpay.
+        Secure checkout powered by {currency === 'INR' ? 'Razorpay' : 'SSLCommerz'}.
       </p>
     </form>
   );

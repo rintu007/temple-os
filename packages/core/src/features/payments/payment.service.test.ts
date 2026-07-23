@@ -104,6 +104,8 @@ describe.skipIf(!hasDb || !hasRazorpay)('payments: order + confirm (live Razorpa
     });
     expect(created.ok).toBe(true);
     if (!created.ok) return;
+    expect(created.value.kind).toBe('razorpay');
+    if (created.value.kind !== 'razorpay') return;
 
     orderId = created.value.orderId;
     expect(orderId).toMatch(/^order_/);

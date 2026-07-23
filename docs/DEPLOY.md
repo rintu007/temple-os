@@ -34,6 +34,8 @@ Set on **both** projects unless noted. Use *Production* scope (Preview can share
 | `RESEND_API_KEY` | `re_…` | receipts, invites, contact notifications |
 | `RESEND_FROM_EMAIL` | optional | after verifying a domain in Resend; sandbox sender otherwise (sandbox only delivers to your own inbox) |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | `rzp_test_…` | test mode until go-live |
+| `SSLCOMMERZ_STORE_ID` / `SSLCOMMERZ_STORE_PASSWORD` | sandbox creds from developer.sslcommerz.com | BDT donations (Bangladesh orgs). Redirect flow via `/api/payments/sslcommerz/callback`. Absent → BDT checkout hidden. |
+| `SSLCOMMERZ_SANDBOX` | `false` for go-live | defaults to sandbox when unset |
 | `RAZORPAY_WEBHOOK_SECRET` | random string | sites only. Same value entered when registering the webhook in the Razorpay dashboard: URL `https://<sites-host>/api/webhooks/razorpay`, event `payment.captured`. Server-side confirmation fallback when the devotee closes the tab before Checkout's handler runs. |
 | `SUPABASE_SERVICE_ROLE_KEY` | `sb_secret_…` | gallery uploads; safe server-side only |
 

@@ -7,6 +7,14 @@ export {
   type RazorpayConfig,
   type RazorpayOrder,
 } from './razorpay';
+export {
+  createSslcommerzClient,
+  sslcommerzFromEnv,
+  SslcommerzError,
+  type SslcommerzClient,
+  type SslcommerzConfig,
+  type SslcommerzValidation,
+} from './sslcommerz';
 export { createPaymentService, type PaymentService } from './payment.service';
 export {
   createWebhookService,

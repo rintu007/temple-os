@@ -33,3 +33,9 @@ export const confirmDonationOrderSchema = z.object({
   signature: z.string().min(1),
 });
 export type ConfirmDonationOrderInput = z.infer<typeof confirmDonationOrderSchema>;
+
+/** SSLCommerz redirect callback — the val_id we validate server-side. */
+export const confirmSslcommerzSchema = z.object({
+  valId: z.string().trim().min(5).max(120),
+});
+export type ConfirmSslcommerzInput = z.infer<typeof confirmSslcommerzSchema>;

@@ -96,7 +96,7 @@ describe.skipIf(!hasDb || !hasRazorpay)('webhook: payment.captured dispatch (liv
       rawInput: { amount: 251, donorName: 'Webhook Devotee', email: 'devotee@example.com' },
     });
     expect(created.ok).toBe(true);
-    if (created.ok) orderId = created.value.orderId;
+    if (created.ok && created.value.kind === 'razorpay') orderId = created.value.orderId;
   });
 
   it('rejects a tampered body', async () => {
