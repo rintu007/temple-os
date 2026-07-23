@@ -10,6 +10,7 @@ import {
   Landmark,
   LayoutDashboard,
   UserRound,
+  HandHeart,
   UserRoundCog,
   Users,
 } from 'lucide-react';
@@ -50,6 +51,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/devotees', label: 'Devotees', icon: Users },
       { href: '/membership', label: 'Membership', icon: IdCard },
+      { href: '/volunteers', label: 'Volunteers', icon: HandHeart },
       { href: '/team', label: 'Team', icon: UserRoundCog },
     ],
   },

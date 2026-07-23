@@ -9,6 +9,7 @@ import {
   createPujaService,
   createTempleService,
   createWebhookService,
+  createVolunteerService,
   createWebsiteService,
   type CampaignService,
   type EventService,
@@ -19,6 +20,7 @@ import {
   type PujaService,
   type TempleService,
   type WebhookService,
+  type VolunteerService,
   type WebsiteService,
 } from '@templeos/core';
 import { getDb } from '@templeos/db';
@@ -80,6 +82,13 @@ let _webhookService: WebhookService | undefined;
 export function webhookService(): WebhookService {
   _webhookService ??= createWebhookService({ db: getDb() });
   return _webhookService;
+}
+
+let _volunteerService: VolunteerService | undefined;
+
+export function volunteerService(): VolunteerService {
+  _volunteerService ??= createVolunteerService({ db: getDb() });
+  return _volunteerService;
 }
 
 let _websiteService: WebsiteService | undefined;

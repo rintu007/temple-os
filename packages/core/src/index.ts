@@ -12,4 +12,5 @@ export * from './features/pujas';
 export * from './features/membership';
 export * from './features/reports';
 export * from './features/website';
+export * from './features/volunteers';
 export * from './features/gallery';

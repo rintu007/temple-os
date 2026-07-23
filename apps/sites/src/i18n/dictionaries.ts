@@ -10,8 +10,29 @@ export const LOCALES: readonly Locale[] = ['en', 'bn'];
 export const LOCALE_LABELS: Record<Locale, string> = { en: 'EN', bn: 'বাং' };
 
 export interface Dict {
-  nav: { home: string; about: string; gallery: string; contact: string; donate: string };
+  nav: {
+    home: string;
+    about: string;
+    gallery: string;
+    contact: string;
+    donate: string;
+    volunteer: string;
+  };
   footer: { poweredBy: string };
+  volunteer: {
+    eyebrow: string;
+    title: string;
+    intro: string;
+    none: string;
+    slotsFull: string;
+    signUp: string;
+    signingUp: string;
+    thanks: (name: string) => string;
+    yourName: string;
+    phone: string;
+    email: string;
+    note: string;
+  };
   hero: {
     welcomeTo: string;
     tagline: string;
@@ -91,8 +112,29 @@ export interface Dict {
 }
 
 const en: Dict = {
-  nav: { home: 'Home', about: 'About', gallery: 'Gallery', contact: 'Contact', donate: 'Donate' },
+  nav: {
+    home: 'Home',
+    about: 'About',
+    gallery: 'Gallery',
+    contact: 'Contact',
+    donate: 'Donate',
+    volunteer: 'Volunteer',
+  },
   footer: { poweredBy: 'Powered by' },
+  volunteer: {
+    eyebrow: 'Get involved',
+    title: 'Volunteer With Us',
+    intro: 'Lend a hand at the temple — sign up for a seva below.',
+    none: 'No volunteer opportunities are open right now. Please check back soon.',
+    slotsFull: 'All slots filled',
+    signUp: 'Sign up',
+    signingUp: 'Signing up…',
+    thanks: (name) => `Thank you, ${name}! The temple will be in touch.`,
+    yourName: 'Your name',
+    phone: 'Phone',
+    email: 'Email (optional)',
+    note: 'Note (optional)',
+  },
   hero: {
     welcomeTo: 'Welcome to',
     tagline:
@@ -183,8 +225,23 @@ const bn: Dict = {
     gallery: 'গ্যালারি',
     contact: 'যোগাযোগ',
     donate: 'দান করুন',
+    volunteer: 'স্বেচ্ছাসেবা',
   },
   footer: { poweredBy: 'পরিচালনায়' },
+  volunteer: {
+    eyebrow: 'যুক্ত হন',
+    title: 'স্বেচ্ছাসেবক হন',
+    intro: 'মন্দিরের সেবায় হাত বাড়ান — নিচে একটি সেবার জন্য নাম লেখান।',
+    none: 'এই মুহূর্তে কোনো স্বেচ্ছাসেবার সুযোগ খোলা নেই। শীঘ্রই আবার দেখুন।',
+    slotsFull: 'সব স্থান পূর্ণ',
+    signUp: 'নাম লেখান',
+    signingUp: 'নথিভুক্ত হচ্ছে…',
+    thanks: (name) => `ধন্যবাদ, ${name}! মন্দির শীঘ্রই যোগাযোগ করবে।`,
+    yourName: 'আপনার নাম',
+    phone: 'ফোন',
+    email: 'ইমেইল (ঐচ্ছিক)',
+    note: 'মন্তব্য (ঐচ্ছিক)',
+  },
   hero: {
     welcomeTo: 'স্বাগতম',
     tagline:

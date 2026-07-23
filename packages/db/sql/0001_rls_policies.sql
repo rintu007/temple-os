@@ -57,6 +57,8 @@ BEGIN
     'expenses',
     'payment_orders',
     'events',
+    'volunteer_opportunities',
+    'volunteer_signups',
     'invitations',
     'audit_logs'
   ]
