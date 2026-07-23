@@ -15,11 +15,15 @@ function durationLabel(months: number): string {
 
 export default async function MembershipPage() {
   const { ctx } = await requireTenantContext();
-  const result = await membershipService().listPlans(ctx);
+  const [result, dueCount] = await Promise.all([
+    membershipService().listPlans(ctx),
+    membershipService().countRenewalsDue(ctx),
+  ]);
   if (!result.ok) {
     return <Alert tone="error">{result.error.message}</Alert>;
   }
   const plans = result.value;
+  const renewalsDue = dueCount.ok ? dueCount.value : 0;
 
   return (
     <div className="space-y-6">
@@ -31,6 +35,17 @@ export default async function MembershipPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Link
+            href="/membership/renewals"
+            className="inline-flex h-9.5 items-center gap-2 rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+          >
+            Renewals
+            {renewalsDue > 0 ? (
+              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-warning/15 px-1.5 text-xs font-semibold text-warning tabular-nums">
+                {renewalsDue}
+              </span>
+            ) : null}
+          </Link>
           <Link
             href="/membership/members"
             className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"

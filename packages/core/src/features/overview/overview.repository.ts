@@ -6,6 +6,7 @@ import {
   events,
   expenses,
   facilityBookings,
+  membershipSubscriptions,
   organizations,
   pujaBookings,
   volunteerOpportunities,
@@ -90,6 +91,7 @@ export function createOverviewRepository(db: Db) {
           requestedFacilities,
           pendingPujas,
           openVolunteers,
+          membershipsDue,
           recentActivity,
         ] = await Promise.all([
           tx
@@ -219,6 +221,17 @@ export function createOverviewRepository(db: Db) {
               ),
             ),
           tx
+            .select({ n: count() })
+            .from(membershipSubscriptions)
+            .where(
+              and(
+                eq(membershipSubscriptions.organizationId, orgId),
+                eq(membershipSubscriptions.status, 'active'),
+                isNotNull(membershipSubscriptions.expiresOn),
+                sql`${membershipSubscriptions.expiresOn} <= CURRENT_DATE + 30`,
+              ),
+            ),
+          tx
             .select({
               action: auditLogs.action,
               entityType: auditLogs.entityType,
@@ -318,6 +331,7 @@ export function createOverviewRepository(db: Db) {
             requestedFacilityBookings: requestedFacilities[0]?.n ?? 0,
             pendingPujaBookings: pendingPujas[0]?.n ?? 0,
             openVolunteerOpportunities: openVolunteers[0]?.n ?? 0,
+            membershipsDueRenewal: membershipsDue[0]?.n ?? 0,
           },
           activity,
         };

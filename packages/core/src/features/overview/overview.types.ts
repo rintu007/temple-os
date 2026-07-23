@@ -33,6 +33,7 @@ export interface AttentionCounts {
   requestedFacilityBookings: number;
   pendingPujaBookings: number;
   openVolunteerOpportunities: number;
+  membershipsDueRenewal: number;
 }
 
 export interface ActivityItem {

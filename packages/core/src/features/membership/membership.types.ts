@@ -41,6 +41,26 @@ export interface SubscriptionPage {
   pageSize: number;
 }
 
+/** A membership due (or overdue) for renewal. */
+export interface RenewalItem {
+  id: string;
+  memberName: string;
+  planName: string;
+  email: string | null;
+  phone: string | null;
+  amount: string;
+  currency: 'INR' | 'BDT';
+  expiresOn: string;
+  /** Whole days until expiry; negative when already lapsed. */
+  daysUntil: number;
+  state: 'overdue' | 'due_soon';
+}
+
+export interface RenewalResult {
+  subscription: SubscriptionSummary;
+  receiptNumber: string;
+}
+
 export interface JoinOrder {
   orderId: string;
   amountPaise: number;

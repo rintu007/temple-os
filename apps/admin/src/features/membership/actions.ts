@@ -53,3 +53,30 @@ export async function cancelMembershipAction(subscriptionId: string): Promise<vo
   await membershipService().cancelMembership(ctx, subscriptionId);
   revalidatePath('/membership/members');
 }
+
+export async function renewMembershipAction(
+  subscriptionId: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { ctx } = await requireTenantContext();
+  const field = (name: string) => {
+    const v = formData.get(name);
+    return typeof v === 'string' ? v : '';
+  };
+
+  const result = await membershipService().renewMembership(ctx, subscriptionId, {
+    method: field('method'),
+    amount: field('amount') || undefined,
+    reference: field('reference'),
+  });
+  if (!result.ok) return { error: result.error.message };
+
+  revalidatePath('/membership/renewals');
+  revalidatePath('/membership/members');
+  revalidatePath('/donations');
+  revalidatePath('/');
+  return {
+    message: `Renewed — receipt ${result.value.receiptNumber}, valid to ${result.value.subscription.expiresOn ?? ''}`,
+  };
+}

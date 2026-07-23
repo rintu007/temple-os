@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, gte, isNull, lt, sql, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, isNotNull, isNull, lt, sql, type SQL } from 'drizzle-orm';
 import {
   auditLogs,
   donations,
@@ -206,6 +206,149 @@ export function createMembershipRepository(db: Db) {
           before: { memberName: updated.memberName, planName: updated.planName },
         });
         return updated;
+      });
+    },
+
+    // ---- Renewals (admin) ----
+    /**
+     * Active subscriptions whose term ends on or before `withinDays` from
+     * today — includes those already lapsed (a past expiresOn) so overdue
+     * members surface first. Ordered by soonest-expiring.
+     */
+    async listRenewals(ctx: TenantContext, withinDays: number) {
+      return withTenantContext(db, guc(ctx), (tx) =>
+        tx
+          .select()
+          .from(membershipSubscriptions)
+          .where(
+            and(
+              eq(membershipSubscriptions.organizationId, ctx.organizationId),
+              eq(membershipSubscriptions.status, 'active'),
+              isNotNull(membershipSubscriptions.expiresOn),
+              sql`${membershipSubscriptions.expiresOn} <= CURRENT_DATE + ${withinDays}::int`,
+            ),
+          )
+          .orderBy(asc(membershipSubscriptions.expiresOn)),
+      );
+    },
+
+    /** Count of memberships due for renewal within `withinDays` — for the overview. */
+    async countRenewalsDue(ctx: TenantContext, withinDays: number) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [row] = await tx
+          .select({ value: count() })
+          .from(membershipSubscriptions)
+          .where(
+            and(
+              eq(membershipSubscriptions.organizationId, ctx.organizationId),
+              eq(membershipSubscriptions.status, 'active'),
+              isNotNull(membershipSubscriptions.expiresOn),
+              sql`${membershipSubscriptions.expiresOn} <= CURRENT_DATE + ${withinDays}::int`,
+            ),
+          );
+        return row?.value ?? 0;
+      });
+    },
+
+    /**
+     * Records an in-person renewal: locks the subscription, writes a donation
+     * (income + receipt), and extends the term by the plan duration from the
+     * later of today or the current expiry (so early renewals never lose days).
+     */
+    async renewSubscription(
+      ctx: TenantContext,
+      subscriptionId: string,
+      input: { method: string; amount?: number; reference: string | null },
+    ) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [subscription] = await tx
+          .select()
+          .from(membershipSubscriptions)
+          .where(eq(membershipSubscriptions.id, subscriptionId))
+          .for('update')
+          .limit(1);
+        if (!subscription) return { kind: 'not_found' as const };
+        if (subscription.status === 'cancelled') return { kind: 'cancelled' as const };
+
+        let durationMonths = 12;
+        let planPrice = subscription.amount;
+        if (subscription.planId) {
+          const [plan] = await tx
+            .select({
+              durationMonths: membershipPlans.durationMonths,
+              price: membershipPlans.price,
+            })
+            .from(membershipPlans)
+            .where(eq(membershipPlans.id, subscription.planId))
+            .limit(1);
+          if (plan) {
+            durationMonths = plan.durationMonths;
+            planPrice = plan.price;
+          }
+        }
+
+        const amount = (input.amount !== undefined ? input.amount.toFixed(2) : planPrice);
+        const today = new Date().toISOString().slice(0, 10);
+        const base =
+          subscription.expiresOn && subscription.expiresOn > today ? subscription.expiresOn : today;
+        const expiresOn = addMonths(base, durationMonths);
+
+        const categoryId = await findOrCreateCategory(
+          tx,
+          ctx.organizationId,
+          `Membership: ${subscription.planName}`,
+        );
+        const receiptNumber = await allocateReceiptNumber(
+          tx,
+          ctx.organizationId,
+          new Date().getFullYear(),
+        );
+
+        const [donation] = await tx
+          .insert(donations)
+          .values({
+            id: newId(),
+            organizationId: ctx.organizationId,
+            categoryId,
+            devoteeId: subscription.devoteeId,
+            donorName: subscription.memberName,
+            amount,
+            currency: subscription.currency,
+            method: input.method as 'cash' | 'upi' | 'bank_transfer' | 'card' | 'other',
+            reference: input.reference,
+            note: `Renewal: ${subscription.planName}`,
+            receiptNumber,
+            donatedAt: new Date(),
+            recordedByUserId: ctx.userId,
+          })
+          .returning();
+        if (!donation) throw new Error('renewal donation insert returned no row');
+
+        const [updated] = await tx
+          .update(membershipSubscriptions)
+          .set({ expiresOn, startsOn: subscription.startsOn ?? today, amount })
+          .where(eq(membershipSubscriptions.id, subscriptionId))
+          .returning();
+
+        await tx.insert(auditLogs).values({
+          organizationId: ctx.organizationId,
+          actorUserId: ctx.userId,
+          action: 'membership.renewed',
+          entityType: 'membership_subscription',
+          entityId: subscriptionId,
+          after: {
+            planName: subscription.planName,
+            receiptNumber,
+            expiresOn,
+            amount,
+          },
+        });
+
+        return {
+          kind: 'ok' as const,
+          subscription: updated ?? subscription,
+          receiptNumber,
+        };
       });
     },
 

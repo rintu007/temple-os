@@ -3,6 +3,7 @@ import {
   confirmDonationOrderSchema,
   joinMembershipSchema,
   membershipPlanSchema,
+  renewMembershipSchema,
 } from '@templeos/validators';
 import {
   authorize,
@@ -20,9 +21,22 @@ import type {
   JoinOrder,
   MembershipPlanSummary,
   PublicMembershipPlan,
+  RenewalItem,
+  RenewalResult,
   SubscriptionPage,
   SubscriptionSummary,
 } from './membership.types';
+
+/** Memberships expiring within this many days surface in the renewals queue. */
+export const RENEWAL_WINDOW_DAYS = 30;
+
+function daysBetweenTodayAnd(iso: string): number {
+  const today = new Date();
+  const todayUtc = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const [y = 1970, m = 1, d = 1] = iso.split('-').map(Number);
+  const target = Date.UTC(y, m - 1, d);
+  return Math.round((target - todayUtc) / 86_400_000);
+}
 
 function firstIssue(error: { issues: Array<{ message: string }> }) {
   return domainError('VALIDATION', error.issues[0]?.message ?? 'Invalid input');
@@ -149,6 +163,67 @@ export function createMembershipService({ db }: { db: Db }) {
       const updated = await repo.cancelSubscription(ctx, subscriptionId);
       if (!updated) return err(notFound('Membership'));
       return ok(null);
+    },
+
+    // ---- Renewals ----
+    async listRenewals(
+      ctx: TenantContext,
+      withinDays: number = RENEWAL_WINDOW_DAYS,
+    ): Promise<Result<RenewalItem[]>> {
+      const auth = authorize(ctx, 'membership:read');
+      if (!auth.ok) return auth;
+      const rows = await repo.listRenewals(ctx, withinDays);
+      const items: RenewalItem[] = rows.map((s) => {
+        const expiresOn = s.expiresOn as string;
+        const daysUntil = daysBetweenTodayAnd(expiresOn);
+        return {
+          id: s.id,
+          memberName: s.memberName,
+          planName: s.planName,
+          email: s.email,
+          phone: s.phone,
+          amount: s.amount,
+          currency: s.currency,
+          expiresOn,
+          daysUntil,
+          state: daysUntil < 0 ? 'overdue' : 'due_soon',
+        };
+      });
+      return ok(items);
+    },
+
+    async countRenewalsDue(
+      ctx: TenantContext,
+      withinDays: number = RENEWAL_WINDOW_DAYS,
+    ): Promise<Result<number>> {
+      const auth = authorize(ctx, 'membership:read');
+      if (!auth.ok) return auth;
+      return ok(await repo.countRenewalsDue(ctx, withinDays));
+    },
+
+    async renewMembership(
+      ctx: TenantContext,
+      subscriptionId: string,
+      rawInput: unknown,
+    ): Promise<Result<RenewalResult>> {
+      const auth = authorize(ctx, 'membership:write');
+      if (!auth.ok) return auth;
+      const parsed = renewMembershipSchema.safeParse(rawInput);
+      if (!parsed.success) return err(firstIssue(parsed.error));
+
+      const result = await repo.renewSubscription(ctx, subscriptionId, {
+        method: parsed.data.method,
+        amount: parsed.data.amount,
+        reference: parsed.data.reference ?? null,
+      });
+      if (result.kind === 'not_found') return err(notFound('Membership'));
+      if (result.kind === 'cancelled') {
+        return err(domainError('CONFLICT', 'This membership was cancelled and cannot be renewed'));
+      }
+      return ok({
+        subscription: toSubscriptionSummary(result.subscription),
+        receiptNumber: result.receiptNumber,
+      });
     },
 
     // ---- Public: plans + join checkout ----

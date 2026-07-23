@@ -123,6 +123,11 @@ export default async function DashboardPage() {
       href: '/facilities/bookings',
     },
     {
+      count: o.attention.membershipsDueRenewal,
+      label: 'memberships due for renewal',
+      href: '/membership/renewals',
+    },
+    {
       count: o.attention.openVolunteerOpportunities,
       label: 'open volunteer roles',
       href: '/volunteers',
