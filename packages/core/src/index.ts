@@ -12,6 +12,7 @@ export * from './features/hundi';
 export * from './features/members';
 export * from './features/payments';
 export * from './features/pujas';
+export * from './features/meetings';
 export * from './features/membership';
 export * from './features/overview';
 export * from './features/prasadam';

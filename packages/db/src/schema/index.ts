@@ -6,6 +6,7 @@ export * from './community';
 export * from './finance';
 export * from './prasadam';
 export * from './assets';
+export * from './governance';
 export * from './membership';
 export * from './events';
 export * from './facilities';

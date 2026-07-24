@@ -8,6 +8,7 @@ import {
   createExpenseService,
   createGalleryService,
   createHundiService,
+  createMeetingService,
   createMemberService,
   createMembershipService,
   createOrganizationService,
@@ -27,6 +28,7 @@ import {
   type ExpenseService,
   type GalleryService,
   type HundiService,
+  type MeetingService,
   type MemberService,
   type MembershipService,
   type OrganizationService,
@@ -177,4 +179,11 @@ let _assetService: AssetService | undefined;
 export function assetService(): AssetService {
   _assetService ??= createAssetService({ db: getDb() });
   return _assetService;
+}
+
+let _meetingService: MeetingService | undefined;
+
+export function meetingService(): MeetingService {
+  _meetingService ??= createMeetingService({ db: getDb() });
+  return _meetingService;
 }

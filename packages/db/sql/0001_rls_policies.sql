@@ -58,6 +58,7 @@ BEGIN
     'hundi_collections',
     'prasadam_sessions',
     'assets',
+    'meetings',
     'payment_orders',
     'events',
     'facilities',
