@@ -13,6 +13,7 @@ export * from './features/payments';
 export * from './features/pujas';
 export * from './features/membership';
 export * from './features/overview';
+export * from './features/prasadam';
 export * from './features/reports';
 export * from './features/website';
 export * from './features/volunteers';

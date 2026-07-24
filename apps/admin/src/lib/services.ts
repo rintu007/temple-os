@@ -11,6 +11,7 @@ import {
   createMembershipService,
   createOrganizationService,
   createOverviewService,
+  createPrasadamService,
   createPujaService,
   createReportService,
   createTempleService,
@@ -28,6 +29,7 @@ import {
   type MembershipService,
   type OrganizationService,
   type OverviewService,
+  type PrasadamService,
   type PujaService,
   type ReportService,
   type TempleService,
@@ -159,4 +161,11 @@ let _hundiService: HundiService | undefined;
 export function hundiService(): HundiService {
   _hundiService ??= createHundiService({ db: getDb() });
   return _hundiService;
+}
+
+let _prasadamService: PrasadamService | undefined;
+
+export function prasadamService(): PrasadamService {
+  _prasadamService ??= createPrasadamService({ db: getDb() });
+  return _prasadamService;
 }

@@ -56,6 +56,7 @@ BEGIN
     'expense_counters',
     'expenses',
     'hundi_collections',
+    'prasadam_sessions',
     'payment_orders',
     'events',
     'facilities',

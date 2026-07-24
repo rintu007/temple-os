@@ -15,6 +15,7 @@ import {
   HandHeart,
   UserRoundCog,
   Users,
+  UtensilsCrossed,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -46,6 +47,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/temples', label: 'Temples', icon: Landmark },
       { href: '/pujas', label: 'Pujas', icon: Flame },
       { href: '/events', label: 'Events', icon: CalendarDays },
+      { href: '/prasadam', label: 'Annadanam', icon: UtensilsCrossed },
       { href: '/facilities', label: 'Facilities', icon: Building2 },
     ],
   },
