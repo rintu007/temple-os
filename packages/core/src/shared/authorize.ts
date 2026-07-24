@@ -30,6 +30,8 @@ export type Permission =
   | 'facilities:write'
   | 'prasadam:read'
   | 'prasadam:write'
+  | 'assets:read'
+  | 'assets:write'
   | 'overview:read';
 
 /**
@@ -65,6 +67,8 @@ const ALL: readonly Permission[] = [
   'facilities:write',
   'prasadam:read',
   'prasadam:write',
+  'assets:read',
+  'assets:write',
   'overview:read',
 ];
 
@@ -98,6 +102,8 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'facilities:write',
     'prasadam:read',
     'prasadam:write',
+    'assets:read',
+    'assets:write',
     'overview:read',
   ],
   staff: [
@@ -122,6 +128,8 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'facilities:write',
     'prasadam:read',
     'prasadam:write',
+    'assets:read',
+    'assets:write',
     'overview:read',
   ],
   viewer: [
@@ -136,6 +144,7 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'volunteers:read',
     'facilities:read',
     'prasadam:read',
+    'assets:read',
     'overview:read',
   ],
 };
