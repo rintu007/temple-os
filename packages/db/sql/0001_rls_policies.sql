@@ -59,6 +59,8 @@ BEGIN
     'prasadam_sessions',
     'assets',
     'meetings',
+    'inventory_items',
+    'inventory_movements',
     'payment_orders',
     'events',
     'facilities',

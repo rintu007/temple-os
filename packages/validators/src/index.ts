@@ -12,6 +12,7 @@ export * from './hundi';
 export * from './prasadam';
 export * from './asset';
 export * from './meeting';
+export * from './inventory';
 export * from './invitation';
 export * from './payment';
 export * from './puja';
