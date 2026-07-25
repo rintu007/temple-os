@@ -13,6 +13,7 @@ export * from './prasadam';
 export * from './darshan';
 export * from './asset';
 export * from './meeting';
+export * from './officer';
 export * from './inventory';
 export * from './invitation';
 export * from './payment';

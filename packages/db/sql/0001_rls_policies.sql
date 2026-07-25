@@ -61,6 +61,7 @@ BEGIN
     'darshan_tokens',
     'assets',
     'meetings',
+    'office_bearers',
     'inventory_items',
     'inventory_movements',
     'payment_orders',

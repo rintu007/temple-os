@@ -14,6 +14,7 @@ import {
   createMeetingService,
   createMemberService,
   createMembershipService,
+  createOfficerService,
   createOrganizationService,
   createOverviewService,
   createPrasadamService,
@@ -37,6 +38,7 @@ import {
   type MeetingService,
   type MemberService,
   type MembershipService,
+  type OfficerService,
   type OrganizationService,
   type OverviewService,
   type PrasadamService,
@@ -192,6 +194,13 @@ let _auditService: AuditService | undefined;
 export function auditService(): AuditService {
   _auditService ??= createAuditService({ db: getDb() });
   return _auditService;
+}
+
+let _officerService: OfficerService | undefined;
+
+export function officerService(): OfficerService {
+  _officerService ??= createOfficerService({ db: getDb() });
+  return _officerService;
 }
 
 let _assetService: AssetService | undefined;

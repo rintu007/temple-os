@@ -162,6 +162,13 @@
       "when": 1784971860492,
       "tag": "0022_crazy_molly_hayes",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1784992529987,
+      "tag": "0023_flashy_deathstrike",
+      "breakpoints": true
     }
   ]
 }
