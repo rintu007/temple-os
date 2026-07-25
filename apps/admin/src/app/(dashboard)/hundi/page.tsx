@@ -24,12 +24,20 @@ export default async function HundiPage() {
             donation ledger.
           </p>
         </div>
-        <Link
-          href="/hundi/new"
-          className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
-        >
-          Record collection
-        </Link>
+        <div className="flex gap-2">
+          <a
+            href="/hundi/export.csv"
+            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+          >
+            Export CSV
+          </a>
+          <Link
+            href="/hundi/new"
+            className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
+          >
+            Record collection
+          </Link>
+        </div>
       </div>
 
       {collections.length === 0 ? (

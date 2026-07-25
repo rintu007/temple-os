@@ -10,6 +10,7 @@ import {
   type TenantContext,
 } from '../../shared';
 import { createMeetingRepository } from './meeting.repository';
+import { csvField } from '../reports/report.service';
 import type { MeetingStatus, MeetingSummary } from './meeting.types';
 
 function firstIssue(error: { issues: Array<{ message: string }> }) {
@@ -73,6 +74,33 @@ export function createMeetingService({ db }: { db: Db }) {
       if (!parsed.success) return err(firstIssue(parsed.error));
       const row = await repo.create(ctx, parsed.data);
       return ok(toSummary(row));
+    },
+
+    async exportCsv(ctx: TenantContext): Promise<Result<string>> {
+      const auth = authorize(ctx, 'governance:read');
+      if (!auth.ok) return auth;
+      const rows = await repo.list(ctx, 'all');
+      const header = [
+        'Date',
+        'Title',
+        'Body',
+        'Location',
+        'Status',
+        'Attendees',
+        'Decisions',
+      ].join(',');
+      const lines = rows.map((r) =>
+        [
+          csvField(r.meetingOn),
+          csvField(r.title),
+          csvField(r.body),
+          csvField(r.location),
+          csvField(r.status),
+          csvField(r.attendees),
+          csvField(r.decisions),
+        ].join(','),
+      );
+      return ok([header, ...lines].join('\r\n') + '\r\n');
     },
 
     async updateMeeting(

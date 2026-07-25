@@ -39,12 +39,20 @@ export default async function AssetsPage({ searchParams }: AssetsPageProps) {
             insurance. Items are disposed, never deleted.
           </p>
         </div>
-        <Link
-          href="/assets/new"
-          className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
-        >
-          Add asset
-        </Link>
+        <div className="flex gap-2">
+          <a
+            href="/assets/export.csv"
+            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+          >
+            Export CSV
+          </a>
+          <Link
+            href="/assets/new"
+            className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
+          >
+            Add asset
+          </Link>
+        </div>
       </div>
 
       {stats.ok ? (

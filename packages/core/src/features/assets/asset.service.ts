@@ -11,6 +11,7 @@ import {
   type TenantContext,
 } from '../../shared';
 import { createAssetRepository } from './asset.repository';
+import { csvField } from '../reports/report.service';
 import type { AssetStats, AssetStatus, AssetSummary } from './asset.types';
 
 function firstIssue(error: { issues: Array<{ message: string }> }) {
@@ -111,6 +112,39 @@ export function createAssetService({ db }: { db: Db }) {
       const updated = await repo.update(ctx, assetId, parsed.data);
       if (!updated) return err(notFound('Asset'));
       return ok(toSummary(updated));
+    },
+
+    async exportCsv(ctx: TenantContext): Promise<Result<string>> {
+      const auth = authorize(ctx, 'assets:read');
+      if (!auth.ok) return auth;
+      const rows = await repo.list(ctx, 'all');
+      const header = [
+        'Name',
+        'Category',
+        'Quantity',
+        'Estimated Value',
+        'Currency',
+        'Acquired On',
+        'Location',
+        'Status',
+        'Disposal Reason',
+        'Note',
+      ].join(',');
+      const lines = rows.map((r) =>
+        [
+          csvField(r.name),
+          csvField(r.category),
+          csvField(String(r.quantity)),
+          csvField(r.estimatedValue),
+          csvField(r.currency),
+          csvField(r.acquiredOn),
+          csvField(r.location),
+          csvField(r.status),
+          csvField(r.disposalReason),
+          csvField(r.note),
+        ].join(','),
+      );
+      return ok([header, ...lines].join('\r\n') + '\r\n');
     },
 
     async disposeAsset(

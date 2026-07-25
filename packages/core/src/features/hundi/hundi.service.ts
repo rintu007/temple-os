@@ -10,6 +10,7 @@ import {
   type TenantContext,
 } from '../../shared';
 import { createHundiRepository } from './hundi.repository';
+import { csvField } from '../reports/report.service';
 import type { DenominationLine, HundiCollectionSummary } from './hundi.types';
 
 function firstIssue(error: { issues: Array<{ message: string }> }) {
@@ -55,6 +56,38 @@ export function createHundiService({ db }: { db: Db }) {
           toSummary({ ...r, receiptNumber: r.receiptNumber ?? '', status: r.status ?? 'recorded' }),
         ),
       );
+    },
+
+    async exportCsv(ctx: TenantContext): Promise<Result<string>> {
+      const auth = authorize(ctx, 'donations:read');
+      if (!auth.ok) return auth;
+      const rows = await repo.list(ctx);
+      const header = [
+        'Date',
+        'Box',
+        'Receipt No',
+        'Total',
+        'Currency',
+        'Notes/Coins Counted',
+        'Status',
+        'Note',
+      ].join(',');
+      const lines = rows.map((r) => {
+        const counted = r.denominations
+          ? String(r.denominations.reduce((n, d) => n + d.count, 0))
+          : '';
+        return [
+          csvField(r.countedOn),
+          csvField(r.boxName),
+          csvField(r.receiptNumber),
+          csvField(r.totalAmount),
+          csvField(r.currency),
+          csvField(counted),
+          csvField(r.status),
+          csvField(r.note),
+        ].join(',');
+      });
+      return ok([header, ...lines].join('\r\n') + '\r\n');
     },
 
     async recordCollection(

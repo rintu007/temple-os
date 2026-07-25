@@ -49,12 +49,20 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
             A record of your trust and committee meetings — agendas, minutes and resolutions.
           </p>
         </div>
-        <Link
-          href="/meetings/new"
-          className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
-        >
-          New meeting
-        </Link>
+        <div className="flex gap-2">
+          <a
+            href="/meetings/export.csv"
+            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+          >
+            Export CSV
+          </a>
+          <Link
+            href="/meetings/new"
+            className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
+          >
+            New meeting
+          </Link>
+        </div>
       </div>
 
       <div className="flex w-fit gap-1 rounded-lg border border-border p-1 text-sm">

@@ -39,12 +39,20 @@ export default async function InventoryPage({ searchParams }: InventoryPageProps
             stock-takes.
           </p>
         </div>
-        <Link
-          href="/inventory/new"
-          className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
-        >
-          Add item
-        </Link>
+        <div className="flex gap-2">
+          <a
+            href="/inventory/export.csv"
+            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+          >
+            Export CSV
+          </a>
+          <Link
+            href="/inventory/new"
+            className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
+          >
+            Add item
+          </Link>
+        </div>
       </div>
 
       {stats.ok ? (

@@ -11,6 +11,7 @@ import {
   type TenantContext,
 } from '../../shared';
 import { createInventoryRepository } from './inventory.repository';
+import { csvField } from '../reports/report.service';
 import type {
   InventoryItemSummary,
   InventoryStats,
@@ -130,6 +131,35 @@ export function createInventoryService({ db }: { db: Db }) {
       const updated = await repo.update(ctx, itemId, parsed.data);
       if (!updated) return err(notFound('Item'));
       return ok(toItem(updated));
+    },
+
+    async exportCsv(ctx: TenantContext): Promise<Result<string>> {
+      const auth = authorize(ctx, 'inventory:read');
+      if (!auth.ok) return auth;
+      const rows = await repo.list(ctx, 'all');
+      const header = [
+        'Name',
+        'Category',
+        'Unit',
+        'Current Stock',
+        'Reorder Level',
+        'Low',
+        'Active',
+        'Note',
+      ].join(',');
+      const lines = rows.map((r) =>
+        [
+          csvField(r.name),
+          csvField(r.category),
+          csvField(r.unit),
+          csvField(r.currentStock),
+          csvField(r.reorderLevel),
+          csvField(isLow(r.currentStock, r.reorderLevel) ? 'yes' : 'no'),
+          csvField(r.isActive ? 'yes' : 'no'),
+          csvField(r.note),
+        ].join(','),
+      );
+      return ok([header, ...lines].join('\r\n') + '\r\n');
     },
 
     async recordMovement(
