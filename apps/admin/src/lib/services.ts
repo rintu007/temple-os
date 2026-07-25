@@ -1,5 +1,6 @@
 import {
   createAssetService,
+  createAuditService,
   createDevoteeService,
   createDarshanService,
   createDonationService,
@@ -22,6 +23,7 @@ import {
   createVolunteerService,
   createWebsiteService,
   type AssetService,
+  type AuditService,
   type DarshanService,
   type DevoteeService,
   type DonationService,
@@ -183,6 +185,13 @@ let _darshanService: DarshanService | undefined;
 export function darshanService(): DarshanService {
   _darshanService ??= createDarshanService({ db: getDb() });
   return _darshanService;
+}
+
+let _auditService: AuditService | undefined;
+
+export function auditService(): AuditService {
+  _auditService ??= createAuditService({ db: getDb() });
+  return _auditService;
 }
 
 let _assetService: AssetService | undefined;
