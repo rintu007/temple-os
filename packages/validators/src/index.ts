@@ -22,3 +22,4 @@ export * from './membership';
 export * from './report';
 export * from './website';
 export * from './volunteer';
+export * from './vendor';

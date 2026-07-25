@@ -21,6 +21,7 @@ import {
   createPujaService,
   createReportService,
   createTempleService,
+  createVendorService,
   createVolunteerService,
   createWebsiteService,
   type AssetService,
@@ -45,6 +46,7 @@ import {
   type PujaService,
   type ReportService,
   type TempleService,
+  type VendorService,
   type VolunteerService,
   type WebsiteService,
 } from '@templeos/core';
@@ -222,4 +224,11 @@ let _inventoryService: InventoryService | undefined;
 export function inventoryService(): InventoryService {
   _inventoryService ??= createInventoryService({ db: getDb() });
   return _inventoryService;
+}
+
+let _vendorService: VendorService | undefined;
+
+export function vendorService(): VendorService {
+  _vendorService ??= createVendorService({ db: getDb() });
+  return _vendorService;
 }

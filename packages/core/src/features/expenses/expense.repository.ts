@@ -19,7 +19,12 @@ function searchFilter(search: string | null): SQL | undefined {
   return or(ilike(expenses.paidTo, term), ilike(expenses.voucherNumber, term));
 }
 
-async function findOrCreateCategory(
+/**
+ * Resolve (or create) an expense category by case-insensitive name. Exported so
+ * the payables ledger can tag vendor-payment vouchers with the vendor's category
+ * without duplicating the find-or-create logic.
+ */
+export async function findOrCreateExpenseCategory(
   tx: Tx,
   organizationId: string,
   name: string,
@@ -44,8 +49,11 @@ async function findOrCreateCategory(
   return created.id;
 }
 
-/** Own sequence, distinct from donation receipts — vouchers read EV2026-00001. */
-async function allocateVoucherNumber(tx: Tx, organizationId: string, year: number) {
+/**
+ * Own sequence, distinct from donation receipts — vouchers read EV2026-00001.
+ * Exported so vendor-bill payments draw from the same voucher book.
+ */
+export async function allocateVoucherNumber(tx: Tx, organizationId: string, year: number) {
   const [counter] = await tx
     .insert(expenseCounters)
     .values({ organizationId, nextNumber: 2 })
@@ -95,7 +103,7 @@ export function createExpenseRepository(db: Db) {
         if (!org) throw new Error('organization not visible in tenant context');
 
         const categoryId = input.categoryName
-          ? await findOrCreateCategory(tx, ctx.organizationId, input.categoryName)
+          ? await findOrCreateExpenseCategory(tx, ctx.organizationId, input.categoryName)
           : null;
 
         const spentAt = input.spentOn ? new Date(`${input.spentOn}T12:00:00`) : new Date();

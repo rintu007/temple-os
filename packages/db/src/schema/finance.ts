@@ -1,4 +1,5 @@
 import {
+  boolean,
   date,
   index,
   integer,
@@ -150,6 +151,9 @@ export const expenses = pgTable(
       .references(() => organizations.id),
     templeId: uuid().references(() => temples.id),
     categoryId: uuid().references(() => expenseCategories.id),
+    /** Optional links to the payables ledger — set when a voucher settles a vendor bill. */
+    vendorId: uuid().references(() => vendors.id),
+    vendorBillId: uuid().references(() => vendorBills.id),
     paidTo: text().notNull(),
     amount: numeric({ precision: 12, scale: 2 }).notNull(),
     currency: currencyEnum().notNull(),
@@ -166,6 +170,75 @@ export const expenses = pgTable(
   (t) => [
     uniqueIndex('expenses_org_voucher_uq').on(t.organizationId, t.voucherNumber),
     index('expenses_org_date_idx').on(t.organizationId, t.spentAt),
+    index('expenses_vendor_bill_idx').on(t.vendorBillId),
+  ],
+);
+
+/**
+ * A vendor / supplier the temple pays — priests' provisioners, electricians,
+ * caterers, printers. The payee master behind the expense ledger's free-text
+ * `paidTo`, and the anchor for the accounts-payable (bills) sub-ledger.
+ */
+export const vendors = pgTable(
+  'vendors',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    name: text().notNull(),
+    category: text(),
+    contactPerson: text(),
+    phone: text(),
+    email: text(),
+    address: text(),
+    /** GSTIN (IN) / BIN (BD) or any tax registration reference. */
+    taxId: text(),
+    note: text(),
+    isActive: boolean().notNull().default(true),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [index('vendors_org_active_idx').on(t.organizationId, t.isActive)],
+);
+
+/** 'open' bills are payable; 'void' cancels a bill entered in error. */
+export const vendorBillStatusEnum = pgEnum('vendor_bill_status', ['open', 'void']);
+
+/**
+ * A bill / invoice raised by a vendor. The amount owed is fixed here; how much
+ * has been *paid* is derived — the sum of recorded expense vouchers linked back
+ * via `expenses.vendorBillId` — so outstanding balances never drift out of sync
+ * with the books (same discipline as campaign progress).
+ */
+export const vendorBills = pgTable(
+  'vendor_bills',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    vendorId: uuid()
+      .notNull()
+      .references(() => vendors.id),
+    templeId: uuid().references(() => temples.id),
+    /** The vendor's own invoice number, as printed on their document. */
+    billNumber: text().notNull(),
+    description: text(),
+    amount: numeric({ precision: 12, scale: 2 }).notNull(),
+    currency: currencyEnum().notNull(),
+    billDate: date().notNull(),
+    dueDate: date(),
+    note: text(),
+    status: vendorBillStatusEnum().notNull().default('open'),
+    voidReason: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [
+    index('vendor_bills_org_status_idx').on(t.organizationId, t.status),
+    index('vendor_bills_vendor_idx').on(t.vendorId),
+    index('vendor_bills_org_due_idx').on(t.organizationId, t.dueDate),
   ],
 );
 

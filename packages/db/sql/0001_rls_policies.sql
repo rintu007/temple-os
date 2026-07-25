@@ -55,6 +55,8 @@ BEGIN
     'expense_categories',
     'expense_counters',
     'expenses',
+    'vendors',
+    'vendor_bills',
     'hundi_collections',
     'prasadam_sessions',
     'darshan_slots',

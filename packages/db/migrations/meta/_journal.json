@@ -169,6 +169,13 @@
       "when": 1784992529987,
       "tag": "0023_flashy_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1784993949322,
+      "tag": "0024_aberrant_lucky_pierre",
+      "breakpoints": true
     }
   ]
 }

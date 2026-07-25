@@ -22,5 +22,6 @@ export * from './features/overview';
 export * from './features/prasadam';
 export * from './features/reports';
 export * from './features/website';
+export * from './features/vendors';
 export * from './features/volunteers';
 export * from './features/gallery';
