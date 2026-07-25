@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, ilike, or, sql, type SQL } from 'drizzle-orm';
+import { and, count, desc, eq, gte, ilike, lt, or, sql, type SQL } from 'drizzle-orm';
 import {
   auditLogs,
   devotees,
@@ -259,6 +259,64 @@ export function createDonationRepository(db: Db) {
           monthCount: month?.count ?? 0,
         };
       });
+    },
+
+    /**
+     * Giving summary for one devotee: lifetime and current-financial-year
+     * totals (recorded only), plus their most recent receipts.
+     */
+    async devoteeGiving(ctx: TenantContext, devoteeId: string, fyFrom: Date, fyTo: Date) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [org] = await tx
+          .select({ currency: organizations.currency })
+          .from(organizations)
+          .where(eq(organizations.id, ctx.organizationId))
+          .limit(1);
+        if (!org) throw new Error('organization not visible in tenant context');
+
+        const recorded = and(
+          eq(donations.organizationId, ctx.organizationId),
+          eq(donations.devoteeId, devoteeId),
+          eq(donations.status, 'recorded'),
+        );
+        const agg = {
+          total: sql<string>`coalesce(sum(${donations.amount}), '0.00')`,
+          count: count(),
+        };
+
+        const [[lifetime], [fy], recent] = await Promise.all([
+          tx.select(agg).from(donations).where(recorded),
+          tx
+            .select(agg)
+            .from(donations)
+            .where(and(recorded, gte(donations.donatedAt, fyFrom), lt(donations.donatedAt, fyTo))),
+          baseSelect(tx).where(recorded).orderBy(desc(donations.donatedAt)).limit(5),
+        ]);
+
+        return {
+          currency: org.currency,
+          lifetime: { total: lifetime?.total ?? '0.00', count: lifetime?.count ?? 0 },
+          fy: { total: fy?.total ?? '0.00', count: fy?.count ?? 0 },
+          recent,
+        };
+      });
+    },
+
+    /** Recorded donations for one devotee within [from, to). Powers the statement. */
+    async devoteeStatementRows(ctx: TenantContext, devoteeId: string, from: Date, to: Date) {
+      return withTenantContext(db, guc(ctx), (tx) =>
+        baseSelect(tx)
+          .where(
+            and(
+              eq(donations.organizationId, ctx.organizationId),
+              eq(donations.devoteeId, devoteeId),
+              eq(donations.status, 'recorded'),
+              gte(donations.donatedAt, from),
+              lt(donations.donatedAt, to),
+            ),
+          )
+          .orderBy(donations.donatedAt),
+      );
     },
   };
 }

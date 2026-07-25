@@ -31,3 +31,27 @@ export interface DonationStats {
   monthCount: number;
   allTimeTotal: string;
 }
+
+/** A devotee's giving snapshot for their profile page. */
+export interface DevoteeGiving {
+  currency: 'INR' | 'BDT';
+  lifetimeTotal: string;
+  lifetimeCount: number;
+  fyTotal: string;
+  fyCount: number;
+  /** e.g. '2026–2027' */
+  fyLabel: string;
+  /** Current financial-year start (April), for the statement link. */
+  fyStartYear: number;
+  recent: DonationSummary[];
+}
+
+/** A printable annual (financial-year) donation statement for one devotee. */
+export interface DevoteeStatement {
+  fyStartYear: number;
+  fyLabel: string;
+  currency: 'INR' | 'BDT';
+  items: DonationSummary[];
+  total: string;
+  count: number;
+}
