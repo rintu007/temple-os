@@ -57,6 +57,8 @@ BEGIN
     'expenses',
     'hundi_collections',
     'prasadam_sessions',
+    'darshan_slots',
+    'darshan_tokens',
     'assets',
     'meetings',
     'inventory_items',

@@ -4,6 +4,7 @@ export * from './features/temples';
 export * from './features/assets';
 export * from './features/devotees';
 export * from './features/campaigns';
+export * from './features/darshan';
 export * from './features/donations';
 export * from './features/expenses';
 export * from './features/events';

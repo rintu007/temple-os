@@ -18,8 +18,25 @@ export interface Dict {
     donate: string;
     volunteer: string;
     facilities: string;
+    darshan: string;
   };
   footer: { poweredBy: string };
+  darshan: {
+    eyebrow: string;
+    title: string;
+    intro: string;
+    none: string;
+    remaining: (n: number) => string;
+    full: string;
+    book: string;
+    booking: string;
+    thanks: (token: number, name: string) => string;
+    yourName: string;
+    phone: string;
+    email: string;
+    partySize: string;
+    note: string;
+  };
   facilities: {
     eyebrow: string;
     title: string;
@@ -137,8 +154,26 @@ const en: Dict = {
     donate: 'Donate',
     volunteer: 'Volunteer',
     facilities: 'Halls',
+    darshan: 'Darshan',
   },
   footer: { poweredBy: 'Powered by' },
+  darshan: {
+    eyebrow: 'Plan your visit',
+    title: 'Darshan Booking',
+    intro: 'Reserve a free timed-entry token for darshan. Show it at the gate.',
+    none: 'No darshan slots are open for booking right now. Please check back soon.',
+    remaining: (n) => `${n} place${n === 1 ? '' : 's'} left`,
+    full: 'Fully booked',
+    book: 'Book token',
+    booking: 'Booking…',
+    thanks: (token, name) =>
+      `Booked! Token #${token} for ${name}. Please show this at the gate.`,
+    yourName: 'Your name',
+    phone: 'Phone',
+    email: 'Email (optional)',
+    partySize: 'Number of people',
+    note: 'Note (optional)',
+  },
   facilities: {
     eyebrow: 'Book a space',
     title: 'Halls & Facilities',
@@ -262,8 +297,25 @@ const bn: Dict = {
     donate: 'দান করুন',
     volunteer: 'স্বেচ্ছাসেবা',
     facilities: 'হল',
+    darshan: 'দর্শন',
   },
   footer: { poweredBy: 'পরিচালনায়' },
+  darshan: {
+    eyebrow: 'আপনার দর্শন পরিকল্পনা করুন',
+    title: 'দর্শন বুকিং',
+    intro: 'দর্শনের জন্য একটি বিনামূল্যের সময়-নির্ধারিত টোকেন সংরক্ষণ করুন। গেটে দেখান।',
+    none: 'এই মুহূর্তে বুকিংয়ের জন্য কোনো দর্শন স্লট নেই। শীঘ্রই আবার দেখুন।',
+    remaining: (n) => `${n}টি স্থান বাকি`,
+    full: 'সম্পূর্ণ বুক হয়ে গেছে',
+    book: 'টোকেন বুক করুন',
+    booking: 'বুক হচ্ছে…',
+    thanks: (token, name) => `বুক হয়েছে! ${name}-এর জন্য টোকেন #${token}। গেটে এটি দেখান।`,
+    yourName: 'আপনার নাম',
+    phone: 'ফোন',
+    email: 'ইমেইল (ঐচ্ছিক)',
+    partySize: 'জনসংখ্যা',
+    note: 'নোট (ঐচ্ছিক)',
+  },
   facilities: {
     eyebrow: 'স্থান বুক করুন',
     title: 'হল ও সুবিধা',

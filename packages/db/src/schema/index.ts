@@ -5,6 +5,7 @@ export * from './worship';
 export * from './community';
 export * from './finance';
 export * from './prasadam';
+export * from './darshan';
 export * from './assets';
 export * from './inventory';
 export * from './governance';

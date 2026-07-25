@@ -1,6 +1,7 @@
 import {
   createAssetService,
   createDevoteeService,
+  createDarshanService,
   createDonationService,
   createCampaignService,
   createEventService,
@@ -21,6 +22,7 @@ import {
   createVolunteerService,
   createWebsiteService,
   type AssetService,
+  type DarshanService,
   type DevoteeService,
   type DonationService,
   type CampaignService,
@@ -174,6 +176,13 @@ let _prasadamService: PrasadamService | undefined;
 export function prasadamService(): PrasadamService {
   _prasadamService ??= createPrasadamService({ db: getDb() });
   return _prasadamService;
+}
+
+let _darshanService: DarshanService | undefined;
+
+export function darshanService(): DarshanService {
+  _darshanService ??= createDarshanService({ db: getDb() });
+  return _darshanService;
 }
 
 let _assetService: AssetService | undefined;

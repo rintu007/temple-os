@@ -10,6 +10,7 @@ export * from './facility';
 export * from './event';
 export * from './hundi';
 export * from './prasadam';
+export * from './darshan';
 export * from './asset';
 export * from './meeting';
 export * from './inventory';
