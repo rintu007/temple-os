@@ -131,6 +131,36 @@ export const financialAccounts = pgTable(
   (t) => [index('financial_accounts_org_active_idx').on(t.organizationId, t.isActive)],
 );
 
+/**
+ * A snapshot of one completed bank reconciliation — the treasurer ticked off
+ * ledger entries against the statement and recorded the statement balance for
+ * the audit trail. The individual cleared flags live on `donations.clearedAt`
+ * and `expenses.clearedAt`; this table is the point-in-time record.
+ */
+export const accountReconciliations = pgTable(
+  'account_reconciliations',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    accountId: uuid()
+      .notNull()
+      .references(() => financialAccounts.id),
+    statementDate: date().notNull(),
+    /** Closing balance printed on the bank statement. */
+    statementBalance: numeric({ precision: 12, scale: 2 }).notNull(),
+    /** Cleared balance in the books at reconcile time. */
+    clearedBalance: numeric({ precision: 12, scale: 2 }).notNull(),
+    /** statementBalance − clearedBalance; zero when fully reconciled. */
+    difference: numeric({ precision: 12, scale: 2 }).notNull(),
+    note: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [index('account_reconciliations_account_idx').on(t.accountId, t.statementDate)],
+);
+
 export const grantStatusEnum = pgEnum('grant_status', ['active', 'closed']);
 
 /**
@@ -265,6 +295,8 @@ export const donations = pgTable(
     fundId: uuid().references(() => funds.id),
     /** The bank/cash account this money went into — see `financialAccounts`. */
     accountId: uuid().references(() => financialAccounts.id),
+    /** Set once this entry is reconciled against the bank statement (cleared). */
+    clearedAt: timestamp({ withTimezone: true }),
     /** Set when this receipt is the release of a grant — see `grants`. */
     grantId: uuid().references(() => grants.id),
     /** Set when this receipt pays toward a recurring seva — see `sevaSubscriptions`. */
@@ -512,6 +544,8 @@ export const expenses = pgTable(
     fundId: uuid().references(() => funds.id),
     /** The bank/cash account this money was paid from — see `financialAccounts`. */
     accountId: uuid().references(() => financialAccounts.id),
+    /** Set once this entry is reconciled against the bank statement (cleared). */
+    clearedAt: timestamp({ withTimezone: true }),
     /** Set when this voucher is a salary/honorarium payment — see `employees`. */
     employeeId: uuid().references(() => employees.id),
     /** Set when this voucher utilizes grant money — see `grants`. */

@@ -59,6 +59,15 @@ export default async function AccountDetailPage({ params }: AccountDetailProps) 
         </div>
       </div>
 
+      <div className="flex justify-end">
+        <Link
+          href={`/accounts/${account.id}/reconcile`}
+          className="inline-flex h-9 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+        >
+          Reconcile
+        </Link>
+      </div>
+
       <section className="rounded-xl border border-border bg-card shadow-card">
         <div className="border-b border-border px-5 py-3 text-sm font-semibold">Passbook</div>
         {movements.length === 0 ? (

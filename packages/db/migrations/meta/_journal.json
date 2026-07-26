@@ -253,6 +253,13 @@
       "when": 1785082868346,
       "tag": "0035_marvelous_shadow_king",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1785084855020,
+      "tag": "0036_wet_radioactive_man",
+      "breakpoints": true
     }
   ]
 }

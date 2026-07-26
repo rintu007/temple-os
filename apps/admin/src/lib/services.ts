@@ -27,6 +27,7 @@ import {
   createPledgeService,
   createPrasadamService,
   createPujaService,
+  createReconciliationService,
   createReportService,
   createSevaService,
   createStatementService,
@@ -63,6 +64,7 @@ import {
   type PledgeService,
   type PrasadamService,
   type PujaService,
+  type ReconciliationService,
   type ReportService,
   type SevaService,
   type StatementService,
@@ -330,4 +332,11 @@ let _inKindService: InKindService | undefined;
 export function inKindService(): InKindService {
   _inKindService ??= createInKindService({ db: getDb() });
   return _inKindService;
+}
+
+let _reconciliationService: ReconciliationService | undefined;
+
+export function reconciliationService(): ReconciliationService {
+  _reconciliationService ??= createReconciliationService({ db: getDb() });
+  return _reconciliationService;
 }

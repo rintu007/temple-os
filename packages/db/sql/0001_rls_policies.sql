@@ -61,6 +61,7 @@ BEGIN
     'funds',
     'budgets',
     'financial_accounts',
+    'account_reconciliations',
     'employees',
     'grants',
     'seva_subscriptions',
