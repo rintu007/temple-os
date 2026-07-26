@@ -21,6 +21,7 @@ import {
   createPrasadamService,
   createPujaService,
   createReportService,
+  createStatementService,
   createTempleService,
   createVendorService,
   createVolunteerService,
@@ -47,6 +48,7 @@ import {
   type PrasadamService,
   type PujaService,
   type ReportService,
+  type StatementService,
   type TempleService,
   type VendorService,
   type VolunteerService,
@@ -240,4 +242,11 @@ let _communicationService: CommunicationService | undefined;
 export function communicationService(): CommunicationService {
   _communicationService ??= createCommunicationService({ db: getDb() });
   return _communicationService;
+}
+
+let _statementService: StatementService | undefined;
+
+export function statementService(): StatementService {
+  _statementService ??= createStatementService({ db: getDb() });
+  return _statementService;
 }

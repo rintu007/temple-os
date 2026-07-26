@@ -15,6 +15,7 @@ import {
   LayoutDashboard,
   Mail,
   Package,
+  Scale,
   UserRound,
   HandHeart,
   ScrollText,
@@ -84,6 +85,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/assets', label: 'Assets', icon: Gem },
       { href: '/inventory', label: 'Inventory', icon: Package },
       { href: '/reports', label: 'Reports', icon: BarChart3 },
+      { href: '/statements', label: 'I&E statement', icon: Scale },
     ],
   },
   {
