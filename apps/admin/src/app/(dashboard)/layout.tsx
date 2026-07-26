@@ -25,6 +25,7 @@ import {
   UserRound,
   HandHeart,
   ScrollText,
+  Sparkles,
   Ticket,
   Truck,
   UserRoundCheck,
@@ -62,6 +63,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: '/temples', label: 'Temples', icon: Landmark },
       { href: '/pujas', label: 'Pujas', icon: Flame },
+      { href: '/sevas', label: 'Sevas', icon: Sparkles },
       { href: '/events', label: 'Events', icon: CalendarDays },
       { href: '/prasadam', label: 'Annadanam', icon: UtensilsCrossed },
       { href: '/darshan', label: 'Darshan', icon: Ticket },

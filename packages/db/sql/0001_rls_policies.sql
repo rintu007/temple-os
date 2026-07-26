@@ -63,6 +63,7 @@ BEGIN
     'financial_accounts',
     'employees',
     'grants',
+    'seva_subscriptions',
     'tax_profiles',
     'hundi_collections',
     'prasadam_sessions',

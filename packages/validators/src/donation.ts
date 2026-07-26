@@ -55,6 +55,12 @@ export const recordDonationSchema = z
       .or(z.literal(''))
       .transform((v) => (v === '' ? null : v))
       .nullish(),
+    sevaSubscriptionId: z
+      .string()
+      .uuid()
+      .or(z.literal(''))
+      .transform((v) => (v === '' ? null : v))
+      .nullish(),
     reference: optionalTrimmed(120),
     note: optionalTrimmed(500),
     /** Donor PAN — recorded for 80G receipts. Normalised to uppercase. */

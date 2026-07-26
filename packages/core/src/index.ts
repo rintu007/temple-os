@@ -27,6 +27,7 @@ export * from './features/membership';
 export * from './features/overview';
 export * from './features/prasadam';
 export * from './features/reports';
+export * from './features/sevas';
 export * from './features/statements';
 export * from './features/tax';
 export * from './features/website';

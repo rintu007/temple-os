@@ -165,6 +165,53 @@ export const grants = pgTable(
   (t) => [index('grants_org_status_idx').on(t.organizationId, t.status)],
 );
 
+export const sevaFrequencyEnum = pgEnum('seva_frequency', [
+  'weekly',
+  'monthly',
+  'quarterly',
+  'annual',
+]);
+export const sevaStatusEnum = pgEnum('seva_status', ['active', 'paused', 'ended']);
+
+/**
+ * A standing (recurring) worship sponsorship — daily archana, monthly
+ * abhishekam, an annual nakshatra seva. Unlike a one-time puja booking, a seva
+ * recurs on a cadence. How much has actually been *collected* is derived from
+ * the donations tagged to it (`donations.sevaSubscriptionId`), so a sponsor's
+ * giving history never drifts from the receipt book — same discipline as
+ * pledges. Auto-charge of online sponsors layers on via the payment webhook.
+ */
+export const sevaSubscriptions = pgTable(
+  'seva_subscriptions',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    templeId: uuid().references(() => temples.id),
+    devoteeId: uuid().references(() => devotees.id),
+    sponsorName: text().notNull(),
+    /** The seva being sponsored — "Daily Archana", "Monthly Abhishekam". */
+    sevaName: text().notNull(),
+    /** Amount per occurrence. */
+    amount: numeric({ precision: 12, scale: 2 }).notNull(),
+    frequency: sevaFrequencyEnum().notNull(),
+    /** Nakshatra / tithi / occasion the seva is performed on, if any. */
+    occasion: text(),
+    startDate: date().notNull(),
+    /** Null = open-ended (until paused/ended). */
+    endDate: date(),
+    status: sevaStatusEnum().notNull().default('active'),
+    note: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [
+    index('seva_subscriptions_org_status_idx').on(t.organizationId, t.status),
+    index('seva_subscriptions_devotee_idx').on(t.devoteeId),
+  ],
+);
+
 export const donationMethodEnum = pgEnum('donation_method', [
   'cash',
   'upi',
@@ -220,6 +267,8 @@ export const donations = pgTable(
     accountId: uuid().references(() => financialAccounts.id),
     /** Set when this receipt is the release of a grant — see `grants`. */
     grantId: uuid().references(() => grants.id),
+    /** Set when this receipt pays toward a recurring seva — see `sevaSubscriptions`. */
+    sevaSubscriptionId: uuid().references(() => sevaSubscriptions.id),
     donorName: text().notNull(),
     amount: numeric({ precision: 12, scale: 2 }).notNull(),
     currency: currencyEnum().notNull(),
@@ -243,6 +292,7 @@ export const donations = pgTable(
     index('donations_fund_idx').on(t.fundId),
     index('donations_account_idx').on(t.accountId),
     index('donations_grant_idx').on(t.grantId),
+    index('donations_seva_idx').on(t.sevaSubscriptionId),
   ],
 );
 

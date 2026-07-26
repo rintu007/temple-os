@@ -27,6 +27,7 @@ import {
   createPrasadamService,
   createPujaService,
   createReportService,
+  createSevaService,
   createStatementService,
   createTaxService,
   createTempleService,
@@ -61,6 +62,7 @@ import {
   type PrasadamService,
   type PujaService,
   type ReportService,
+  type SevaService,
   type StatementService,
   type TaxService,
   type TempleService,
@@ -312,4 +314,11 @@ let _grantService: GrantService | undefined;
 export function grantService(): GrantService {
   _grantService ??= createGrantService({ db: getDb() });
   return _grantService;
+}
+
+let _sevaService: SevaService | undefined;
+
+export function sevaService(): SevaService {
+  _sevaService ??= createSevaService({ db: getDb() });
+  return _sevaService;
 }

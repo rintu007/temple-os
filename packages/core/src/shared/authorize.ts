@@ -32,6 +32,8 @@ export type Permission =
   | 'events:write'
   | 'pujas:read'
   | 'pujas:write'
+  | 'sevas:read'
+  | 'sevas:write'
   | 'membership:read'
   | 'membership:write'
   | 'reports:read'
@@ -90,6 +92,8 @@ const ALL: readonly Permission[] = [
   'events:write',
   'pujas:read',
   'pujas:write',
+  'sevas:read',
+  'sevas:write',
   'membership:read',
   'membership:write',
   'reports:read',
@@ -146,6 +150,8 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'events:write',
     'pujas:read',
     'pujas:write',
+    'sevas:read',
+    'sevas:write',
     'membership:read',
     'membership:write',
     'reports:read',
@@ -187,6 +193,8 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'events:write',
     'pujas:read',
     'pujas:write',
+    'sevas:read',
+    'sevas:write',
     'membership:read',
     'membership:write',
     'website:read',
@@ -218,6 +226,7 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'tax:read',
     'events:read',
     'pujas:read',
+    'sevas:read',
     'membership:read',
     'website:read',
     'volunteers:read',
