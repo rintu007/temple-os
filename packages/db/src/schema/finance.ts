@@ -99,6 +99,38 @@ export const funds = pgTable(
   (t) => [index('funds_org_active_idx').on(t.organizationId, t.isActive)],
 );
 
+export const accountTypeEnum = pgEnum('account_type', ['bank', 'cash']);
+
+/**
+ * A bank account or cash box the temple actually holds money in. The current
+ * balance is derived: opening balance, plus recorded donations tagged to the
+ * account, less recorded expenses paid from it (via `donations.accountId` /
+ * `expenses.accountId`) — so it never drifts from the ledger. Opening balance
+ * captures money already held when the temple started using TempleOS.
+ */
+export const financialAccounts = pgTable(
+  'financial_accounts',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    name: text().notNull(),
+    type: accountTypeEnum().notNull().default('bank'),
+    /** Bank name / branch — null for a cash box. */
+    bankName: text(),
+    /** Account number as entered; shown masked in the UI. */
+    accountNumber: text(),
+    openingBalance: numeric({ precision: 12, scale: 2 }).notNull().default('0'),
+    openingDate: date(),
+    note: text(),
+    isActive: boolean().notNull().default(true),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [index('financial_accounts_org_active_idx').on(t.organizationId, t.isActive)],
+);
+
 export const donationMethodEnum = pgEnum('donation_method', [
   'cash',
   'upi',
@@ -150,6 +182,8 @@ export const donations = pgTable(
     pledgeId: uuid().references(() => pledges.id),
     /** Earmarks this donation to a fund — see `funds`. */
     fundId: uuid().references(() => funds.id),
+    /** The bank/cash account this money went into — see `financialAccounts`. */
+    accountId: uuid().references(() => financialAccounts.id),
     donorName: text().notNull(),
     amount: numeric({ precision: 12, scale: 2 }).notNull(),
     currency: currencyEnum().notNull(),
@@ -171,6 +205,7 @@ export const donations = pgTable(
     index('donations_devotee_idx').on(t.devoteeId),
     index('donations_pledge_idx').on(t.pledgeId),
     index('donations_fund_idx').on(t.fundId),
+    index('donations_account_idx').on(t.accountId),
   ],
 );
 
@@ -297,6 +332,8 @@ export const expenses = pgTable(
     vendorBillId: uuid().references(() => vendorBills.id),
     /** Draws this expense from a fund — see `funds`. */
     fundId: uuid().references(() => funds.id),
+    /** The bank/cash account this money was paid from — see `financialAccounts`. */
+    accountId: uuid().references(() => financialAccounts.id),
     paidTo: text().notNull(),
     amount: numeric({ precision: 12, scale: 2 }).notNull(),
     currency: currencyEnum().notNull(),
@@ -320,6 +357,7 @@ export const expenses = pgTable(
     index('expenses_vendor_bill_idx').on(t.vendorBillId),
     index('expenses_org_approval_idx').on(t.organizationId, t.approvalStatus),
     index('expenses_fund_idx').on(t.fundId),
+    index('expenses_account_idx').on(t.accountId),
   ],
 );
 

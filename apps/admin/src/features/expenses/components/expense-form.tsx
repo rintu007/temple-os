@@ -8,6 +8,7 @@ import { recordExpenseAction } from '../actions';
 interface ExpenseFormProps {
   currency: string;
   funds?: Array<{ id: string; name: string }>;
+  accounts?: Array<{ id: string; name: string }>;
 }
 
 const METHODS = [
@@ -19,7 +20,7 @@ const METHODS = [
   { value: 'other', label: 'Other' },
 ];
 
-export function ExpenseForm({ currency, funds = [] }: ExpenseFormProps) {
+export function ExpenseForm({ currency, funds = [], accounts = [] }: ExpenseFormProps) {
   const [state, formAction, pending] = useActionState(recordExpenseAction, initialFormState);
   const today = new Date().toISOString().slice(0, 10);
 
@@ -93,6 +94,19 @@ export function ExpenseForm({ currency, funds = [] }: ExpenseFormProps) {
               {funds.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : null}
+        {accounts.length > 0 ? (
+          <div className="space-y-2">
+            <Label htmlFor="accountId">Paid from account (optional)</Label>
+            <Select id="accountId" name="accountId" defaultValue="">
+              <option value="">— Not tracked —</option>
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
                 </option>
               ))}
             </Select>

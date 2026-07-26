@@ -19,6 +19,7 @@ interface DonationFormProps {
   devotees: DevoteeOption[];
   campaigns: CampaignOption[];
   funds?: Array<{ id: string; name: string }>;
+  accounts?: Array<{ id: string; name: string }>;
   currency: string;
 }
 
@@ -30,7 +31,13 @@ const METHODS = [
   { value: 'other', label: 'Other' },
 ];
 
-export function DonationForm({ devotees, campaigns, funds = [], currency }: DonationFormProps) {
+export function DonationForm({
+  devotees,
+  campaigns,
+  funds = [],
+  accounts = [],
+  currency,
+}: DonationFormProps) {
   const [state, formAction, pending] = useActionState(recordDonationAction, initialFormState);
   const today = new Date().toISOString().slice(0, 10);
 
@@ -121,6 +128,20 @@ export function DonationForm({ devotees, campaigns, funds = [], currency }: Dona
               {funds.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : null}
+
+        {accounts.length > 0 ? (
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="accountId">Deposit to account (optional)</Label>
+            <Select id="accountId" name="accountId" defaultValue="">
+              <option value="">— Not tracked —</option>
+              {accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
                 </option>
               ))}
             </Select>

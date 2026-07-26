@@ -60,6 +60,7 @@ BEGIN
     'pledges',
     'funds',
     'budgets',
+    'financial_accounts',
     'tax_profiles',
     'hundi_collections',
     'prasadam_sessions',

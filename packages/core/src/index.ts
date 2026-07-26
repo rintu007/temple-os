@@ -3,6 +3,7 @@ export * from './features/audit';
 export * from './features/communications';
 export * from './features/organizations';
 export * from './features/temples';
+export * from './features/accounts';
 export * from './features/assets';
 export * from './features/devotees';
 export * from './features/budgets';

@@ -1,16 +1,22 @@
 import type { Metadata } from 'next';
 import { DonationForm } from '@/features/donations/components/donation-form';
 import { requireTenantContext } from '@/lib/session';
-import { campaignService, devoteeService, fundService } from '@/lib/services';
+import {
+  accountService,
+  campaignService,
+  devoteeService,
+  fundService,
+} from '@/lib/services';
 
 export const metadata: Metadata = { title: 'Record donation' };
 
 export default async function NewDonationPage() {
   const { ctx, membership } = await requireTenantContext();
-  const [devotees, campaigns, funds] = await Promise.all([
+  const [devotees, campaigns, funds, accounts] = await Promise.all([
     devoteeService().listDevotees(ctx, { pageSize: 100 }),
     campaignService().listActiveOptions(ctx),
     fundService().listActiveOptions(ctx),
+    accountService().listActiveOptions(ctx),
   ]);
 
   return (
@@ -26,6 +32,7 @@ export default async function NewDonationPage() {
           devotees={devotees.ok ? devotees.value.items : []}
           campaigns={campaigns.ok ? campaigns.value : []}
           funds={funds.ok ? funds.value : []}
+          accounts={accounts.ok ? accounts.value : []}
           currency={membership.currency}
         />
       </div>

@@ -26,6 +26,7 @@ export async function recordDonationAction(
     categoryName: field('categoryName'),
     campaignId: field('campaignId'),
     fundId: field('fundId'),
+    accountId: field('accountId'),
     reference: field('reference'),
     note: field('note'),
     donorPan: field('donorPan'),

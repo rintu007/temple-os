@@ -29,6 +29,7 @@ import {
   UserRoundCog,
   Users,
   UtensilsCrossed,
+  Wallet,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -86,6 +87,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/hundi', label: 'Hundi', icon: Coins },
       { href: '/campaigns', label: 'Campaigns', icon: HeartHandshake },
       { href: '/expenses', label: 'Expenses', icon: IndianRupee },
+      { href: '/accounts', label: 'Accounts', icon: Wallet },
       { href: '/funds', label: 'Funds', icon: PiggyBank },
       { href: '/vendors', label: 'Vendors', icon: Truck },
       { href: '/assets', label: 'Assets', icon: Gem },

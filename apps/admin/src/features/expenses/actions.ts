@@ -22,6 +22,7 @@ export async function recordExpenseAction(
     paidTo: field('paidTo'),
     categoryName: field('categoryName'),
     fundId: field('fundId'),
+    accountId: field('accountId'),
     reference: field('reference'),
     note: field('note'),
     spentOn: field('spentOn'),
