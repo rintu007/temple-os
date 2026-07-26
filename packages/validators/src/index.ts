@@ -24,3 +24,4 @@ export * from './website';
 export * from './volunteer';
 export * from './vendor';
 export * from './communication';
+export * from './pledge';

@@ -8,6 +8,7 @@ import {
   Gem,
   Globe,
   HandCoins,
+  Handshake,
   HeartHandshake,
   IndianRupee,
   IdCard,
@@ -78,6 +79,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Finance',
     items: [
       { href: '/donations', label: 'Donations', icon: HandCoins },
+      { href: '/pledges', label: 'Pledges', icon: Handshake },
       { href: '/hundi', label: 'Hundi', icon: Coins },
       { href: '/campaigns', label: 'Campaigns', icon: HeartHandshake },
       { href: '/expenses', label: 'Expenses', icon: IndianRupee },

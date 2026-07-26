@@ -87,6 +87,8 @@ export const donations = pgTable(
     devoteeId: uuid().references(() => devotees.id),
     categoryId: uuid().references(() => donationCategories.id),
     campaignId: uuid().references(() => campaigns.id),
+    /** Set when this donation fulfils (part of) a pledge — see `pledges`. */
+    pledgeId: uuid().references(() => pledges.id),
     donorName: text().notNull(),
     amount: numeric({ precision: 12, scale: 2 }).notNull(),
     currency: currencyEnum().notNull(),
@@ -104,6 +106,44 @@ export const donations = pgTable(
     uniqueIndex('donations_org_receipt_uq').on(t.organizationId, t.receiptNumber),
     index('donations_org_date_idx').on(t.organizationId, t.donatedAt),
     index('donations_devotee_idx').on(t.devoteeId),
+    index('donations_pledge_idx').on(t.pledgeId),
+  ],
+);
+
+/** 'open' pledges are outstanding; 'cancelled' retires a pledge not being pursued. */
+export const pledgeStatusEnum = pgEnum('pledge_status', ['open', 'cancelled']);
+
+/**
+ * A promise to donate — made at a pledge drive, a fundraising appeal, or toward
+ * a campaign. The pledged amount is fixed here; how much has been *received* is
+ * derived from the recorded donations that link back via `donations.pledgeId`,
+ * so a pledge's outstanding balance never drifts from the receipt book (same
+ * discipline as vendor bills and campaign progress).
+ */
+export const pledges = pgTable(
+  'pledges',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    devoteeId: uuid().references(() => devotees.id),
+    campaignId: uuid().references(() => campaigns.id),
+    donorName: text().notNull(),
+    amount: numeric({ precision: 12, scale: 2 }).notNull(),
+    currency: currencyEnum().notNull(),
+    pledgedOn: date().notNull(),
+    dueDate: date(),
+    note: text(),
+    status: pledgeStatusEnum().notNull().default('open'),
+    cancelReason: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [
+    index('pledges_org_status_idx').on(t.organizationId, t.status),
+    index('pledges_devotee_idx').on(t.devoteeId),
+    index('pledges_org_due_idx').on(t.organizationId, t.dueDate),
   ],
 );
 

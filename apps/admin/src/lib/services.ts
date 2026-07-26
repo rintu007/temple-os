@@ -18,6 +18,7 @@ import {
   createOfficerService,
   createOrganizationService,
   createOverviewService,
+  createPledgeService,
   createPrasadamService,
   createPujaService,
   createReportService,
@@ -45,6 +46,7 @@ import {
   type OfficerService,
   type OrganizationService,
   type OverviewService,
+  type PledgeService,
   type PrasadamService,
   type PujaService,
   type ReportService,
@@ -249,4 +251,11 @@ let _statementService: StatementService | undefined;
 export function statementService(): StatementService {
   _statementService ??= createStatementService({ db: getDb() });
   return _statementService;
+}
+
+let _pledgeService: PledgeService | undefined;
+
+export function pledgeService(): PledgeService {
+  _pledgeService ??= createPledgeService({ db: getDb() });
+  return _pledgeService;
 }

@@ -57,6 +57,7 @@ BEGIN
     'expenses',
     'vendors',
     'vendor_bills',
+    'pledges',
     'hundi_collections',
     'prasadam_sessions',
     'darshan_slots',
