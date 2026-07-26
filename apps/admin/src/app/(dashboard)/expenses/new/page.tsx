@@ -2,15 +2,21 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ExpenseForm } from '@/features/expenses/components/expense-form';
 import { requireTenantContext } from '@/lib/session';
-import { accountService, fundService } from '@/lib/services';
+import { accountService, employeeService, fundService } from '@/lib/services';
 
 export const metadata: Metadata = { title: 'Record expense' };
 
-export default async function NewExpensePage() {
+interface NewExpenseProps {
+  searchParams: Promise<{ employee?: string }>;
+}
+
+export default async function NewExpensePage({ searchParams }: NewExpenseProps) {
+  const { employee } = await searchParams;
   const { ctx, membership } = await requireTenantContext();
-  const [funds, accounts] = await Promise.all([
+  const [funds, accounts, employees] = await Promise.all([
     fundService().listActiveOptions(ctx),
     accountService().listActiveOptions(ctx),
+    employeeService().listActiveOptions(ctx),
   ]);
 
   return (
@@ -30,6 +36,8 @@ export default async function NewExpensePage() {
           currency={membership.currency}
           funds={funds.ok ? funds.value : []}
           accounts={accounts.ok ? accounts.value : []}
+          employees={employees.ok ? employees.value : []}
+          defaultEmployeeId={employee}
         />
       </div>
     </div>

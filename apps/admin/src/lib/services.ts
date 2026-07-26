@@ -8,6 +8,7 @@ import {
   createDarshanService,
   createDonationService,
   createCampaignService,
+  createEmployeeService,
   createEventService,
   createFacilityService,
   createExpenseService,
@@ -40,6 +41,7 @@ import {
   type DevoteeService,
   type DonationService,
   type CampaignService,
+  type EmployeeService,
   type EventService,
   type FacilityService,
   type ExpenseService,
@@ -294,4 +296,11 @@ let _accountService: AccountService | undefined;
 export function accountService(): AccountService {
   _accountService ??= createAccountService({ db: getDb() });
   return _accountService;
+}
+
+let _employeeService: EmployeeService | undefined;
+
+export function employeeService(): EmployeeService {
+  _employeeService ??= createEmployeeService({ db: getDb() });
+  return _employeeService;
 }

@@ -9,6 +9,8 @@ interface ExpenseFormProps {
   currency: string;
   funds?: Array<{ id: string; name: string }>;
   accounts?: Array<{ id: string; name: string }>;
+  employees?: Array<{ id: string; name: string }>;
+  defaultEmployeeId?: string;
 }
 
 const METHODS = [
@@ -20,7 +22,13 @@ const METHODS = [
   { value: 'other', label: 'Other' },
 ];
 
-export function ExpenseForm({ currency, funds = [], accounts = [] }: ExpenseFormProps) {
+export function ExpenseForm({
+  currency,
+  funds = [],
+  accounts = [],
+  employees = [],
+  defaultEmployeeId,
+}: ExpenseFormProps) {
   const [state, formAction, pending] = useActionState(recordExpenseAction, initialFormState);
   const today = new Date().toISOString().slice(0, 10);
 
@@ -107,6 +115,19 @@ export function ExpenseForm({ currency, funds = [], accounts = [] }: ExpenseForm
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : null}
+        {employees.length > 0 ? (
+          <div className="space-y-2">
+            <Label htmlFor="employeeId">Salary to (optional)</Label>
+            <Select id="employeeId" name="employeeId" defaultValue={defaultEmployeeId ?? ''}>
+              <option value="">— Not a salary —</option>
+              {employees.map((e) => (
+                <option key={e.id} value={e.id}>
+                  {e.name}
                 </option>
               ))}
             </Select>

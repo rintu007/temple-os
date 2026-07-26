@@ -29,3 +29,4 @@ export * from './fund';
 export * from './budget';
 export * from './tax';
 export * from './account';
+export * from './employee';

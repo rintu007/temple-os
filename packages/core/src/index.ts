@@ -18,6 +18,7 @@ export * from './features/hundi';
 export * from './features/inventory';
 export * from './features/members';
 export * from './features/payments';
+export * from './features/payroll';
 export * from './features/pledges';
 export * from './features/pujas';
 export * from './features/meetings';

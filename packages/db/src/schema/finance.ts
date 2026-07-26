@@ -314,6 +314,44 @@ export const expenseCounters = pgTable('expense_counters', {
   nextNumber: integer().notNull().default(1),
 });
 
+export const employmentTypeEnum = pgEnum('employment_type', [
+  'salaried',
+  'priest',
+  'wage',
+  'honorary',
+]);
+
+/**
+ * A paid member of temple staff — priest, cook, cleaner, security, manager. The
+ * register keeps the expected monthly salary; what was actually *paid* is never
+ * stored here — it's derived from the expense ledger (vouchers tagged with
+ * `expenses.employeeId`), so salary history always ties to the books.
+ */
+export const employees = pgTable(
+  'employees',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    templeId: uuid().references(() => temples.id),
+    name: text().notNull(),
+    /** Job title — Head Priest, Cook, Security, Manager… */
+    designation: text(),
+    employmentType: employmentTypeEnum().notNull().default('salaried'),
+    /** Expected monthly salary/honorarium. Null for irregular wage staff. */
+    monthlySalary: numeric({ precision: 12, scale: 2 }),
+    phone: text(),
+    email: text(),
+    joinedOn: date(),
+    isActive: boolean().notNull().default(true),
+    note: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [index('employees_org_active_idx').on(t.organizationId, t.isActive)],
+);
+
 /**
  * An expense voucher — the outgoing side of the temple's books. Same ledger
  * discipline as donations: sequentially numbered, never deleted, only voided.
@@ -334,6 +372,8 @@ export const expenses = pgTable(
     fundId: uuid().references(() => funds.id),
     /** The bank/cash account this money was paid from — see `financialAccounts`. */
     accountId: uuid().references(() => financialAccounts.id),
+    /** Set when this voucher is a salary/honorarium payment — see `employees`. */
+    employeeId: uuid().references(() => employees.id),
     paidTo: text().notNull(),
     amount: numeric({ precision: 12, scale: 2 }).notNull(),
     currency: currencyEnum().notNull(),
@@ -358,6 +398,7 @@ export const expenses = pgTable(
     index('expenses_org_approval_idx').on(t.organizationId, t.approvalStatus),
     index('expenses_fund_idx').on(t.fundId),
     index('expenses_account_idx').on(t.accountId),
+    index('expenses_employee_idx').on(t.employeeId),
   ],
 );
 
