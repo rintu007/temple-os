@@ -45,6 +45,17 @@ export const recordDonationSchema = z
       .nullish(),
     reference: optionalTrimmed(120),
     note: optionalTrimmed(500),
+    /** Donor PAN — recorded for 80G receipts. Normalised to uppercase. */
+    donorPan: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .transform((v) => (v === '' ? null : v))
+      .nullish()
+      .refine(
+        (v) => v == null || /^[A-Z]{5}[0-9]{4}[A-Z]$/.test(v),
+        'Enter a valid PAN (e.g. AAATT1234C)',
+      ),
     /** Optional — if given, a receipt email is sent after recording. */
     email: z
       .string()

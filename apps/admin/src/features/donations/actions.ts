@@ -28,6 +28,7 @@ export async function recordDonationAction(
     fundId: field('fundId'),
     reference: field('reference'),
     note: field('note'),
+    donorPan: field('donorPan'),
     donatedOn: field('donatedOn'),
   });
 

@@ -27,3 +27,4 @@ export * from './communication';
 export * from './pledge';
 export * from './fund';
 export * from './budget';
+export * from './tax';

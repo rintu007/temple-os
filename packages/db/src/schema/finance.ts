@@ -156,6 +156,8 @@ export const donations = pgTable(
     method: donationMethodEnum().notNull(),
     reference: text(),
     note: text(),
+    /** Donor PAN — captured for 80G tax receipts (India). Optional. */
+    donorPan: text(),
     receiptNumber: text().notNull(),
     donatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     recordedByUserId: uuid(),
@@ -171,6 +173,29 @@ export const donations = pgTable(
     index('donations_fund_idx').on(t.fundId),
   ],
 );
+
+/**
+ * A tenant's tax-registration profile (India: section 80G). One row per org.
+ * These details print on donation receipts so donors can claim deductions.
+ * No money here — purely the registered-entity identity used on receipts.
+ */
+export const taxProfiles = pgTable('tax_profiles', {
+  organizationId: uuid()
+    .primaryKey()
+    .references(() => organizations.id),
+  /** Registered legal name of the trust/society (may differ from display name). */
+  legalName: text().notNull(),
+  /** Trust/society PAN. */
+  pan: text(),
+  /** 80G registration / approval number granted by the tax authority. */
+  registrationNumber: text().notNull(),
+  /** Validity window of the 80G approval, if the certificate states one. */
+  validFrom: date(),
+  validUntil: date(),
+  /** When false, receipts omit the 80G block (e.g. approval lapsed). */
+  showOnReceipt: boolean().notNull().default(true),
+  ...timestamps,
+});
 
 /** 'open' pledges are outstanding; 'cancelled' retires a pledge not being pursued. */
 export const pledgeStatusEnum = pgEnum('pledge_status', ['open', 'cancelled']);

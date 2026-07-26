@@ -25,6 +25,7 @@ import {
   createPujaService,
   createReportService,
   createStatementService,
+  createTaxService,
   createTempleService,
   createVendorService,
   createVolunteerService,
@@ -55,6 +56,7 @@ import {
   type PujaService,
   type ReportService,
   type StatementService,
+  type TaxService,
   type TempleService,
   type VendorService,
   type VolunteerService,
@@ -276,4 +278,11 @@ let _budgetService: BudgetService | undefined;
 export function budgetService(): BudgetService {
   _budgetService ??= createBudgetService({ db: getDb() });
   return _budgetService;
+}
+
+let _taxService: TaxService | undefined;
+
+export function taxService(): TaxService {
+  _taxService ??= createTaxService({ db: getDb() });
+  return _taxService;
 }

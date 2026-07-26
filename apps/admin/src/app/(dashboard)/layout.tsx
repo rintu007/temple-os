@@ -18,6 +18,7 @@ import {
   Mail,
   Package,
   PiggyBank,
+  ReceiptText,
   Scale,
   UserRound,
   HandHeart,
@@ -92,6 +93,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/reports', label: 'Reports', icon: BarChart3 },
       { href: '/budgets', label: 'Budgets', icon: ClipboardList },
       { href: '/statements', label: 'I&E statement', icon: Scale },
+      { href: '/tax', label: '80G & tax', icon: ReceiptText },
     ],
   },
   {

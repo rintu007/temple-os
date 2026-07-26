@@ -132,6 +132,17 @@ export function DonationForm({ devotees, campaigns, funds = [], currency }: Dona
           <Input id="reference" name="reference" />
         </div>
         <div className="space-y-2">
+          <Label htmlFor="donorPan">Donor PAN (for 80G)</Label>
+          <Input
+            id="donorPan"
+            name="donorPan"
+            placeholder="AAATT1234C"
+            maxLength={10}
+            className="uppercase"
+            style={{ textTransform: 'uppercase' }}
+          />
+        </div>
+        <div className="space-y-2">
           <Label htmlFor="note">Note</Label>
           <Input id="note" name="note" />
         </div>

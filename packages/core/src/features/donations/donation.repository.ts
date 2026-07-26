@@ -143,6 +143,7 @@ export function createDonationRepository(db: Db) {
             method: input.method,
             reference: input.reference ?? null,
             note: input.note ?? null,
+            donorPan: input.donorPan ?? null,
             receiptNumber,
             donatedAt,
             recordedByUserId: ctx.userId,
