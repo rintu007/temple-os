@@ -64,6 +64,7 @@ BEGIN
     'employees',
     'grants',
     'seva_subscriptions',
+    'in_kind_donations',
     'tax_profiles',
     'hundi_collections',
     'prasadam_sessions',

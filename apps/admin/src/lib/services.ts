@@ -16,6 +16,7 @@ import {
   createGalleryService,
   createGrantService,
   createHundiService,
+  createInKindService,
   createInventoryService,
   createMeetingService,
   createMemberService,
@@ -51,6 +52,7 @@ import {
   type GalleryService,
   type GrantService,
   type HundiService,
+  type InKindService,
   type InventoryService,
   type MeetingService,
   type MemberService,
@@ -321,4 +323,11 @@ let _sevaService: SevaService | undefined;
 export function sevaService(): SevaService {
   _sevaService ??= createSevaService({ db: getDb() });
   return _sevaService;
+}
+
+let _inKindService: InKindService | undefined;
+
+export function inKindService(): InKindService {
+  _inKindService ??= createInKindService({ db: getDb() });
+  return _inKindService;
 }

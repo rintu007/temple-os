@@ -246,6 +246,13 @@
       "when": 1785080925915,
       "tag": "0034_simple_pixie",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1785082868346,
+      "tag": "0035_marvelous_shadow_king",
+      "breakpoints": true
     }
   ]
 }

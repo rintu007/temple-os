@@ -9,6 +9,7 @@ import {
   Flame,
   Gavel,
   Gem,
+  Gift,
   Globe,
   HandCoins,
   Handshake,
@@ -87,6 +88,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Finance',
     items: [
       { href: '/donations', label: 'Donations', icon: HandCoins },
+      { href: '/in-kind', label: 'In-kind gifts', icon: Gift },
       { href: '/pledges', label: 'Pledges', icon: Handshake },
       { href: '/hundi', label: 'Hundi', icon: Coins },
       { href: '/campaigns', label: 'Campaigns', icon: HeartHandshake },

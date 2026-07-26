@@ -319,6 +319,59 @@ export const taxProfiles = pgTable('tax_profiles', {
   ...timestamps,
 });
 
+export const inKindCategoryEnum = pgEnum('in_kind_category', [
+  'gold',
+  'silver',
+  'jewellery',
+  'grain',
+  'cloth',
+  'other',
+]);
+export const inKindDispositionEnum = pgEnum('in_kind_disposition', [
+  'in_stock',
+  'sold',
+  'used',
+  'returned',
+]);
+
+/**
+ * A non-cash offering — gold, silver, jewellery, grain, cloth. Kept out of the
+ * money ledger (it never hits cash) but recorded for audit and transparency,
+ * with an indicative valuation and a disposition so the treasurer always knows
+ * what physical offerings are still in hand.
+ */
+export const inKindDonations = pgTable(
+  'in_kind_donations',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    templeId: uuid().references(() => temples.id),
+    devoteeId: uuid().references(() => devotees.id),
+    donorName: text().notNull(),
+    category: inKindCategoryEnum().notNull(),
+    /** What was given — "Gold ring", "Silk saree", "Rice". */
+    item: text().notNull(),
+    quantity: numeric({ precision: 14, scale: 3 }),
+    /** Unit for the quantity — "grams", "pieces", "bags". */
+    unit: text(),
+    /** Indicative valuation for audit; gold can be high, so 14 digits. */
+    estimatedValue: numeric({ precision: 14, scale: 2 }),
+    currency: currencyEnum().notNull(),
+    receivedOn: date().notNull(),
+    disposition: inKindDispositionEnum().notNull().default('in_stock'),
+    disposalNote: text(),
+    note: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [
+    index('in_kind_donations_org_disposition_idx').on(t.organizationId, t.disposition),
+    index('in_kind_donations_devotee_idx').on(t.devoteeId),
+  ],
+);
+
 /** 'open' pledges are outstanding; 'cancelled' retires a pledge not being pursued. */
 export const pledgeStatusEnum = pgEnum('pledge_status', ['open', 'cancelled']);
 
