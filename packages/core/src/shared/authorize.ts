@@ -38,6 +38,8 @@ export type Permission =
   | 'inventory:write'
   | 'darshan:read'
   | 'darshan:write'
+  | 'communications:read'
+  | 'communications:write'
   | 'overview:read';
 
 /**
@@ -81,6 +83,8 @@ const ALL: readonly Permission[] = [
   'inventory:write',
   'darshan:read',
   'darshan:write',
+  'communications:read',
+  'communications:write',
   'overview:read',
 ];
 
@@ -122,6 +126,8 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'inventory:write',
     'darshan:read',
     'darshan:write',
+    'communications:read',
+    'communications:write',
     'overview:read',
   ],
   staff: [
@@ -153,6 +159,7 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'inventory:write',
     'darshan:read',
     'darshan:write',
+    'communications:read',
     'overview:read',
   ],
   viewer: [
@@ -171,6 +178,7 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'governance:read',
     'inventory:read',
     'darshan:read',
+    'communications:read',
     'overview:read',
   ],
 };

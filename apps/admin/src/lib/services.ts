@@ -1,6 +1,7 @@
 import {
   createAssetService,
   createAuditService,
+  createCommunicationService,
   createDevoteeService,
   createDarshanService,
   createDonationService,
@@ -26,6 +27,7 @@ import {
   createWebsiteService,
   type AssetService,
   type AuditService,
+  type CommunicationService,
   type DarshanService,
   type DevoteeService,
   type DonationService,
@@ -231,4 +233,11 @@ let _vendorService: VendorService | undefined;
 export function vendorService(): VendorService {
   _vendorService ??= createVendorService({ db: getDb() });
   return _vendorService;
+}
+
+let _communicationService: CommunicationService | undefined;
+
+export function communicationService(): CommunicationService {
+  _communicationService ??= createCommunicationService({ db: getDb() });
+  return _communicationService;
 }

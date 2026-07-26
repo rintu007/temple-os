@@ -9,6 +9,7 @@ export * from './darshan';
 export * from './assets';
 export * from './inventory';
 export * from './governance';
+export * from './communications';
 export * from './membership';
 export * from './events';
 export * from './facilities';

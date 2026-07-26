@@ -176,6 +176,13 @@
       "when": 1784993949322,
       "tag": "0024_aberrant_lucky_pierre",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1785032788159,
+      "tag": "0025_plain_mac_gargan",
+      "breakpoints": true
     }
   ]
 }
