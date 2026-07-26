@@ -6,17 +6,19 @@ import {
   campaignService,
   devoteeService,
   fundService,
+  grantService,
 } from '@/lib/services';
 
 export const metadata: Metadata = { title: 'Record donation' };
 
 export default async function NewDonationPage() {
   const { ctx, membership } = await requireTenantContext();
-  const [devotees, campaigns, funds, accounts] = await Promise.all([
+  const [devotees, campaigns, funds, accounts, grants] = await Promise.all([
     devoteeService().listDevotees(ctx, { pageSize: 100 }),
     campaignService().listActiveOptions(ctx),
     fundService().listActiveOptions(ctx),
     accountService().listActiveOptions(ctx),
+    grantService().listActiveOptions(ctx),
   ]);
 
   return (
@@ -33,6 +35,7 @@ export default async function NewDonationPage() {
           campaigns={campaigns.ok ? campaigns.value : []}
           funds={funds.ok ? funds.value : []}
           accounts={accounts.ok ? accounts.value : []}
+          grants={grants.ok ? grants.value : []}
           currency={membership.currency}
         />
       </div>

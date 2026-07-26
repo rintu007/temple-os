@@ -131,6 +131,40 @@ export const financialAccounts = pgTable(
   (t) => [index('financial_accounts_org_active_idx').on(t.organizationId, t.isActive)],
 );
 
+export const grantStatusEnum = pgEnum('grant_status', ['active', 'closed']);
+
+/**
+ * An earmarked grant from a government department, endowment board, CSR funder
+ * or trust. The sanctioned amount is fixed here; how much has been *received*
+ * and *utilized* is derived from the ledger (donations/expenses tagged with
+ * `grantId`), so the unspent balance for the utilization certificate never
+ * drifts from the books — same discipline as campaigns and vendor bills.
+ */
+export const grants = pgTable(
+  'grants',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    /** The awarding body — "HR&CE Dept", "XYZ Foundation (CSR)", a Devaswom board. */
+    funder: text().notNull(),
+    /** Scheme or grant title. */
+    title: text().notNull(),
+    /** Sanction letter / order number. */
+    reference: text(),
+    sanctionedAmount: numeric({ precision: 14, scale: 2 }).notNull(),
+    sanctionedOn: date(),
+    /** What the grant must be spent on — printed on the utilization report. */
+    purpose: text(),
+    status: grantStatusEnum().notNull().default('active'),
+    note: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [index('grants_org_status_idx').on(t.organizationId, t.status)],
+);
+
 export const donationMethodEnum = pgEnum('donation_method', [
   'cash',
   'upi',
@@ -184,6 +218,8 @@ export const donations = pgTable(
     fundId: uuid().references(() => funds.id),
     /** The bank/cash account this money went into — see `financialAccounts`. */
     accountId: uuid().references(() => financialAccounts.id),
+    /** Set when this receipt is the release of a grant — see `grants`. */
+    grantId: uuid().references(() => grants.id),
     donorName: text().notNull(),
     amount: numeric({ precision: 12, scale: 2 }).notNull(),
     currency: currencyEnum().notNull(),
@@ -206,6 +242,7 @@ export const donations = pgTable(
     index('donations_pledge_idx').on(t.pledgeId),
     index('donations_fund_idx').on(t.fundId),
     index('donations_account_idx').on(t.accountId),
+    index('donations_grant_idx').on(t.grantId),
   ],
 );
 
@@ -374,6 +411,8 @@ export const expenses = pgTable(
     accountId: uuid().references(() => financialAccounts.id),
     /** Set when this voucher is a salary/honorarium payment — see `employees`. */
     employeeId: uuid().references(() => employees.id),
+    /** Set when this voucher utilizes grant money — see `grants`. */
+    grantId: uuid().references(() => grants.id),
     paidTo: text().notNull(),
     amount: numeric({ precision: 12, scale: 2 }).notNull(),
     currency: currencyEnum().notNull(),
@@ -399,6 +438,7 @@ export const expenses = pgTable(
     index('expenses_fund_idx').on(t.fundId),
     index('expenses_account_idx').on(t.accountId),
     index('expenses_employee_idx').on(t.employeeId),
+    index('expenses_grant_idx').on(t.grantId),
   ],
 );
 

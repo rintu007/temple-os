@@ -132,6 +132,7 @@ export function createExpenseRepository(db: Db) {
             fundId: input.fundId ?? null,
             accountId: input.accountId ?? null,
             employeeId: input.employeeId ?? null,
+            grantId: input.grantId ?? null,
             paidTo: input.paidTo,
             amount: input.amount.toFixed(2),
             currency: org.currency,

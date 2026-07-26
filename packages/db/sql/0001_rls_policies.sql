@@ -62,6 +62,7 @@ BEGIN
     'budgets',
     'financial_accounts',
     'employees',
+    'grants',
     'tax_profiles',
     'hundi_collections',
     'prasadam_sessions',

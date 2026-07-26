@@ -14,6 +14,7 @@ import {
   createExpenseService,
   createFundService,
   createGalleryService,
+  createGrantService,
   createHundiService,
   createInventoryService,
   createMeetingService,
@@ -47,6 +48,7 @@ import {
   type ExpenseService,
   type FundService,
   type GalleryService,
+  type GrantService,
   type HundiService,
   type InventoryService,
   type MeetingService,
@@ -303,4 +305,11 @@ let _employeeService: EmployeeService | undefined;
 export function employeeService(): EmployeeService {
   _employeeService ??= createEmployeeService({ db: getDb() });
   return _employeeService;
+}
+
+let _grantService: GrantService | undefined;
+
+export function grantService(): GrantService {
+  _grantService ??= createGrantService({ db: getDb() });
+  return _grantService;
 }

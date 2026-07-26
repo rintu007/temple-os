@@ -20,6 +20,7 @@ interface DonationFormProps {
   campaigns: CampaignOption[];
   funds?: Array<{ id: string; name: string }>;
   accounts?: Array<{ id: string; name: string }>;
+  grants?: Array<{ id: string; name: string }>;
   currency: string;
 }
 
@@ -36,6 +37,7 @@ export function DonationForm({
   campaigns,
   funds = [],
   accounts = [],
+  grants = [],
   currency,
 }: DonationFormProps) {
   const [state, formAction, pending] = useActionState(recordDonationAction, initialFormState);
@@ -142,6 +144,20 @@ export function DonationForm({
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : null}
+
+        {grants.length > 0 ? (
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="grantId">Grant release (optional)</Label>
+            <Select id="grantId" name="grantId" defaultValue="">
+              <option value="">— Not a grant —</option>
+              {grants.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
                 </option>
               ))}
             </Select>

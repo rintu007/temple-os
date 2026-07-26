@@ -10,6 +10,7 @@ interface ExpenseFormProps {
   funds?: Array<{ id: string; name: string }>;
   accounts?: Array<{ id: string; name: string }>;
   employees?: Array<{ id: string; name: string }>;
+  grants?: Array<{ id: string; name: string }>;
   defaultEmployeeId?: string;
 }
 
@@ -27,6 +28,7 @@ export function ExpenseForm({
   funds = [],
   accounts = [],
   employees = [],
+  grants = [],
   defaultEmployeeId,
 }: ExpenseFormProps) {
   const [state, formAction, pending] = useActionState(recordExpenseAction, initialFormState);
@@ -128,6 +130,19 @@ export function ExpenseForm({
               {employees.map((e) => (
                 <option key={e.id} value={e.id}>
                   {e.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : null}
+        {grants.length > 0 ? (
+          <div className="space-y-2">
+            <Label htmlFor="grantId">Utilize grant (optional)</Label>
+            <Select id="grantId" name="grantId" defaultValue="">
+              <option value="">— Not grant-funded —</option>
+              {grants.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.name}
                 </option>
               ))}
             </Select>

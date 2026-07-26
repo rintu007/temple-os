@@ -33,3 +33,4 @@ export * from './features/website';
 export * from './features/vendors';
 export * from './features/volunteers';
 export * from './features/gallery';
+export * from './features/grants';
