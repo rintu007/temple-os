@@ -1,6 +1,7 @@
 import {
   boolean,
   index,
+  numeric,
   pgEnum,
   pgTable,
   text,
@@ -29,6 +30,12 @@ export const organizations = pgTable(
     country: countryEnum().notNull(),
     currency: currencyEnum().notNull(),
     status: organizationStatusEnum().notNull().default('pending'),
+    /**
+     * Expenses at or above this amount require approval before they are
+     * considered signed off. Null disables the workflow (the default), so
+     * every expense records as 'not_required'.
+     */
+    expenseApprovalThreshold: numeric({ precision: 12, scale: 2 }),
     ...timestamps,
     ...softDelete,
   },

@@ -13,6 +13,13 @@ export interface ExpenseSummary {
   spentAt: Date;
   status: 'recorded' | 'void';
   voidReason: string | null;
+  approvalStatus: 'not_required' | 'pending' | 'approved' | 'rejected';
+  rejectionReason: string | null;
+}
+
+export interface ExpenseApprovalSettings {
+  currency: 'INR' | 'BDT';
+  threshold: string | null;
 }
 
 export interface ExpensePage {

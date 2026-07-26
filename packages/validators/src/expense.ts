@@ -45,3 +45,21 @@ export type ExpenseListQuery = z.infer<typeof expenseListQuerySchema>;
 export const voidExpenseSchema = z.object({
   reason: z.string().trim().min(3, 'Give a short reason').max(300),
 });
+
+export const rejectExpenseSchema = z.object({
+  reason: z.string().trim().min(3, 'Give a reason for rejection').max(300),
+});
+
+/** Approval threshold config — empty/blank clears it (workflow disabled). */
+export const expenseApprovalSettingsSchema = z.object({
+  threshold: z
+    .string()
+    .trim()
+    .transform((v) => (v === '' ? null : v))
+    .nullish()
+    .refine(
+      (v) => v == null || (!Number.isNaN(Number(v)) && Number(v) >= 0 && Number(v) <= 100_000_000),
+      'Enter a valid amount',
+    ),
+});
+export type ExpenseApprovalSettingsInput = z.infer<typeof expenseApprovalSettingsSchema>;

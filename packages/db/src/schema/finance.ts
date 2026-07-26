@@ -157,6 +157,20 @@ export const expenseMethodEnum = pgEnum('expense_method', [
 ]);
 export const expenseStatusEnum = pgEnum('expense_status', ['recorded', 'void']);
 
+/**
+ * Sign-off state, independent of the ledger `status`. 'not_required' when the
+ * org has no threshold or the amount is below it; otherwise 'pending' until a
+ * manager approves or rejects. Rejection is a governance flag — the voucher
+ * still exists (money may already have gone out), so financial totals are
+ * unaffected by this field.
+ */
+export const expenseApprovalStatusEnum = pgEnum('expense_approval_status', [
+  'not_required',
+  'pending',
+  'approved',
+  'rejected',
+]);
+
 export const expenseCategories = pgTable(
   'expense_categories',
   {
@@ -205,12 +219,17 @@ export const expenses = pgTable(
     recordedByUserId: uuid(),
     status: expenseStatusEnum().notNull().default('recorded'),
     voidReason: text(),
+    approvalStatus: expenseApprovalStatusEnum().notNull().default('not_required'),
+    approvedByUserId: uuid(),
+    decidedAt: timestamp({ withTimezone: true }),
+    rejectionReason: text(),
     ...timestamps,
   },
   (t) => [
     uniqueIndex('expenses_org_voucher_uq').on(t.organizationId, t.voucherNumber),
     index('expenses_org_date_idx').on(t.organizationId, t.spentAt),
     index('expenses_vendor_bill_idx').on(t.vendorBillId),
+    index('expenses_org_approval_idx').on(t.organizationId, t.approvalStatus),
   ],
 );
 

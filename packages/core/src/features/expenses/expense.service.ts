@@ -1,7 +1,9 @@
 import type { Db } from '@templeos/db';
 import {
+  expenseApprovalSettingsSchema,
   expenseListQuerySchema,
   recordExpenseSchema,
+  rejectExpenseSchema,
   voidExpenseSchema,
 } from '@templeos/validators';
 import {
@@ -16,7 +18,12 @@ import {
 } from '../../shared';
 import { csvField } from '../reports/report.service';
 import { createExpenseRepository } from './expense.repository';
-import type { ExpensePage, ExpenseStats, ExpenseSummary } from './expense.types';
+import type {
+  ExpenseApprovalSettings,
+  ExpensePage,
+  ExpenseStats,
+  ExpenseSummary,
+} from './expense.types';
 
 function firstIssue(error: { issues: Array<{ message: string }> }) {
   return domainError('VALIDATION', error.issues[0]?.message ?? 'Invalid input');
@@ -38,6 +45,8 @@ export function createExpenseService({ db }: { db: Db }) {
     spentAt: Date;
     status: 'recorded' | 'void';
     voidReason: string | null;
+    approvalStatus?: ExpenseSummary['approvalStatus'];
+    rejectionReason?: string | null;
   }): ExpenseSummary => ({
     id: e.id,
     voucherNumber: e.voucherNumber,
@@ -51,6 +60,8 @@ export function createExpenseService({ db }: { db: Db }) {
     spentAt: e.spentAt,
     status: e.status,
     voidReason: e.voidReason,
+    approvalStatus: e.approvalStatus ?? 'not_required',
+    rejectionReason: e.rejectionReason ?? null,
   });
 
   return {
@@ -167,6 +178,61 @@ export function createExpenseService({ db }: { db: Db }) {
       );
 
       return ok([header, ...lines].join('\r\n') + '\r\n');
+    },
+
+    /** Expenses awaiting sign-off — the approvals queue. */
+    async listPendingApprovals(ctx: TenantContext): Promise<Result<ExpenseSummary[]>> {
+      const auth = authorize(ctx, 'expenses:read');
+      if (!auth.ok) return auth;
+      const rows = await repo.listPending(ctx);
+      return ok(rows.map(toSummary));
+    },
+
+    async getPendingApprovalCount(ctx: TenantContext): Promise<Result<number>> {
+      const auth = authorize(ctx, 'expenses:read');
+      if (!auth.ok) return auth;
+      return ok(await repo.pendingCount(ctx));
+    },
+
+    async approveExpense(ctx: TenantContext, expenseId: string): Promise<Result<null>> {
+      const auth = authorize(ctx, 'expenses:approve');
+      if (!auth.ok) return auth;
+      const result = await repo.decide(ctx, expenseId, 'approved', null);
+      if (result.kind === 'not_found') return err(notFound('Expense'));
+      if (result.kind === 'not_pending') return err(conflict('This expense is not awaiting approval'));
+      return ok(null);
+    },
+
+    async rejectExpense(
+      ctx: TenantContext,
+      expenseId: string,
+      rawInput: unknown,
+    ): Promise<Result<null>> {
+      const auth = authorize(ctx, 'expenses:approve');
+      if (!auth.ok) return auth;
+      const parsed = rejectExpenseSchema.safeParse(rawInput);
+      if (!parsed.success) return err(firstIssue(parsed.error));
+      const result = await repo.decide(ctx, expenseId, 'rejected', parsed.data.reason);
+      if (result.kind === 'not_found') return err(notFound('Expense'));
+      if (result.kind === 'not_pending') return err(conflict('This expense is not awaiting approval'));
+      return ok(null);
+    },
+
+    async getApprovalSettings(ctx: TenantContext): Promise<Result<ExpenseApprovalSettings>> {
+      const auth = authorize(ctx, 'expenses:read');
+      if (!auth.ok) return auth;
+      return ok(await repo.getApprovalThreshold(ctx));
+    },
+
+    async setApprovalSettings(ctx: TenantContext, rawInput: unknown): Promise<Result<null>> {
+      const auth = authorize(ctx, 'expenses:approve');
+      if (!auth.ok) return auth;
+      const parsed = expenseApprovalSettingsSchema.safeParse(rawInput);
+      if (!parsed.success) return err(firstIssue(parsed.error));
+      const threshold =
+        parsed.data.threshold == null ? null : Number(parsed.data.threshold).toFixed(2);
+      await repo.setApprovalThreshold(ctx, threshold);
+      return ok(null);
     },
   };
 }

@@ -88,6 +88,8 @@ export function createExpenseRepository(db: Db) {
         spentAt: expenses.spentAt,
         status: expenses.status,
         voidReason: expenses.voidReason,
+        approvalStatus: expenses.approvalStatus,
+        rejectionReason: expenses.rejectionReason,
       })
       .from(expenses)
       .leftJoin(expenseCategories, eq(expenses.categoryId, expenseCategories.id));
@@ -96,7 +98,10 @@ export function createExpenseRepository(db: Db) {
     async record(ctx: TenantContext, input: RecordExpenseInput) {
       return withTenantContext(db, guc(ctx), async (tx) => {
         const [org] = await tx
-          .select({ currency: organizations.currency })
+          .select({
+            currency: organizations.currency,
+            approvalThreshold: organizations.expenseApprovalThreshold,
+          })
           .from(organizations)
           .where(eq(organizations.id, ctx.organizationId))
           .limit(1);
@@ -113,6 +118,11 @@ export function createExpenseRepository(db: Db) {
           spentAt.getFullYear(),
         );
 
+        // Above the org's threshold (if any) → needs sign-off before it's approved.
+        const needsApproval =
+          org.approvalThreshold != null && input.amount >= Number(org.approvalThreshold);
+        const approvalStatus = needsApproval ? 'pending' : 'not_required';
+
         const [expense] = await tx
           .insert(expenses)
           .values({
@@ -128,6 +138,7 @@ export function createExpenseRepository(db: Db) {
             voucherNumber,
             spentAt,
             recordedByUserId: ctx.userId,
+            approvalStatus,
           })
           .returning();
         if (!expense) throw new Error('expense insert returned no row');
@@ -143,6 +154,7 @@ export function createExpenseRepository(db: Db) {
             paidTo: expense.paidTo,
             amount: expense.amount,
             method: expense.method,
+            approvalStatus,
           },
         });
 
@@ -261,6 +273,102 @@ export function createExpenseRepository(db: Db) {
           .from(expenses)
           .where(and(...filters));
         return { total: row?.total ?? '0.00', count: row?.count ?? 0 };
+      });
+    },
+
+    async listPending(ctx: TenantContext) {
+      return withTenantContext(db, guc(ctx), (tx) =>
+        baseSelect(tx)
+          .where(
+            and(
+              eq(expenses.organizationId, ctx.organizationId),
+              eq(expenses.approvalStatus, 'pending'),
+            ),
+          )
+          .orderBy(desc(expenses.spentAt)),
+      );
+    },
+
+    async pendingCount(ctx: TenantContext) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [row] = await tx
+          .select({ value: count() })
+          .from(expenses)
+          .where(
+            and(
+              eq(expenses.organizationId, ctx.organizationId),
+              eq(expenses.approvalStatus, 'pending'),
+            ),
+          );
+        return row?.value ?? 0;
+      });
+    },
+
+    /** Approve or reject a pending expense; returns the resolved kind. */
+    async decide(
+      ctx: TenantContext,
+      expenseId: string,
+      decision: 'approved' | 'rejected',
+      reason: string | null,
+    ) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [current] = await tx
+          .select({ approvalStatus: expenses.approvalStatus, voucherNumber: expenses.voucherNumber })
+          .from(expenses)
+          .where(eq(expenses.id, expenseId))
+          .limit(1);
+        if (!current) return { kind: 'not_found' as const };
+        if (current.approvalStatus !== 'pending') return { kind: 'not_pending' as const };
+
+        await tx
+          .update(expenses)
+          .set({
+            approvalStatus: decision,
+            approvedByUserId: ctx.userId,
+            decidedAt: new Date(),
+            rejectionReason: decision === 'rejected' ? reason : null,
+          })
+          .where(eq(expenses.id, expenseId));
+
+        await tx.insert(auditLogs).values({
+          organizationId: ctx.organizationId,
+          actorUserId: ctx.userId,
+          action: decision === 'approved' ? 'expense.approved' : 'expense.rejected',
+          entityType: 'expense',
+          entityId: expenseId,
+          after: { voucherNumber: current.voucherNumber, reason },
+        });
+        return { kind: 'ok' as const };
+      });
+    },
+
+    async getApprovalThreshold(ctx: TenantContext) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [org] = await tx
+          .select({ threshold: organizations.expenseApprovalThreshold, currency: organizations.currency })
+          .from(organizations)
+          .where(eq(organizations.id, ctx.organizationId))
+          .limit(1);
+        if (!org) throw new Error('organization not visible in tenant context');
+        return { threshold: org.threshold, currency: org.currency };
+      });
+    },
+
+    async setApprovalThreshold(ctx: TenantContext, threshold: string | null) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        await tx
+          .update(organizations)
+          .set({ expenseApprovalThreshold: threshold })
+          .where(eq(organizations.id, ctx.organizationId));
+
+        await tx.insert(auditLogs).values({
+          organizationId: ctx.organizationId,
+          actorUserId: ctx.userId,
+          action: 'expense.approval_threshold_set',
+          entityType: 'organization',
+          entityId: ctx.organizationId,
+          after: { threshold },
+        });
       });
     },
 

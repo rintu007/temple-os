@@ -1,9 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Alert, formatMoney } from '@templeos/ui';
+import { Alert, Badge, Button, formatMoney } from '@templeos/ui';
 import { can } from '@templeos/core';
-import { voidExpenseAction } from '@/features/expenses/actions';
+import {
+  approveExpenseAction,
+  rejectExpenseAction,
+  voidExpenseAction,
+} from '@/features/expenses/actions';
+import { RejectForm } from '@/features/expenses/components/reject-form';
 import { VoidExpenseForm } from '@/features/expenses/components/void-form';
 import { requireTenantContext } from '@/lib/session';
 import { expenseService } from '@/lib/services';
@@ -54,6 +59,38 @@ export default async function ExpenseDetailPage({ params }: ExpenseDetailProps) 
           This expense was voided{e.voidReason ? ` — ${e.voidReason}` : ''}. It is excluded from
           all totals.
         </Alert>
+      ) : null}
+
+      {e.approvalStatus !== 'not_required' ? (
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-muted-foreground">Approval:</span>
+          {e.approvalStatus === 'pending' ? (
+            <Badge variant="warning">Pending approval</Badge>
+          ) : e.approvalStatus === 'approved' ? (
+            <Badge variant="success">Approved</Badge>
+          ) : (
+            <Badge variant="destructive">
+              Rejected{e.rejectionReason ? ` — ${e.rejectionReason}` : ''}
+            </Badge>
+          )}
+        </div>
+      ) : null}
+
+      {e.approvalStatus === 'pending' && can(ctx, 'expenses:approve') ? (
+        <section className="rounded-xl border border-border bg-card shadow-card p-6">
+          <h2 className="text-sm font-medium text-muted-foreground">Approval</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            This expense is above the approval threshold and needs your sign-off.
+          </p>
+          <div className="mt-4 flex flex-col items-start gap-2">
+            <form action={approveExpenseAction.bind(null, expenseId)}>
+              <Button type="submit" size="sm">
+                Approve
+              </Button>
+            </form>
+            <RejectForm action={rejectExpenseAction.bind(null, expenseId)} />
+          </div>
+        </section>
       ) : null}
 
       <section className="rounded-xl border border-border bg-card shadow-card p-6">

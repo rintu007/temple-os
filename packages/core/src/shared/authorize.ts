@@ -15,6 +15,7 @@ export type Permission =
   | 'expenses:read'
   | 'expenses:write'
   | 'expenses:void'
+  | 'expenses:approve'
   | 'events:read'
   | 'events:write'
   | 'pujas:read'
@@ -60,6 +61,7 @@ const ALL: readonly Permission[] = [
   'expenses:read',
   'expenses:write',
   'expenses:void',
+  'expenses:approve',
   'events:read',
   'events:write',
   'pujas:read',
@@ -103,6 +105,7 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'expenses:read',
     'expenses:write',
     'expenses:void',
+    'expenses:approve',
     'events:read',
     'events:write',
     'pujas:read',

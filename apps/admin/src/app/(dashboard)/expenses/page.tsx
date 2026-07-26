@@ -23,13 +23,15 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
   const { q, page } = await searchParams;
   const { ctx } = await requireTenantContext();
 
-  const [result, stats] = await Promise.all([
+  const [result, stats, pendingCount] = await Promise.all([
     expenseService().listExpenses(ctx, { search: q ?? '', page: page ?? 1 }),
     expenseService().getStats(ctx),
+    expenseService().getPendingApprovalCount(ctx),
   ]);
   if (!result.ok) {
     return <Alert tone="error">{result.error.message}</Alert>;
   }
+  const pending = pendingCount.ok ? pendingCount.value : 0;
   const { items, total, page: currentPage, pageSize } = result.value;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const pageHref = (p: number) =>
@@ -45,12 +47,23 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
             voided.
           </p>
         </div>
-        <Link
-          href="/expenses/new"
-          className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
-        >
-          Record expense
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/expenses/approvals"
+            className="inline-flex h-9.5 items-center gap-2 rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+          >
+            Approvals
+            {pending > 0 ? (
+              <Badge variant="warning">{pending}</Badge>
+            ) : null}
+          </Link>
+          <Link
+            href="/expenses/new"
+            className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
+          >
+            Record expense
+          </Link>
+        </div>
       </div>
 
       {stats.ok ? (
@@ -106,6 +119,11 @@ export default async function ExpensesPage({ searchParams }: ExpensesPageProps) 
                     <div className="flex items-center gap-2 font-medium">
                       {e.paidTo}
                       {e.status === 'void' ? <Badge variant="outline">VOID</Badge> : null}
+                      {e.approvalStatus === 'pending' ? (
+                        <Badge variant="warning">Pending approval</Badge>
+                      ) : e.approvalStatus === 'rejected' ? (
+                        <Badge variant="destructive">Rejected</Badge>
+                      ) : null}
                     </div>
                     <div className="mt-0.5 truncate text-sm text-muted-foreground">
                       {e.voucherNumber} · {METHOD_LABELS[e.method] ?? e.method}
