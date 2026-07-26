@@ -31,3 +31,19 @@ export interface ReceiptsAndPaymentsStatement {
   paymentsTotal: string;
   closingBalance: string;
 }
+
+/**
+ * A derived Statement of Financial Position (balance sheet) as on a date. Every
+ * figure ties to the ledger; the general fund is the balancing figure so the
+ * two sides always agree: assetsTotal = liabilitiesTotal + fundsTotal.
+ */
+export interface BalanceSheet {
+  currency: 'INR' | 'BDT';
+  asOf: string;
+  assets: StatementLine[];
+  assetsTotal: string;
+  liabilities: StatementLine[];
+  liabilitiesTotal: string;
+  funds: StatementLine[];
+  fundsTotal: string;
+}

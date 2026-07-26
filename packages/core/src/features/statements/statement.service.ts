@@ -3,6 +3,7 @@ import { authorize, ok, type Result, type TenantContext } from '../../shared';
 import { csvField } from '../reports/report.service';
 import { createStatementRepository } from './statement.repository';
 import type {
+  BalanceSheet,
   IncomeExpenditureStatement,
   ReceiptsAndPaymentsStatement,
   StatementLine,
@@ -12,6 +13,7 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const paise = (v: string) => Math.round(Number(v) * 100);
 const sumMinor = (lines: StatementLine[]) => lines.reduce((acc, l) => acc + paise(l.total), 0);
 const fromMinor = (minor: number) => (minor / 100).toFixed(2);
+const addStr = (a: string, b: string) => fromMinor(paise(a) + paise(b));
 
 /**
  * Financial-year range for a start year. India (and this product's default)
@@ -81,6 +83,47 @@ export function createStatementService({ db }: { db: Db }) {
     };
   }
 
+  async function buildBalanceSheet(ctx: TenantContext): Promise<BalanceSheet> {
+    const p = await repo.financialPosition(ctx);
+
+    const cashMinor = paise(p.cashBase) + paise(p.donationsTotal) - paise(p.expensesTotal);
+    const fixedMinor = paise(p.fixedAssets);
+    const assetsTotalMinor = cashMinor + fixedMinor;
+    const liabilitiesMinor = paise(p.payables);
+
+    const assets: StatementLine[] = [
+      { label: 'Cash & bank balances', total: fromMinor(cashMinor) },
+      { label: 'Fixed assets (at book value)', total: fromMinor(fixedMinor) },
+    ];
+    const liabilities: StatementLine[] = [
+      { label: 'Outstanding payables', total: fromMinor(liabilitiesMinor) },
+    ];
+
+    // Net assets belong to the funds. Earmarked funds are shown at their
+    // balances; the general fund absorbs the remainder so the sheet balances.
+    const earmarked = p.funds
+      .filter((f) => paise(f.balance) !== 0)
+      .map((f) => ({ label: f.name, total: fromMinor(paise(f.balance)) }));
+    const earmarkedMinor = earmarked.reduce((acc, l) => acc + paise(l.total), 0);
+    const generalMinor = assetsTotalMinor - liabilitiesMinor - earmarkedMinor;
+
+    const fundsLines: StatementLine[] = [
+      ...earmarked,
+      { label: 'General fund', total: fromMinor(generalMinor) },
+    ];
+
+    return {
+      currency: p.currency,
+      asOf: new Date().toISOString().slice(0, 10),
+      assets,
+      assetsTotal: fromMinor(assetsTotalMinor),
+      liabilities,
+      liabilitiesTotal: fromMinor(liabilitiesMinor),
+      funds: fundsLines,
+      fundsTotal: fromMinor(earmarkedMinor + generalMinor),
+    };
+  }
+
   return {
     async getStatement(
       ctx: TenantContext,
@@ -98,6 +141,12 @@ export function createStatementService({ db }: { db: Db }) {
       const auth = authorize(ctx, 'reports:read');
       if (!auth.ok) return auth;
       return ok(await buildReceiptsAndPayments(ctx, range));
+    },
+
+    async getBalanceSheet(ctx: TenantContext): Promise<Result<BalanceSheet>> {
+      const auth = authorize(ctx, 'reports:read');
+      if (!auth.ok) return auth;
+      return ok(await buildBalanceSheet(ctx));
     },
 
     async exportCsv(
@@ -150,6 +199,32 @@ export function createStatementService({ db }: { db: Db }) {
       }
       rows.push(['Payments', 'Closing balance (cash & bank)', csvField(s.closingBalance)].join(','));
       rows.push(['Payments', 'Total', csvField(s.paymentsTotal)].join(','));
+
+      return ok(rows.join('\r\n') + '\r\n');
+    },
+
+    async exportBalanceSheetCsv(ctx: TenantContext): Promise<Result<string>> {
+      const auth = authorize(ctx, 'reports:read');
+      if (!auth.ok) return auth;
+      const s = await buildBalanceSheet(ctx);
+
+      const rows: string[] = [
+        `Balance Sheet,As on ${csvField(s.asOf)}`,
+        '',
+        'Section,Particulars,Amount',
+      ];
+      for (const l of s.funds) rows.push(['Funds', csvField(l.label), csvField(l.total)].join(','));
+      for (const l of s.liabilities) {
+        rows.push(['Liabilities', csvField(l.label), csvField(l.total)].join(','));
+      }
+      rows.push(
+        ['Funds & Liabilities', 'Total', csvField(addStr(s.fundsTotal, s.liabilitiesTotal))].join(
+          ',',
+        ),
+      );
+      rows.push('');
+      for (const l of s.assets) rows.push(['Assets', csvField(l.label), csvField(l.total)].join(','));
+      rows.push(['Assets', 'Total', csvField(s.assetsTotal)].join(','));
 
       return ok(rows.join('\r\n') + '\r\n');
     },

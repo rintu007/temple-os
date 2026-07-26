@@ -5,6 +5,7 @@ export {
   type StatementService,
 } from './statement.service';
 export type {
+  BalanceSheet,
   IncomeExpenditureStatement,
   ReceiptsAndPaymentsStatement,
   StatementLine,

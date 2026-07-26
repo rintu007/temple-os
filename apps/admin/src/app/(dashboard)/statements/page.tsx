@@ -17,6 +17,8 @@ interface StatementPageProps {
   searchParams: Promise<{ fy?: string; from?: string; to?: string; view?: string }>;
 }
 
+type View = 'ie' | 'rnp' | 'bs';
+
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 function LineTable({
@@ -198,11 +200,77 @@ async function ReceiptsAndPayments({
   );
 }
 
+async function BalanceSheetView({
+  ctx,
+  orgName,
+}: {
+  ctx: TenantContext;
+  orgName: string;
+}) {
+  const result = await statementService().getBalanceSheet(ctx);
+  if (!result.ok) return <Alert tone="error">{result.error.message}</Alert>;
+  const s = result.value;
+  const liabilitiesAndFunds = (Number(s.liabilitiesTotal) + Number(s.fundsTotal)).toFixed(2);
+
+  return (
+    <div className="mx-auto max-w-3xl rounded-xl border border-border bg-card p-8 shadow-card print:border-0 print:shadow-none">
+      <div className="mb-6 text-center">
+        <h2 className="text-lg font-semibold">{orgName}</h2>
+        <p className="text-sm text-muted-foreground">Statement of Financial Position</p>
+        <p className="text-sm text-muted-foreground">As on {s.asOf}</p>
+      </div>
+      <div className="grid gap-8 md:grid-cols-2">
+        <div className="space-y-6">
+          <Section title="Funds">
+            <LineTable
+              lines={s.funds}
+              currency={s.currency}
+              totalLabel="Total funds"
+              total={s.fundsTotal}
+            />
+          </Section>
+          <Section title="Liabilities">
+            <LineTable
+              lines={s.liabilities}
+              currency={s.currency}
+              totalLabel="Total liabilities"
+              total={s.liabilitiesTotal}
+            />
+          </Section>
+          <div className="flex items-center justify-between border-t-2 border-border pt-2 text-sm font-semibold">
+            <span>Funds &amp; liabilities</span>
+            <span className="tabular-nums">{formatMoney(liabilitiesAndFunds, s.currency)}</span>
+          </div>
+        </div>
+        <div className="space-y-6">
+          <Section title="Assets">
+            <LineTable
+              lines={s.assets}
+              currency={s.currency}
+              totalLabel="Total assets"
+              total={s.assetsTotal}
+            />
+          </Section>
+          <div className="flex items-center justify-between border-t-2 border-border pt-2 text-sm font-semibold">
+            <span>Total assets</span>
+            <span className="tabular-nums">{formatMoney(s.assetsTotal, s.currency)}</span>
+          </div>
+        </div>
+      </div>
+      <p className="mt-8 text-center text-xs text-muted-foreground">
+        Derived from the ledger · the general fund is the balancing figure · excludes voided entries
+      </p>
+    </div>
+  );
+}
+
 export default async function StatementPage({ searchParams }: StatementPageProps) {
   const params = await searchParams;
   const { ctx, membership } = await requireTenantContext();
 
-  const isRnp = params.view === 'rnp';
+  const view: View = params.view === 'rnp' ? 'rnp' : params.view === 'bs' ? 'bs' : 'ie';
+  const isRnp = view === 'rnp';
+  const isBs = view === 'bs';
   const currentFy = financialYearOf(new Date());
   const custom = DATE.test(params.from ?? '') && DATE.test(params.to ?? '');
   const fyStart = Number.isFinite(Number(params.fy)) && params.fy ? Number(params.fy) : currentFy;
@@ -214,8 +282,25 @@ export default async function StatementPage({ searchParams }: StatementPageProps
   const periodLabel = custom
     ? `${range.from} to ${range.to}`
     : financialYearRange(fyStart).label + ' (Apr–Mar)';
-  const csvQuery = new URLSearchParams(range).toString();
+  const csvHref = isBs
+    ? '/statements/balance-sheet.csv'
+    : `/statements/${isRnp ? 'receipts-payments' : 'statement'}.csv?${new URLSearchParams(range).toString()}`;
   const fyQ = custom ? '' : `fy=${fyStart}`;
+  const tab = (v: View, label: string) => {
+    const active = view === v;
+    const href = v === 'ie' ? `/statements${fyQ ? `?${fyQ}` : ''}` : `/statements?view=${v}${fyQ ? `&${fyQ}` : ''}`;
+    return (
+      <a
+        href={href}
+        className={cn(
+          'rounded-md px-3 py-1.5 font-medium',
+          active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
+        )}
+      >
+        {label}
+      </a>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -228,7 +313,7 @@ export default async function StatementPage({ searchParams }: StatementPageProps
         </div>
         <div className="flex items-center gap-2">
           <a
-            href={`/statements/${isRnp ? 'receipts-payments' : 'statement'}.csv?${csvQuery}`}
+            href={csvHref}
             className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
           >
             Export CSV
@@ -238,60 +323,45 @@ export default async function StatementPage({ searchParams }: StatementPageProps
       </div>
 
       {/* View toggle */}
-      <div className="inline-flex rounded-lg border border-border bg-card p-0.5 text-sm print:hidden">
-        <a
-          href={`/statements${fyQ ? `?${fyQ}` : ''}`}
-          className={cn(
-            'rounded-md px-3 py-1.5 font-medium',
-            !isRnp
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground',
-          )}
-        >
-          Income &amp; Expenditure
-        </a>
-        <a
-          href={`/statements?view=rnp${fyQ ? `&${fyQ}` : ''}`}
-          className={cn(
-            'rounded-md px-3 py-1.5 font-medium',
-            isRnp
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground',
-          )}
-        >
-          Receipts &amp; Payments
-        </a>
+      <div className="inline-flex flex-wrap rounded-lg border border-border bg-card p-0.5 text-sm print:hidden">
+        {tab('ie', 'Income & Expenditure')}
+        {tab('rnp', 'Receipts & Payments')}
+        {tab('bs', 'Balance Sheet')}
       </div>
 
-      {/* Period picker */}
-      <form action="/statements" className="flex flex-wrap items-end gap-3 print:hidden">
-        {isRnp ? <input type="hidden" name="view" value="rnp" /> : null}
-        <div className="space-y-1.5">
-          <label htmlFor="fy" className="text-sm font-medium">
-            Financial year
-          </label>
-          <select
-            id="fy"
-            name="fy"
-            defaultValue={custom ? '' : String(fyStart)}
-            className="h-9.5 rounded-lg border border-input bg-card px-3 text-sm"
+      {/* Period picker — the balance sheet is an as-on-today snapshot */}
+      {isBs ? null : (
+        <form action="/statements" className="flex flex-wrap items-end gap-3 print:hidden">
+          {isRnp ? <input type="hidden" name="view" value="rnp" /> : null}
+          <div className="space-y-1.5">
+            <label htmlFor="fy" className="text-sm font-medium">
+              Financial year
+            </label>
+            <select
+              id="fy"
+              name="fy"
+              defaultValue={custom ? '' : String(fyStart)}
+              className="h-9.5 rounded-lg border border-input bg-card px-3 text-sm"
+            >
+              {fyOptions.map((y) => (
+                <option key={y} value={y}>
+                  {y}–{y + 1}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="submit"
+            className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card hover:bg-primary/90"
           >
-            {fyOptions.map((y) => (
-              <option key={y} value={y}>
-                {y}–{y + 1}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button
-          type="submit"
-          className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card hover:bg-primary/90"
-        >
-          View
-        </button>
-      </form>
+            View
+          </button>
+        </form>
+      )}
 
-      {isRnp ? (
+      {isBs ? (
+        <BalanceSheetView ctx={ctx} orgName={membership.organizationName} />
+      ) : isRnp ? (
         <ReceiptsAndPayments
           ctx={ctx}
           range={range}
