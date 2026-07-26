@@ -2,11 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ExpenseForm } from '@/features/expenses/components/expense-form';
 import { requireTenantContext } from '@/lib/session';
+import { fundService } from '@/lib/services';
 
 export const metadata: Metadata = { title: 'Record expense' };
 
 export default async function NewExpensePage() {
-  const { membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext();
+  const funds = await fundService().listActiveOptions(ctx);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -21,7 +23,7 @@ export default async function NewExpensePage() {
       </div>
 
       <div className="rounded-xl border border-border bg-card shadow-card p-6">
-        <ExpenseForm currency={membership.currency} />
+        <ExpenseForm currency={membership.currency} funds={funds.ok ? funds.value : []} />
       </div>
     </div>
   );

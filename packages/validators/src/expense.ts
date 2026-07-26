@@ -19,6 +19,12 @@ export const recordExpenseSchema = z.object({
   method: z.enum(EXPENSE_METHODS),
   paidTo: z.string().trim().min(2, 'Who was this paid to?').max(120),
   categoryName: optionalTrimmed(120),
+  fundId: z
+    .string()
+    .uuid()
+    .or(z.literal(''))
+    .transform((v) => (v === '' ? null : v))
+    .nullish(),
   reference: optionalTrimmed(120),
   note: optionalTrimmed(500),
   spentOn: z

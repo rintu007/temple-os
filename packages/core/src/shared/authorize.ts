@@ -16,6 +16,8 @@ export type Permission =
   | 'expenses:write'
   | 'expenses:void'
   | 'expenses:approve'
+  | 'funds:read'
+  | 'funds:write'
   | 'events:read'
   | 'events:write'
   | 'pujas:read'
@@ -62,6 +64,8 @@ const ALL: readonly Permission[] = [
   'expenses:write',
   'expenses:void',
   'expenses:approve',
+  'funds:read',
+  'funds:write',
   'events:read',
   'events:write',
   'pujas:read',
@@ -106,6 +110,8 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'expenses:write',
     'expenses:void',
     'expenses:approve',
+    'funds:read',
+    'funds:write',
     'events:read',
     'events:write',
     'pujas:read',
@@ -142,6 +148,7 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'donations:write',
     'expenses:read',
     'expenses:write',
+    'funds:read',
     'events:read',
     'events:write',
     'pujas:read',
@@ -170,6 +177,7 @@ const ROLE_PERMISSIONS: Record<string, readonly Permission[]> = {
     'devotees:read',
     'donations:read',
     'expenses:read',
+    'funds:read',
     'events:read',
     'pujas:read',
     'membership:read',

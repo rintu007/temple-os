@@ -40,6 +40,29 @@ export const campaigns = pgTable(
   (t) => [index('campaigns_org_status_idx').on(t.organizationId, t.status)],
 );
 
+/**
+ * A named fund the temple keeps money in — corpus/endowment, building, annadanam,
+ * general. Unlike a campaign (a time-bound goal), a fund is a perpetual bucket.
+ * Its balance is derived: recorded donations earmarked to it, less recorded
+ * expenses drawn from it (via `donations.fundId` / `expenses.fundId`), so it
+ * never drifts from the ledger.
+ */
+export const funds = pgTable(
+  'funds',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    name: text().notNull(),
+    description: text(),
+    isActive: boolean().notNull().default(true),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [index('funds_org_active_idx').on(t.organizationId, t.isActive)],
+);
+
 export const donationMethodEnum = pgEnum('donation_method', [
   'cash',
   'upi',
@@ -89,6 +112,8 @@ export const donations = pgTable(
     campaignId: uuid().references(() => campaigns.id),
     /** Set when this donation fulfils (part of) a pledge — see `pledges`. */
     pledgeId: uuid().references(() => pledges.id),
+    /** Earmarks this donation to a fund — see `funds`. */
+    fundId: uuid().references(() => funds.id),
     donorName: text().notNull(),
     amount: numeric({ precision: 12, scale: 2 }).notNull(),
     currency: currencyEnum().notNull(),
@@ -107,6 +132,7 @@ export const donations = pgTable(
     index('donations_org_date_idx').on(t.organizationId, t.donatedAt),
     index('donations_devotee_idx').on(t.devoteeId),
     index('donations_pledge_idx').on(t.pledgeId),
+    index('donations_fund_idx').on(t.fundId),
   ],
 );
 
@@ -208,6 +234,8 @@ export const expenses = pgTable(
     /** Optional links to the payables ledger — set when a voucher settles a vendor bill. */
     vendorId: uuid().references(() => vendors.id),
     vendorBillId: uuid().references(() => vendorBills.id),
+    /** Draws this expense from a fund — see `funds`. */
+    fundId: uuid().references(() => funds.id),
     paidTo: text().notNull(),
     amount: numeric({ precision: 12, scale: 2 }).notNull(),
     currency: currencyEnum().notNull(),
@@ -230,6 +258,7 @@ export const expenses = pgTable(
     index('expenses_org_date_idx').on(t.organizationId, t.spentAt),
     index('expenses_vendor_bill_idx').on(t.vendorBillId),
     index('expenses_org_approval_idx').on(t.organizationId, t.approvalStatus),
+    index('expenses_fund_idx').on(t.fundId),
   ],
 );
 

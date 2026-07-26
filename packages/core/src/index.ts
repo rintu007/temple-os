@@ -11,6 +11,7 @@ export * from './features/donations';
 export * from './features/expenses';
 export * from './features/events';
 export * from './features/facilities';
+export * from './features/funds';
 export * from './features/hundi';
 export * from './features/inventory';
 export * from './features/members';

@@ -9,6 +9,7 @@ import {
   createEventService,
   createFacilityService,
   createExpenseService,
+  createFundService,
   createGalleryService,
   createHundiService,
   createInventoryService,
@@ -37,6 +38,7 @@ import {
   type EventService,
   type FacilityService,
   type ExpenseService,
+  type FundService,
   type GalleryService,
   type HundiService,
   type InventoryService,
@@ -258,4 +260,11 @@ let _pledgeService: PledgeService | undefined;
 export function pledgeService(): PledgeService {
   _pledgeService ??= createPledgeService({ db: getDb() });
   return _pledgeService;
+}
+
+let _fundService: FundService | undefined;
+
+export function fundService(): FundService {
+  _fundService ??= createFundService({ db: getDb() });
+  return _fundService;
 }

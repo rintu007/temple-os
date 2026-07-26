@@ -25,3 +25,4 @@ export * from './volunteer';
 export * from './vendor';
 export * from './communication';
 export * from './pledge';
+export * from './fund';

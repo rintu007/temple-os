@@ -7,6 +7,7 @@ import { recordExpenseAction } from '../actions';
 
 interface ExpenseFormProps {
   currency: string;
+  funds?: Array<{ id: string; name: string }>;
 }
 
 const METHODS = [
@@ -18,7 +19,7 @@ const METHODS = [
   { value: 'other', label: 'Other' },
 ];
 
-export function ExpenseForm({ currency }: ExpenseFormProps) {
+export function ExpenseForm({ currency, funds = [] }: ExpenseFormProps) {
   const [state, formAction, pending] = useActionState(recordExpenseAction, initialFormState);
   const today = new Date().toISOString().slice(0, 10);
 
@@ -84,6 +85,19 @@ export function ExpenseForm({ currency }: ExpenseFormProps) {
           <Input id="spentOn" name="spentOn" type="date" defaultValue={today} />
         </div>
 
+        {funds.length > 0 ? (
+          <div className="space-y-2">
+            <Label htmlFor="fundId">Fund (optional)</Label>
+            <Select id="fundId" name="fundId" defaultValue="">
+              <option value="">— General —</option>
+              {funds.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+        ) : null}
         <div className="space-y-2">
           <Label htmlFor="reference">Reference (bill/cheque no.)</Label>
           <Input id="reference" name="reference" />
