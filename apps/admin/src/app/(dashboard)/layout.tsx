@@ -94,7 +94,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/inventory', label: 'Inventory', icon: Package },
       { href: '/reports', label: 'Reports', icon: BarChart3 },
       { href: '/budgets', label: 'Budgets', icon: ClipboardList },
-      { href: '/statements', label: 'I&E statement', icon: Scale },
+      { href: '/statements', label: 'Statements', icon: Scale },
       { href: '/tax', label: '80G & tax', icon: ReceiptText },
     ],
   },

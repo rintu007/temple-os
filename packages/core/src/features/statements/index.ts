@@ -4,4 +4,8 @@ export {
   financialYearRange,
   type StatementService,
 } from './statement.service';
-export type { IncomeExpenditureStatement, StatementLine } from './statement.types';
+export type {
+  IncomeExpenditureStatement,
+  ReceiptsAndPaymentsStatement,
+  StatementLine,
+} from './statement.types';

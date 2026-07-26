@@ -4,6 +4,7 @@ import {
   donations,
   expenseCategories,
   expenses,
+  financialAccounts,
   organizations,
   withTenantContext,
   type Db,
@@ -76,6 +77,53 @@ export function createStatementRepository(db: Db) {
           income: income.map((r) => ({ label: String(r.label), total: r.total })),
           expenditure: expenditure.map((r) => ({ label: String(r.label), total: r.total })),
         };
+      });
+    },
+
+    /**
+     * Cash & bank position for a Receipts & Payments account: the base opening
+     * balance across all accounts, plus everything received and paid *before*
+     * the period start so the opening balance rolls forward correctly. When
+     * `from` is null the period is open-ended and only the base applies.
+     */
+    async cashPosition(ctx: TenantContext, from: string | null) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [base] = await tx
+          .select({
+            total: sql<string>`coalesce(sum(${financialAccounts.openingBalance}), '0.00')`,
+          })
+          .from(financialAccounts)
+          .where(eq(financialAccounts.organizationId, ctx.organizationId));
+
+        let priorReceipts = '0.00';
+        let priorPayments = '0.00';
+        if (from) {
+          const before = new Date(`${from}T00:00:00`);
+          const [pr] = await tx
+            .select({ total: sql<string>`coalesce(sum(${donations.amount}), '0.00')` })
+            .from(donations)
+            .where(
+              and(
+                eq(donations.organizationId, ctx.organizationId),
+                eq(donations.status, 'recorded'),
+                lt(donations.donatedAt, before),
+              ),
+            );
+          const [pp] = await tx
+            .select({ total: sql<string>`coalesce(sum(${expenses.amount}), '0.00')` })
+            .from(expenses)
+            .where(
+              and(
+                eq(expenses.organizationId, ctx.organizationId),
+                eq(expenses.status, 'recorded'),
+                lt(expenses.spentAt, before),
+              ),
+            );
+          priorReceipts = pr?.total ?? '0.00';
+          priorPayments = pp?.total ?? '0.00';
+        }
+
+        return { openingBase: base?.total ?? '0.00', priorReceipts, priorPayments };
       });
     },
   };

@@ -1,0 +1,24 @@
+import type { NextRequest } from 'next/server';
+import { requireTenantContext } from '@/lib/session';
+import { statementService } from '@/lib/services';
+
+/** Receipts & Payments account CSV. Auth + reports:read enforced in the service. */
+export async function GET(request: NextRequest) {
+  const { ctx } = await requireTenantContext();
+  const { searchParams } = new URL(request.url);
+  const range = { from: searchParams.get('from') ?? '', to: searchParams.get('to') ?? '' };
+
+  const result = await statementService().exportReceiptsAndPaymentsCsv(ctx, range);
+  if (!result.ok) {
+    return new Response(result.error.message, {
+      status: result.error.code === 'FORBIDDEN' ? 403 : 400,
+    });
+  }
+  return new Response(result.value, {
+    headers: {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="receipts-payments-${range.from}-to-${range.to}.csv"`,
+      'Cache-Control': 'no-store',
+    },
+  });
+}

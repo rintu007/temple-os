@@ -1,57 +1,199 @@
 import type { Metadata } from 'next';
-import { financialYearOf, financialYearRange, type StatementLine } from '@templeos/core';
+import type { ReactNode } from 'react';
+import {
+  financialYearOf,
+  financialYearRange,
+  type StatementLine,
+  type TenantContext,
+} from '@templeos/core';
 import { Alert, cn, formatMoney } from '@templeos/ui';
 import { PrintButton } from '@/components/print-button';
 import { requireTenantContext } from '@/lib/session';
 import { statementService } from '@/lib/services';
 
-export const metadata: Metadata = { title: 'I&E statement' };
+export const metadata: Metadata = { title: 'Statements' };
 
 interface StatementPageProps {
-  searchParams: Promise<{ fy?: string; from?: string; to?: string }>;
+  searchParams: Promise<{ fy?: string; from?: string; to?: string; view?: string }>;
 }
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-function StatementSection({
-  title,
+function LineTable({
   lines,
-  total,
   currency,
+  leadRow,
+  totalLabel,
+  total,
+  tailRow,
 }: {
-  title: string;
   lines: StatementLine[];
-  total: string;
   currency: 'INR' | 'BDT';
+  leadRow?: { label: string; value: string };
+  totalLabel: string;
+  total: string;
+  tailRow?: { label: string; value: string };
 }) {
+  return (
+    <table className="w-full text-sm">
+      <tbody>
+        {leadRow ? (
+          <tr className="border-b border-border/60 font-medium">
+            <td className="py-1.5">{leadRow.label}</td>
+            <td className="py-1.5 text-right tabular-nums">
+              {formatMoney(leadRow.value, currency)}
+            </td>
+          </tr>
+        ) : null}
+        {lines.length === 0 && !leadRow && !tailRow ? (
+          <tr>
+            <td className="py-1.5 text-muted-foreground">None recorded</td>
+            <td />
+          </tr>
+        ) : (
+          lines.map((l) => (
+            <tr key={l.label} className="border-b border-border/60">
+              <td className="py-1.5">{l.label}</td>
+              <td className="py-1.5 text-right tabular-nums">{formatMoney(l.total, currency)}</td>
+            </tr>
+          ))
+        )}
+        {tailRow ? (
+          <tr className="border-b border-border/60 font-medium">
+            <td className="py-1.5">{tailRow.label}</td>
+            <td className="py-1.5 text-right tabular-nums">
+              {formatMoney(tailRow.value, currency)}
+            </td>
+          </tr>
+        ) : null}
+      </tbody>
+      <tfoot>
+        <tr className="border-t-2 border-border font-semibold">
+          <td className="py-2">{totalLabel}</td>
+          <td className="py-2 text-right tabular-nums">{formatMoney(total, currency)}</td>
+        </tr>
+      </tfoot>
+    </table>
+  );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div>
       <h3 className="mb-2 text-sm font-semibold tracking-wide text-muted-foreground uppercase">
         {title}
       </h3>
-      <table className="w-full text-sm">
-        <tbody>
-          {lines.length === 0 ? (
-            <tr>
-              <td className="py-1.5 text-muted-foreground">None recorded</td>
-              <td />
-            </tr>
-          ) : (
-            lines.map((l) => (
-              <tr key={l.label} className="border-b border-border/60">
-                <td className="py-1.5">{l.label}</td>
-                <td className="py-1.5 text-right tabular-nums">{formatMoney(l.total, currency)}</td>
-              </tr>
-            ))
+      {children}
+    </div>
+  );
+}
+
+async function IncomeExpenditure({
+  ctx,
+  range,
+  orgName,
+  periodLabel,
+}: {
+  ctx: TenantContext;
+  range: { from: string; to: string };
+  orgName: string;
+  periodLabel: string;
+}) {
+  const result = await statementService().getStatement(ctx, range);
+  if (!result.ok) return <Alert tone="error">{result.error.message}</Alert>;
+  const s = result.value;
+  const isDeficit = s.net.startsWith('-');
+  const netDisplay = formatMoney(s.net.replace('-', ''), s.currency);
+
+  return (
+    <div className="mx-auto max-w-2xl rounded-xl border border-border bg-card p-8 shadow-card print:border-0 print:shadow-none">
+      <div className="mb-6 text-center">
+        <h2 className="text-lg font-semibold">{orgName}</h2>
+        <p className="text-sm text-muted-foreground">Income &amp; Expenditure Statement</p>
+        <p className="text-sm text-muted-foreground">{periodLabel}</p>
+      </div>
+      <div className="space-y-8">
+        <Section title="Income">
+          <LineTable
+            lines={s.income}
+            currency={s.currency}
+            totalLabel="Total income"
+            total={s.incomeTotal}
+          />
+        </Section>
+        <Section title="Expenditure">
+          <LineTable
+            lines={s.expenditure}
+            currency={s.currency}
+            totalLabel="Total expenditure"
+            total={s.expenditureTotal}
+          />
+        </Section>
+        <div
+          className={cn(
+            'flex items-center justify-between rounded-lg border px-4 py-3 text-base font-semibold',
+            isDeficit
+              ? 'border-destructive/30 bg-destructive/5 text-destructive'
+              : 'border-success/30 bg-success/5 text-success',
           )}
-        </tbody>
-        <tfoot>
-          <tr className="border-t-2 border-border font-semibold">
-            <td className="py-2">Total {title.toLowerCase()}</td>
-            <td className="py-2 text-right tabular-nums">{formatMoney(total, currency)}</td>
-          </tr>
-        </tfoot>
-      </table>
+        >
+          <span>{isDeficit ? 'Deficit for the period' : 'Surplus for the period'}</span>
+          <span className="tabular-nums">{netDisplay}</span>
+        </div>
+      </div>
+      <p className="mt-8 text-center text-xs text-muted-foreground">
+        Generated by TempleOS · figures exclude voided entries
+      </p>
+    </div>
+  );
+}
+
+async function ReceiptsAndPayments({
+  ctx,
+  range,
+  orgName,
+  periodLabel,
+}: {
+  ctx: TenantContext;
+  range: { from: string; to: string };
+  orgName: string;
+  periodLabel: string;
+}) {
+  const result = await statementService().getReceiptsAndPayments(ctx, range);
+  if (!result.ok) return <Alert tone="error">{result.error.message}</Alert>;
+  const s = result.value;
+
+  return (
+    <div className="mx-auto max-w-2xl rounded-xl border border-border bg-card p-8 shadow-card print:border-0 print:shadow-none">
+      <div className="mb-6 text-center">
+        <h2 className="text-lg font-semibold">{orgName}</h2>
+        <p className="text-sm text-muted-foreground">Receipts &amp; Payments Account</p>
+        <p className="text-sm text-muted-foreground">{periodLabel}</p>
+      </div>
+      <div className="space-y-8">
+        <Section title="Receipts">
+          <LineTable
+            lines={s.receipts}
+            currency={s.currency}
+            leadRow={{ label: 'Opening balance (cash & bank)', value: s.openingBalance }}
+            totalLabel="Total"
+            total={(Number(s.openingBalance) + Number(s.receiptsTotal)).toFixed(2)}
+          />
+        </Section>
+        <Section title="Payments">
+          <LineTable
+            lines={s.payments}
+            currency={s.currency}
+            tailRow={{ label: 'Closing balance (cash & bank)', value: s.closingBalance }}
+            totalLabel="Total"
+            total={(Number(s.paymentsTotal) + Number(s.closingBalance)).toFixed(2)}
+          />
+        </Section>
+      </div>
+      <p className="mt-8 text-center text-xs text-muted-foreground">
+        Opening balance rolls forward from account opening balances and prior cash movements ·
+        excludes voided entries
+      </p>
     </div>
   );
 }
@@ -60,6 +202,7 @@ export default async function StatementPage({ searchParams }: StatementPageProps
   const params = await searchParams;
   const { ctx, membership } = await requireTenantContext();
 
+  const isRnp = params.view === 'rnp';
   const currentFy = financialYearOf(new Date());
   const custom = DATE.test(params.from ?? '') && DATE.test(params.to ?? '');
   const fyStart = Number.isFinite(Number(params.fy)) && params.fy ? Number(params.fy) : currentFy;
@@ -67,34 +210,25 @@ export default async function StatementPage({ searchParams }: StatementPageProps
     ? { from: params.from!, to: params.to! }
     : { from: financialYearRange(fyStart).from, to: financialYearRange(fyStart).to };
 
-  const result = await statementService().getStatement(ctx, range);
-  if (!result.ok) {
-    return <Alert tone="error">{result.error.message}</Alert>;
-  }
-  const s = result.value;
-  const isDeficit = s.net.startsWith('-');
-  const netDisplay = formatMoney(s.net.replace('-', ''), s.currency);
-
   const fyOptions = Array.from({ length: 5 }, (_, i) => currentFy - i);
-  const csvHref = `/statements/statement.csv?${new URLSearchParams(range)}`;
-
   const periodLabel = custom
     ? `${range.from} to ${range.to}`
     : financialYearRange(fyStart).label + ' (Apr–Mar)';
+  const csvQuery = new URLSearchParams(range).toString();
+  const fyQ = custom ? '' : `fy=${fyStart}`;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Income &amp; Expenditure</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Financial statements</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            The formal statement of income and expenditure for a financial year — for your AGM,
-            trustees and auditors.
+            The year-end statements for your AGM, trustees and auditors.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <a
-            href={csvHref}
+            href={`/statements/${isRnp ? 'receipts-payments' : 'statement'}.csv?${csvQuery}`}
             className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
           >
             Export CSV
@@ -103,8 +237,35 @@ export default async function StatementPage({ searchParams }: StatementPageProps
         </div>
       </div>
 
+      {/* View toggle */}
+      <div className="inline-flex rounded-lg border border-border bg-card p-0.5 text-sm print:hidden">
+        <a
+          href={`/statements${fyQ ? `?${fyQ}` : ''}`}
+          className={cn(
+            'rounded-md px-3 py-1.5 font-medium',
+            !isRnp
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          Income &amp; Expenditure
+        </a>
+        <a
+          href={`/statements?view=rnp${fyQ ? `&${fyQ}` : ''}`}
+          className={cn(
+            'rounded-md px-3 py-1.5 font-medium',
+            isRnp
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          Receipts &amp; Payments
+        </a>
+      </div>
+
       {/* Period picker */}
       <form action="/statements" className="flex flex-wrap items-end gap-3 print:hidden">
+        {isRnp ? <input type="hidden" name="view" value="rnp" /> : null}
         <div className="space-y-1.5">
           <label htmlFor="fy" className="text-sm font-medium">
             Financial year
@@ -130,40 +291,21 @@ export default async function StatementPage({ searchParams }: StatementPageProps
         </button>
       </form>
 
-      {/* The statement document */}
-      <div className="mx-auto max-w-2xl rounded-xl border border-border bg-card p-8 shadow-card print:border-0 print:shadow-none">
-        <div className="mb-6 text-center">
-          <h2 className="text-lg font-semibold">{membership.organizationName}</h2>
-          <p className="text-sm text-muted-foreground">Income &amp; Expenditure Statement</p>
-          <p className="text-sm text-muted-foreground">{periodLabel}</p>
-        </div>
-
-        <div className="space-y-8">
-          <StatementSection title="Income" lines={s.income} total={s.incomeTotal} currency={s.currency} />
-          <StatementSection
-            title="Expenditure"
-            lines={s.expenditure}
-            total={s.expenditureTotal}
-            currency={s.currency}
-          />
-
-          <div
-            className={cn(
-              'flex items-center justify-between rounded-lg border px-4 py-3 text-base font-semibold',
-              isDeficit
-                ? 'border-destructive/30 bg-destructive/5 text-destructive'
-                : 'border-success/30 bg-success/5 text-success',
-            )}
-          >
-            <span>{isDeficit ? 'Deficit for the period' : 'Surplus for the period'}</span>
-            <span className="tabular-nums">{netDisplay}</span>
-          </div>
-        </div>
-
-        <p className="mt-8 text-center text-xs text-muted-foreground">
-          Generated by TempleOS · figures exclude voided entries
-        </p>
-      </div>
+      {isRnp ? (
+        <ReceiptsAndPayments
+          ctx={ctx}
+          range={range}
+          orgName={membership.organizationName}
+          periodLabel={periodLabel}
+        />
+      ) : (
+        <IncomeExpenditure
+          ctx={ctx}
+          range={range}
+          orgName={membership.organizationName}
+          periodLabel={periodLabel}
+        />
+      )}
     </div>
   );
 }

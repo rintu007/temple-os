@@ -9,6 +9,7 @@ import {
   donations,
   expenseCategories,
   expenses,
+  financialAccounts,
   memberships,
   newId,
   organizations,
@@ -56,6 +57,7 @@ describe.skipIf(!hasDb)('statements: income & expenditure (live db)', () => {
       await admin.delete(donationCategories).where(inArray(donationCategories.organizationId, s));
       await admin.delete(expenses).where(inArray(expenses.organizationId, s));
       await admin.delete(expenseCategories).where(inArray(expenseCategories.organizationId, s));
+      await admin.delete(financialAccounts).where(inArray(financialAccounts.organizationId, s));
       await admin.delete(memberships).where(inArray(memberships.organizationId, s));
       await admin.delete(roles).where(inArray(roles.organizationId, s));
       await admin.delete(domains).where(inArray(domains.organizationId, s));
@@ -96,6 +98,19 @@ describe.skipIf(!hasDb)('statements: income & expenditure (live db)', () => {
     await admin.insert(expenses).values([
       { id: newId(), organizationId: orgId, categoryId: salaryCat, paidTo: 'Priest', amount: '400.00', currency: 'INR', method: 'cash', voucherNumber: `${run}-EV1`, status: 'recorded', spentAt: at },
     ]);
+
+    // For Receipts & Payments: an opening account balance and prior-FY (FY2024)
+    // cash movements that must roll forward into the FY2026 opening balance.
+    const prior = new Date('2025-01-01T10:00:00Z');
+    await admin.insert(financialAccounts).values([
+      { id: newId(), organizationId: orgId, name: 'Cash box', type: 'cash', openingBalance: '2000.00' },
+    ]);
+    await admin.insert(donations).values([
+      { id: newId(), organizationId: orgId, categoryId: genCat, donorName: 'Old', amount: '300.00', currency: 'INR', method: 'cash', receiptNumber: `${run}-P1`, status: 'recorded', donatedAt: prior },
+    ]);
+    await admin.insert(expenses).values([
+      { id: newId(), organizationId: orgId, categoryId: salaryCat, paidTo: 'Old', amount: '100.00', currency: 'INR', method: 'cash', voucherNumber: `${run}-PV1`, status: 'recorded', spentAt: prior },
+    ]);
   });
 
   it('produces income & expenditure grouped by category with a correct net', async () => {
@@ -131,6 +146,38 @@ describe.skipIf(!hasDb)('statements: income & expenditure (live db)', () => {
       expect(csv.value).toContain('Income & Expenditure Statement');
       expect(csv.value).toContain('Income,Total,1500.50');
       expect(csv.value).toContain('Net,Surplus,1100.50');
+    }
+  });
+
+  it('produces a receipts & payments account that ties out', async () => {
+    const fy = financialYearRange(2026);
+    const result = await service.getReceiptsAndPayments(ctx, { from: fy.from, to: fy.to });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const s = result.value;
+
+    // Opening = account opening 2000 + prior receipts 300 − prior payments 100 = 2200
+    expect(s.openingBalance).toBe('2200.00');
+    // In-period receipts/payments match the I&E groupings (void excluded).
+    expect(s.receiptsTotal).toBe('1500.50');
+    expect(s.paymentsTotal).toBe('400.00');
+    // Closing = 2200 + 1500.50 − 400 = 3300.50
+    expect(s.closingBalance).toBe('3300.50');
+
+    // The account must balance: opening + receipts = payments + closing.
+    const left = Number(s.openingBalance) + Number(s.receiptsTotal);
+    const right = Number(s.paymentsTotal) + Number(s.closingBalance);
+    expect(left.toFixed(2)).toBe(right.toFixed(2));
+  });
+
+  it('exports a receipts & payments CSV', async () => {
+    const fy = financialYearRange(2026);
+    const csv = await service.exportReceiptsAndPaymentsCsv(ctx, { from: fy.from, to: fy.to });
+    expect(csv.ok).toBe(true);
+    if (csv.ok) {
+      expect(csv.value).toContain('Receipts & Payments Account');
+      expect(csv.value).toContain('Opening balance (cash & bank),2200.00');
+      expect(csv.value).toContain('Closing balance (cash & bank),3300.50');
     }
   });
 });
