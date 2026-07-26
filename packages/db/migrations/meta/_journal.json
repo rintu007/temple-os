@@ -204,6 +204,13 @@
       "when": 1785042548440,
       "tag": "0028_adorable_veda",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1785053505066,
+      "tag": "0029_stale_korvac",
+      "breakpoints": true
     }
   ]
 }

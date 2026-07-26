@@ -18,6 +18,42 @@ import { currencyEnum, organizations, temples } from './tenancy';
 
 export const campaignStatusEnum = pgEnum('campaign_status', ['active', 'completed', 'archived']);
 
+export const budgetKindEnum = pgEnum('budget_kind', ['income', 'expense']);
+
+/**
+ * A planned amount for one category, in one financial year, on one side of the
+ * books. Actuals are never stored here — they're read live from the donation
+ * and expense ledgers grouped by category, so the budget-vs-actual comparison
+ * always reflects the current books. Category is matched by name to the ledger
+ * category labels ('Uncategorized' included).
+ */
+export const budgets = pgTable(
+  'budgets',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    /** Financial-year start year — 2026 means FY 2026–27 (April–March). */
+    financialYear: integer().notNull(),
+    kind: budgetKindEnum().notNull(),
+    category: text().notNull(),
+    amount: numeric({ precision: 12, scale: 2 }).notNull(),
+    note: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex('budgets_org_fy_kind_cat_uq').on(
+      t.organizationId,
+      t.financialYear,
+      t.kind,
+      t.category,
+    ),
+    index('budgets_org_fy_idx').on(t.organizationId, t.financialYear),
+  ],
+);
+
 /**
  * A fundraising campaign with a monetary goal (renovation, festival fund).
  * Progress is derived — the sum of recorded donations earmarked to it — so
