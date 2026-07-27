@@ -13,6 +13,7 @@ const KIND_LABEL: Record<ReminderKind, string> = {
   loan: 'Loan',
   investment: 'Maturity',
   membership: 'Membership',
+  recurring_expense: 'Recurring',
 };
 
 function hrefFor(r: ReminderItem): string {
@@ -23,6 +24,8 @@ function hrefFor(r: ReminderItem): string {
       return `/loans/${r.id}`;
     case 'investment':
       return `/investments/${r.id}`;
+    case 'recurring_expense':
+      return `/recurring/${r.id}`;
     case 'vendor_bill':
       return '/vendors';
     case 'membership':

@@ -30,6 +30,7 @@ import {
   createPledgeService,
   createPrasadamService,
   createPujaService,
+  createRecurringExpenseService,
   createReconciliationService,
   createReportService,
   createSevaService,
@@ -71,6 +72,7 @@ import {
   type PledgeService,
   type PrasadamService,
   type PujaService,
+  type RecurringExpenseService,
   type ReconciliationService,
   type ReportService,
   type SevaService,
@@ -375,4 +377,11 @@ let _insightsService: InsightsService | undefined;
 export function insightsService(): InsightsService {
   _insightsService ??= createInsightsService({ db: getDb() });
   return _insightsService;
+}
+
+let _recurringExpenseService: RecurringExpenseService | undefined;
+
+export function recurringExpenseService(): RecurringExpenseService {
+  _recurringExpenseService ??= createRecurringExpenseService({ db: getDb() });
+  return _recurringExpenseService;
 }

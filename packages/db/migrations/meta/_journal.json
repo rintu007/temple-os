@@ -281,6 +281,13 @@
       "when": 1785172384000,
       "tag": "0039_panoramic_maginty",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1785176126175,
+      "tag": "0040_steady_the_initiative",
+      "breakpoints": true
     }
   ]
 }

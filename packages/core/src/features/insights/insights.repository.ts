@@ -9,6 +9,7 @@ import {
   membershipSubscriptions,
   organizations,
   pledges,
+  recurringExpenses,
   vendorBills,
   withTenantContext,
   type Db,
@@ -42,7 +43,8 @@ export function createInsightsRepository(db: Db) {
       return withTenantContext(db, guc(ctx), async (tx) => {
         const org = ctx.organizationId;
 
-        const [pledgeRows, billRows, loanRows, investmentRows, membershipRows] = await Promise.all([
+        const [pledgeRows, billRows, loanRows, investmentRows, membershipRows, recurringRows] =
+          await Promise.all([
           tx
             .select({
               id: pledges.id,
@@ -133,9 +135,28 @@ export function createInsightsRepository(db: Db) {
                 withinHorizon(membershipSubscriptions.expiresOn),
               ),
             ),
+          // Next-due is computed from the cadence in the service, so fetch all
+          // active standing orders and let the service filter to the horizon.
+          tx
+            .select({
+              id: recurringExpenses.id,
+              payee: recurringExpenses.payee,
+              description: recurringExpenses.description,
+              amount: recurringExpenses.amount,
+              frequency: recurringExpenses.frequency,
+              startDate: recurringExpenses.startDate,
+              endDate: recurringExpenses.endDate,
+            })
+            .from(recurringExpenses)
+            .where(
+              and(
+                eq(recurringExpenses.organizationId, org),
+                eq(recurringExpenses.status, 'active'),
+              ),
+            ),
         ]);
 
-        return { pledgeRows, billRows, loanRows, investmentRows, membershipRows };
+        return { pledgeRows, billRows, loanRows, investmentRows, membershipRows, recurringRows };
       });
     },
 

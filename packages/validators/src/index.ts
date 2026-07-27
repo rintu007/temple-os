@@ -32,6 +32,7 @@ export * from './account';
 export * from './employee';
 export * from './loan';
 export * from './investment';
+export * from './recurring-expense';
 export * from './transfer';
 export * from './grant';
 export * from './seva';

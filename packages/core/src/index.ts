@@ -25,6 +25,7 @@ export * from './features/payments';
 export * from './features/payroll';
 export * from './features/pledges';
 export * from './features/pujas';
+export * from './features/recurring-expenses';
 export * from './features/reconciliation';
 export * from './features/meetings';
 export * from './features/officers';

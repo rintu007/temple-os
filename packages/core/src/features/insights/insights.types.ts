@@ -5,7 +5,8 @@ export type ReminderKind =
   | 'vendor_bill'
   | 'loan'
   | 'investment'
-  | 'membership';
+  | 'membership'
+  | 'recurring_expense';
 
 export interface ReminderItem {
   kind: ReminderKind;

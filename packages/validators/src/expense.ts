@@ -43,6 +43,12 @@ export const recordExpenseSchema = z.object({
     .or(z.literal(''))
     .transform((v) => (v === '' ? null : v))
     .nullish(),
+  recurringExpenseId: z
+    .string()
+    .uuid()
+    .or(z.literal(''))
+    .transform((v) => (v === '' ? null : v))
+    .nullish(),
   reference: optionalTrimmed(120),
   note: optionalTrimmed(500),
   spentOn: z

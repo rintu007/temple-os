@@ -598,6 +598,48 @@ export const pledges = pgTable(
   ],
 );
 
+export const recurringFrequencyEnum = pgEnum('recurring_frequency', [
+  'weekly',
+  'monthly',
+  'quarterly',
+  'annual',
+]);
+export const recurringStatusEnum = pgEnum('recurring_status', ['active', 'paused', 'ended']);
+
+/**
+ * A standing outgoing the temple pays on a cadence — rent, electricity, a
+ * priest's honorarium, an AMC. The expense-side mirror of a seva subscription:
+ * the schedule is defined here, but what has actually been *paid* is derived
+ * from the expense ledger (vouchers tagged with `expenses.recurringExpenseId`),
+ * so the last-paid date and next-due reminder always tie back to the books.
+ */
+export const recurringExpenses = pgTable(
+  'recurring_expenses',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    payee: text().notNull(),
+    /** What it is for — "Office rent", "EB bill". */
+    description: text(),
+    /** Expense category label applied to each payment recorded from here. */
+    category: text(),
+    amount: numeric({ precision: 12, scale: 2 }).notNull(),
+    frequency: recurringFrequencyEnum().notNull(),
+    /** Default account the payment is drawn from — see `financialAccounts`. */
+    accountId: uuid().references(() => financialAccounts.id),
+    startDate: date().notNull(),
+    /** Null = open-ended (until paused/ended). */
+    endDate: date(),
+    status: recurringStatusEnum().notNull().default('active'),
+    note: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [index('recurring_expenses_org_status_idx').on(t.organizationId, t.status)],
+);
+
 export const expenseMethodEnum = pgEnum('expense_method', [
   'cash',
   'upi',
@@ -705,6 +747,8 @@ export const expenses = pgTable(
     clearedAt: timestamp({ withTimezone: true }),
     /** Set when this voucher is a salary/honorarium payment — see `employees`. */
     employeeId: uuid().references(() => employees.id),
+    /** Set when this voucher pays a standing order — see `recurringExpenses`. */
+    recurringExpenseId: uuid().references(() => recurringExpenses.id),
     /** Set when this voucher utilizes grant money — see `grants`. */
     grantId: uuid().references(() => grants.id),
     paidTo: text().notNull(),
@@ -732,6 +776,7 @@ export const expenses = pgTable(
     index('expenses_fund_idx').on(t.fundId),
     index('expenses_account_idx').on(t.accountId),
     index('expenses_employee_idx').on(t.employeeId),
+    index('expenses_recurring_idx').on(t.recurringExpenseId),
     index('expenses_grant_idx').on(t.grantId),
   ],
 );

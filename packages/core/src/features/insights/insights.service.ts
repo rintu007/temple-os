@@ -1,5 +1,6 @@
 import type { Db } from '@templeos/db';
 import { authorize, ok, type Result, type TenantContext } from '../../shared';
+import { computeNextDue } from '../recurring-expenses/recurring-expense.service';
 import { financialYearOf, financialYearRange } from '../statements/statement.service';
 import { createInsightsRepository } from './insights.repository';
 import type { Insights, ReminderItem } from './insights.types';
@@ -17,6 +18,9 @@ export function createInsightsService({ db }: { db: Db }) {
       if (!auth.ok) return auth;
 
       const today = new Date().toISOString().slice(0, 10);
+      const horizonDate = new Date();
+      horizonDate.setUTCDate(horizonDate.getUTCDate() + 30);
+      const horizon = horizonDate.toISOString().slice(0, 10);
       const fy = financialYearRange(financialYearOf(new Date()));
 
       const [currency, candidates, analytics] = await Promise.all([
@@ -96,6 +100,20 @@ export function createInsightsService({ db }: { db: Db }) {
           dueDate: m.dueDate!,
           amount: Number(m.amount).toFixed(2),
           overdue: m.dueDate! < today,
+        });
+      }
+
+      for (const r of candidates.recurringRows) {
+        const nextDue = computeNextDue(r.frequency, r.startDate, r.endDate, 'active');
+        if (!nextDue || nextDue > horizon) continue;
+        push({
+          kind: 'recurring_expense',
+          id: r.id,
+          title: r.payee,
+          subtitle: r.description ?? 'Recurring payment due',
+          dueDate: nextDue,
+          amount: Number(r.amount).toFixed(2),
+          overdue: nextDue < today,
         });
       }
 
