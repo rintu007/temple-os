@@ -16,6 +16,7 @@ export * from './features/facilities';
 export * from './features/funds';
 export * from './features/hundi';
 export * from './features/in-kind';
+export * from './features/insights';
 export * from './features/inventory';
 export * from './features/investments';
 export * from './features/loans';

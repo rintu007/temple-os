@@ -20,6 +20,7 @@ import {
   IdCard,
   Landmark,
   LayoutDashboard,
+  LineChart,
   Mail,
   Package,
   PiggyBank,
@@ -60,7 +61,10 @@ interface NavGroup {
 const NAV_GROUPS: NavGroup[] = [
   {
     label: null,
-    items: [{ href: '/', label: 'Dashboard', icon: LayoutDashboard }],
+    items: [
+      { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/insights', label: 'Insights', icon: LineChart },
+    ],
   },
   {
     label: 'Worship',

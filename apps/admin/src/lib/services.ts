@@ -17,6 +17,7 @@ import {
   createGrantService,
   createHundiService,
   createInKindService,
+  createInsightsService,
   createInventoryService,
   createInvestmentService,
   createLoanService,
@@ -57,6 +58,7 @@ import {
   type GrantService,
   type HundiService,
   type InKindService,
+  type InsightsService,
   type InventoryService,
   type InvestmentService,
   type LoanService,
@@ -366,4 +368,11 @@ let _transferService: TransferService | undefined;
 export function transferService(): TransferService {
   _transferService ??= createTransferService({ db: getDb() });
   return _transferService;
+}
+
+let _insightsService: InsightsService | undefined;
+
+export function insightsService(): InsightsService {
+  _insightsService ??= createInsightsService({ db: getDb() });
+  return _insightsService;
 }
