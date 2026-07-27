@@ -34,6 +34,7 @@ import {
   UserRoundCog,
   Users,
   UtensilsCrossed,
+  Vault,
   Wallet,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -97,6 +98,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/accounts', label: 'Accounts', icon: Wallet },
       { href: '/payroll', label: 'Payroll', icon: BadgeIndianRupee },
       { href: '/loans', label: 'Loans & advances', icon: Banknote },
+      { href: '/investments', label: 'Investments', icon: Vault },
       { href: '/funds', label: 'Funds', icon: PiggyBank },
       { href: '/grants', label: 'Grants', icon: Award },
       { href: '/vendors', label: 'Vendors', icon: Truck },

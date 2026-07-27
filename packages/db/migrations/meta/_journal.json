@@ -267,6 +267,13 @@
       "when": 1785134499175,
       "tag": "0037_jittery_juggernaut",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1785136020427,
+      "tag": "0038_eminent_stryfe",
+      "breakpoints": true
     }
   ]
 }

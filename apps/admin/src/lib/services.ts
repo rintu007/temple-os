@@ -18,6 +18,7 @@ import {
   createHundiService,
   createInKindService,
   createInventoryService,
+  createInvestmentService,
   createLoanService,
   createMeetingService,
   createMemberService,
@@ -56,6 +57,7 @@ import {
   type HundiService,
   type InKindService,
   type InventoryService,
+  type InvestmentService,
   type LoanService,
   type MeetingService,
   type MemberService,
@@ -348,4 +350,11 @@ let _loanService: LoanService | undefined;
 export function loanService(): LoanService {
   _loanService ??= createLoanService({ db: getDb() });
   return _loanService;
+}
+
+let _investmentService: InvestmentService | undefined;
+
+export function investmentService(): InvestmentService {
+  _investmentService ??= createInvestmentService({ db: getDb() });
+  return _investmentService;
 }

@@ -308,6 +308,57 @@ export const loanRepayments = pgTable(
   (t) => [index('loan_repayments_loan_idx').on(t.loanId, t.paidOn)],
 );
 
+export const investmentTypeEnum = pgEnum('investment_type', [
+  'fixed_deposit',
+  'recurring_deposit',
+  'bond',
+  'mutual_fund',
+  'other',
+]);
+export const investmentStatusEnum = pgEnum('investment_status', ['active', 'matured', 'closed']);
+
+/**
+ * A parked-money holding — a fixed/recurring deposit, government bond or mutual
+ * fund the temple keeps its corpus/endowment in. A balance-sheet asset register
+ * (sibling to `assets` for physical property): the principal and the maturity
+ * value printed on the deposit receipt are fixed here; interest earned is
+ * derived (maturityValue − principal) so it never drifts. Optionally linked to
+ * the fund the money belongs to. Memorandum register — like loans, it does not
+ * itself post to the cash ledger.
+ */
+export const investments = pgTable(
+  'investments',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    /** The fund this holding belongs to — corpus/endowment/building. Optional. */
+    fundId: uuid().references(() => funds.id),
+    /** Bank / post office / fund house holding the money. */
+    institution: text().notNull(),
+    type: investmentTypeEnum().notNull().default('fixed_deposit'),
+    /** FD receipt number / folio number, as printed. */
+    reference: text(),
+    principal: numeric({ precision: 14, scale: 2 }).notNull(),
+    /** Annual interest rate %, informational. */
+    interestRate: numeric({ precision: 6, scale: 3 }),
+    investedOn: date().notNull(),
+    maturityDate: date(),
+    /** Value at maturity as printed on the receipt — null if not stated. */
+    maturityValue: numeric({ precision: 14, scale: 2 }),
+    status: investmentStatusEnum().notNull().default('active'),
+    note: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [
+    index('investments_org_status_idx').on(t.organizationId, t.status),
+    index('investments_fund_idx').on(t.fundId),
+    index('investments_org_maturity_idx').on(t.organizationId, t.maturityDate),
+  ],
+);
+
 export const donationMethodEnum = pgEnum('donation_method', [
   'cash',
   'upi',

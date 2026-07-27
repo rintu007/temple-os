@@ -65,6 +65,7 @@ BEGIN
     'employees',
     'loans',
     'loan_repayments',
+    'investments',
     'grants',
     'seva_subscriptions',
     'in_kind_donations',
