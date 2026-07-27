@@ -242,6 +242,72 @@ export const sevaSubscriptions = pgTable(
   ],
 );
 
+export const loanDirectionEnum = pgEnum('loan_direction', ['given', 'taken']);
+export const loanStatusEnum = pgEnum('loan_status', ['active', 'closed', 'written_off']);
+
+/**
+ * A loan or advance — money the temple lent out (`given`: a staff salary
+ * advance, a loan to an affiliated trust) or borrowed (`taken`: a bank loan, a
+ * hand loan). Purely a receivable/payable register: the principal is fixed
+ * here, and how much has been *repaid* is derived from the repayment
+ * sub-ledger (`loan_repayments.loanId`), so outstanding never drifts. Kept out
+ * of the income/expense statements — a loan is a balance-sheet item, not
+ * income or expenditure — the same memorandum discipline as pledges.
+ */
+export const loans = pgTable(
+  'loans',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    direction: loanDirectionEnum().notNull(),
+    /** The other party — staff name, a bank, an affiliated trust, a person. */
+    counterparty: text().notNull(),
+    /** Set when this is a staff advance recovered from pay — see `employees`. */
+    employeeId: uuid().references(() => employees.id),
+    /** Purpose / description — "Festival advance", "Vehicle loan". */
+    title: text(),
+    principal: numeric({ precision: 14, scale: 2 }).notNull(),
+    /** Annual interest rate %, informational only — null for interest-free. */
+    interestRate: numeric({ precision: 6, scale: 3 }),
+    disbursedOn: date().notNull(),
+    dueOn: date(),
+    status: loanStatusEnum().notNull().default('active'),
+    note: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [
+    index('loans_org_status_idx').on(t.organizationId, t.status),
+    index('loans_employee_idx').on(t.employeeId),
+    index('loans_org_due_idx').on(t.organizationId, t.dueOn),
+  ],
+);
+
+/**
+ * One repayment installment against a loan. The running outstanding balance is
+ * derived by summing these against the loan's principal — never denormalized.
+ */
+export const loanRepayments = pgTable(
+  'loan_repayments',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    loanId: uuid()
+      .notNull()
+      .references(() => loans.id),
+    amount: numeric({ precision: 14, scale: 2 }).notNull(),
+    paidOn: date().notNull(),
+    note: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [index('loan_repayments_loan_idx').on(t.loanId, t.paidOn)],
+);
+
 export const donationMethodEnum = pgEnum('donation_method', [
   'cash',
   'upi',

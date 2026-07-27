@@ -260,6 +260,13 @@
       "when": 1785084855020,
       "tag": "0036_wet_radioactive_man",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1785134499175,
+      "tag": "0037_jittery_juggernaut",
+      "breakpoints": true
     }
   ]
 }

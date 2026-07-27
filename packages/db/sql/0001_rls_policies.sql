@@ -63,6 +63,8 @@ BEGIN
     'financial_accounts',
     'account_reconciliations',
     'employees',
+    'loans',
+    'loan_repayments',
     'grants',
     'seva_subscriptions',
     'in_kind_donations',

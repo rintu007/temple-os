@@ -18,6 +18,7 @@ import {
   createHundiService,
   createInKindService,
   createInventoryService,
+  createLoanService,
   createMeetingService,
   createMemberService,
   createMembershipService,
@@ -55,6 +56,7 @@ import {
   type HundiService,
   type InKindService,
   type InventoryService,
+  type LoanService,
   type MeetingService,
   type MemberService,
   type MembershipService,
@@ -339,4 +341,11 @@ let _reconciliationService: ReconciliationService | undefined;
 export function reconciliationService(): ReconciliationService {
   _reconciliationService ??= createReconciliationService({ db: getDb() });
   return _reconciliationService;
+}
+
+let _loanService: LoanService | undefined;
+
+export function loanService(): LoanService {
+  _loanService ??= createLoanService({ db: getDb() });
+  return _loanService;
 }

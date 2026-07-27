@@ -1,6 +1,7 @@
 import {
   Award,
   BadgeIndianRupee,
+  Banknote,
   BarChart3,
   CalendarDays,
   Building2,
@@ -95,6 +96,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/expenses', label: 'Expenses', icon: IndianRupee },
       { href: '/accounts', label: 'Accounts', icon: Wallet },
       { href: '/payroll', label: 'Payroll', icon: BadgeIndianRupee },
+      { href: '/loans', label: 'Loans & advances', icon: Banknote },
       { href: '/funds', label: 'Funds', icon: PiggyBank },
       { href: '/grants', label: 'Grants', icon: Award },
       { href: '/vendors', label: 'Vendors', icon: Truck },
