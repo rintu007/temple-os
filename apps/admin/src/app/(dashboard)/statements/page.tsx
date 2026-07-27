@@ -257,6 +257,23 @@ async function BalanceSheetView({
           </div>
         </div>
       </div>
+      {s.memorandum.length > 0 ? (
+        <div className="mt-8 rounded-lg border border-dashed border-border bg-muted/30 p-5">
+          <h3 className="text-sm font-semibold">Memorandum</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Tracked in their own registers and shown for information — not included in the totals
+            above, as they are not yet posted through the cash ledger.
+          </p>
+          <dl className="mt-3 space-y-1.5">
+            {s.memorandum.map((l) => (
+              <div key={l.label} className="flex items-center justify-between text-sm">
+                <dt className="text-muted-foreground">{l.label}</dt>
+                <dd className="tabular-nums">{formatMoney(l.total, s.currency)}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ) : null}
       <p className="mt-8 text-center text-xs text-muted-foreground">
         Derived from the ledger · the general fund is the balancing figure · excludes voided entries
       </p>

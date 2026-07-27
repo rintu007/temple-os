@@ -112,6 +112,13 @@ export function createStatementService({ db }: { db: Db }) {
       { label: 'General fund', total: fromMinor(generalMinor) },
     ];
 
+    // Memorandum — disclosed for governance, not summed into the totals above.
+    const memorandum: StatementLine[] = [
+      { label: 'Loans receivable (given, outstanding)', total: p.loansReceivable },
+      { label: 'Loans payable (taken, outstanding)', total: p.loansPayable },
+      { label: 'Investments held (at cost)', total: p.investmentsHeld },
+    ].filter((l) => paise(l.total) !== 0);
+
     return {
       currency: p.currency,
       asOf: new Date().toISOString().slice(0, 10),
@@ -121,6 +128,7 @@ export function createStatementService({ db }: { db: Db }) {
       liabilitiesTotal: fromMinor(liabilitiesMinor),
       funds: fundsLines,
       fundsTotal: fromMinor(earmarkedMinor + generalMinor),
+      memorandum,
     };
   }
 
@@ -225,6 +233,12 @@ export function createStatementService({ db }: { db: Db }) {
       rows.push('');
       for (const l of s.assets) rows.push(['Assets', csvField(l.label), csvField(l.total)].join(','));
       rows.push(['Assets', 'Total', csvField(s.assetsTotal)].join(','));
+      if (s.memorandum.length > 0) {
+        rows.push('');
+        for (const l of s.memorandum) {
+          rows.push(['Memorandum (not in totals)', csvField(l.label), csvField(l.total)].join(','));
+        }
+      }
 
       return ok(rows.join('\r\n') + '\r\n');
     },

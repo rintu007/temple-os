@@ -46,4 +46,11 @@ export interface BalanceSheet {
   liabilitiesTotal: string;
   funds: StatementLine[];
   fundsTotal: string;
+  /**
+   * Memorandum items — loan receivables/payables and investments held. Tracked
+   * in their own registers and disclosed here for governance, but not summed
+   * into the totals above (they are not yet posted through the cash ledger, so
+   * including them would double-count against cash). Empty when there are none.
+   */
+  memorandum: StatementLine[];
 }

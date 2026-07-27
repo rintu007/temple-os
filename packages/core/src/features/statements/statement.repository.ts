@@ -7,6 +7,8 @@ import {
   expenses,
   financialAccounts,
   funds,
+  investments,
+  loans,
   organizations,
   vendorBills,
   withTenantContext,
@@ -145,8 +147,16 @@ export function createStatementRepository(db: Db) {
           .limit(1);
         if (!org) throw new Error('organization not visible in tenant context');
 
-        const [[cashBase], [recdDonations], [recdExpenses], [fixed], [payable], fundRows] =
-          await Promise.all([
+        const [
+          [cashBase],
+          [recdDonations],
+          [recdExpenses],
+          [fixed],
+          [payable],
+          [loanPos],
+          [invHeld],
+          fundRows,
+        ] = await Promise.all([
             tx
               .select({
                 total: sql<string>`coalesce(sum(${financialAccounts.openingBalance}), '0.00')`,
@@ -185,6 +195,23 @@ export function createStatementRepository(db: Db) {
               ),
             tx
               .select({
+                receivable: sql<string>`coalesce(sum(case when ${loans.direction} = 'given' then
+                  ${loans.principal} - coalesce((select sum(lr.amount) from loan_repayments lr where lr.loan_id = loans.id), 0)
+                  else 0 end), 0)::numeric(14, 2)`,
+                payable: sql<string>`coalesce(sum(case when ${loans.direction} = 'taken' then
+                  ${loans.principal} - coalesce((select sum(lr.amount) from loan_repayments lr where lr.loan_id = loans.id), 0)
+                  else 0 end), 0)::numeric(14, 2)`,
+              })
+              .from(loans)
+              .where(and(eq(loans.organizationId, ctx.organizationId), eq(loans.status, 'active'))),
+            tx
+              .select({ total: sql<string>`coalesce(sum(${investments.principal}), 0)::numeric(14, 2)` })
+              .from(investments)
+              .where(
+                and(eq(investments.organizationId, ctx.organizationId), eq(investments.status, 'active')),
+              ),
+            tx
+              .select({
                 name: funds.name,
                 balance: sql<string>`(
                   coalesce((select sum(d.amount) from donations d
@@ -204,6 +231,9 @@ export function createStatementRepository(db: Db) {
           expensesTotal: recdExpenses?.total ?? '0.00',
           fixedAssets: fixed?.total ?? '0.00',
           payables: payable?.total ?? '0.00',
+          loansReceivable: loanPos?.receivable ?? '0.00',
+          loansPayable: loanPos?.payable ?? '0.00',
+          investmentsHeld: invHeld?.total ?? '0.00',
           funds: fundRows.map((f) => ({ name: f.name, balance: f.balance })),
         };
       });
