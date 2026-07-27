@@ -161,6 +161,46 @@ export const accountReconciliations = pgTable(
   (t) => [index('account_reconciliations_account_idx').on(t.accountId, t.statementDate)],
 );
 
+/**
+ * An internal money movement between two of the temple's own accounts — bank to
+ * cash box, one bank to another, or funding a deposit. Neither income nor
+ * expense (it nets to zero across the org), so it stays out of the donation and
+ * expense ledgers, but it moves each account's balance. It shows on both
+ * accounts' bank statements, so it carries a cleared flag per side
+ * (`fromClearedAt` / `toClearedAt`) for reconciliation. Immutable once recorded
+ * — a mistake is corrected with a reversing transfer, never a delete.
+ */
+export const accountTransfers = pgTable(
+  'account_transfers',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    fromAccountId: uuid()
+      .notNull()
+      .references(() => financialAccounts.id),
+    toAccountId: uuid()
+      .notNull()
+      .references(() => financialAccounts.id),
+    amount: numeric({ precision: 12, scale: 2 }).notNull(),
+    transferredOn: date().notNull(),
+    reference: text(),
+    note: text(),
+    /** Cleared against the source account's statement. */
+    fromClearedAt: timestamp({ withTimezone: true }),
+    /** Cleared against the destination account's statement. */
+    toClearedAt: timestamp({ withTimezone: true }),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [
+    index('account_transfers_org_date_idx').on(t.organizationId, t.transferredOn),
+    index('account_transfers_from_idx').on(t.fromAccountId),
+    index('account_transfers_to_idx').on(t.toAccountId),
+  ],
+);
+
 export const grantStatusEnum = pgEnum('grant_status', ['active', 'closed']);
 
 /**

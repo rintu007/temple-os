@@ -35,6 +35,7 @@ import {
   createStatementService,
   createTaxService,
   createTempleService,
+  createTransferService,
   createVendorService,
   createVolunteerService,
   createWebsiteService,
@@ -74,6 +75,7 @@ import {
   type StatementService,
   type TaxService,
   type TempleService,
+  type TransferService,
   type VendorService,
   type VolunteerService,
   type WebsiteService,
@@ -357,4 +359,11 @@ let _investmentService: InvestmentService | undefined;
 export function investmentService(): InvestmentService {
   _investmentService ??= createInvestmentService({ db: getDb() });
   return _investmentService;
+}
+
+let _transferService: TransferService | undefined;
+
+export function transferService(): TransferService {
+  _transferService ??= createTransferService({ db: getDb() });
+  return _transferService;
 }

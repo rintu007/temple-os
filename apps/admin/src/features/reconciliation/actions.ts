@@ -7,7 +7,7 @@ import { requireTenantContext } from '@/lib/session';
 
 export async function toggleClearedAction(
   accountId: string,
-  kind: 'receipt' | 'payment',
+  kind: 'receipt' | 'payment' | 'transfer_in' | 'transfer_out',
   entryId: string,
   cleared: boolean,
 ): Promise<void> {

@@ -46,8 +46,15 @@ export function createAccountService({ db }: { db: Db }) {
     isActive: boolean;
     received: string;
     paid: string;
+    transfersIn: string;
+    transfersOut: string;
   }): AccountSummary => {
-    const balance = paise(a.openingBalance) + paise(a.received) - paise(a.paid);
+    const balance =
+      paise(a.openingBalance) +
+      paise(a.received) +
+      paise(a.transfersIn) -
+      paise(a.paid) -
+      paise(a.transfersOut);
     return {
       id: a.id,
       name: a.name,
@@ -58,6 +65,8 @@ export function createAccountService({ db }: { db: Db }) {
       openingBalance: Number(a.openingBalance).toFixed(2),
       received: Number(a.received).toFixed(2),
       paid: Number(a.paid).toFixed(2),
+      transfersIn: Number(a.transfersIn).toFixed(2),
+      transfersOut: Number(a.transfersOut).toFixed(2),
       balance: money(balance),
     };
   };
@@ -96,19 +105,36 @@ export function createAccountService({ db }: { db: Db }) {
       const account = await repo.findById(ctx, accountId);
       if (!account) return err(notFound('Account'));
 
-      const { currency, receipts, payments } = await repo.movements(ctx, accountId);
+      const { currency, receipts, payments, transfers } = await repo.movements(ctx, accountId);
 
       type Raw = { id: string; ref: string; party: string; amount: string; at: Date };
-      const merged: Array<{ raw: Raw; kind: 'receipt' | 'payment' }> = [
+      type Kind = 'receipt' | 'payment' | 'transfer_in' | 'transfer_out';
+      const transferRows = transfers.map((t) => {
+        const incoming = t.toAccountId === accountId;
+        return {
+          raw: {
+            id: t.id,
+            ref: 'Transfer',
+            party: incoming ? `from ${t.fromName}` : `to ${t.toName}`,
+            amount: t.amount,
+            // transferredOn is a date; anchor it to midnight UTC for ordering.
+            at: new Date(`${t.at}T00:00:00Z`),
+          } satisfies Raw,
+          kind: (incoming ? 'transfer_in' : 'transfer_out') as Kind,
+        };
+      });
+      const merged: Array<{ raw: Raw; kind: Kind }> = [
         ...receipts.map((r) => ({ raw: r, kind: 'receipt' as const })),
         ...payments.map((p) => ({ raw: p, kind: 'payment' as const })),
+        ...transferRows,
       ];
       // Oldest first so the running balance builds off the opening balance.
       merged.sort((a, b) => a.raw.at.getTime() - b.raw.at.getTime());
 
+      const isCredit = (k: Kind) => k === 'receipt' || k === 'transfer_in';
       let running = paise(account.openingBalance);
       const chronological: AccountMovement[] = merged.map(({ raw, kind }) => {
-        running += kind === 'receipt' ? paise(raw.amount) : -paise(raw.amount);
+        running += isCredit(kind) ? paise(raw.amount) : -paise(raw.amount);
         return {
           id: raw.id,
           kind,

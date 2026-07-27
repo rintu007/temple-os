@@ -1,8 +1,12 @@
 import { z } from 'zod';
 
-/** One entry's cleared toggle. kind distinguishes the ledger it lives in. */
+/**
+ * One entry's cleared toggle. kind distinguishes the ledger it lives in — a
+ * receipt (donation), a payment (expense), or one side of an internal transfer
+ * (`transfer_in` clears the destination side, `transfer_out` the source side).
+ */
 export const setClearedSchema = z.object({
-  kind: z.enum(['receipt', 'payment']),
+  kind: z.enum(['receipt', 'payment', 'transfer_in', 'transfer_out']),
   entryId: z.string().uuid(),
   cleared: z.coerce.boolean(),
 });

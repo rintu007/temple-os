@@ -54,6 +54,13 @@ export default async function AccountDetailPage({ params }: AccountDetailProps) 
               opening {formatMoney(account.openingBalance, currency)} ·{' '}
               {formatMoney(account.received, currency)} in ·{' '}
               {formatMoney(account.paid, currency)} out
+              {Number(account.transfersIn) > 0 || Number(account.transfersOut) > 0 ? (
+                <>
+                  {' · '}
+                  {formatMoney(account.transfersIn, currency)} ⇄ in ·{' '}
+                  {formatMoney(account.transfersOut, currency)} ⇄ out
+                </>
+              ) : null}
             </div>
           </div>
         </div>
@@ -101,10 +108,14 @@ export default async function AccountDetailPage({ params }: AccountDetailProps) 
                       <span className="text-muted-foreground"> · {m.party}</span>
                     </td>
                     <td className="px-5 py-2 text-right tabular-nums text-success">
-                      {m.kind === 'receipt' ? formatMoney(m.amount, currency) : ''}
+                      {m.kind === 'receipt' || m.kind === 'transfer_in'
+                        ? formatMoney(m.amount, currency)
+                        : ''}
                     </td>
                     <td className="px-5 py-2 text-right tabular-nums text-destructive">
-                      {m.kind === 'payment' ? formatMoney(m.amount, currency) : ''}
+                      {m.kind === 'payment' || m.kind === 'transfer_out'
+                        ? formatMoney(m.amount, currency)
+                        : ''}
                     </td>
                     <td className="px-5 py-2 text-right tabular-nums font-medium">
                       {formatMoney(m.balance, currency)}

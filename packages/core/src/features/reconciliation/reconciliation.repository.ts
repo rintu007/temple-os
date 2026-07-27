@@ -1,6 +1,7 @@
 import { and, desc, eq, isNotNull, sql, type AnyColumn } from 'drizzle-orm';
 import {
   accountReconciliations,
+  accountTransfers,
   auditLogs,
   donations,
   expenses,
@@ -14,6 +15,14 @@ import type { RecordReconciliationInput } from '@templeos/validators';
 import type { TenantContext } from '../../shared';
 
 const sumAmount = (col: AnyColumn) => sql<string>`coalesce(sum(${col}), 0)::numeric(12, 2)`;
+
+// Counterparty account name on each side of a transfer.
+const transferFromName = sql<string>`(
+  select a.name from financial_accounts a where a.id = account_transfers.from_account_id
+)`;
+const transferToName = sql<string>`(
+  select a.name from financial_accounts a where a.id = account_transfers.to_account_id
+)`;
 
 export function createReconciliationRepository(db: Db) {
   const guc = (ctx: TenantContext) => ({
@@ -51,8 +60,21 @@ export function createReconciliationRepository(db: Db) {
           eq(expenses.accountId, accountId),
           eq(expenses.status, 'recorded'),
         );
+        // Transfers into this account (destination side) and out of it (source side).
+        const transferInWhere = eq(accountTransfers.toAccountId, accountId);
+        const transferOutWhere = eq(accountTransfers.fromAccountId, accountId);
 
-        const [[receiptSums], [paymentSums], receipts, payments, [lastRec]] = await Promise.all([
+        const [
+          [receiptSums],
+          [paymentSums],
+          receipts,
+          payments,
+          [transferInSums],
+          [transferOutSums],
+          transfersIn,
+          transfersOut,
+          [lastRec],
+        ] = await Promise.all([
           tx
             .select({
               total: sumAmount(donations.amount),
@@ -95,6 +117,44 @@ export function createReconciliationRepository(db: Db) {
             .limit(300),
           tx
             .select({
+              total: sumAmount(accountTransfers.amount),
+              cleared: sql<string>`coalesce(sum(${accountTransfers.amount}) filter (where ${accountTransfers.toClearedAt} is not null), 0)::numeric(12, 2)`,
+            })
+            .from(accountTransfers)
+            .where(transferInWhere),
+          tx
+            .select({
+              total: sumAmount(accountTransfers.amount),
+              cleared: sql<string>`coalesce(sum(${accountTransfers.amount}) filter (where ${accountTransfers.fromClearedAt} is not null), 0)::numeric(12, 2)`,
+            })
+            .from(accountTransfers)
+            .where(transferOutWhere),
+          tx
+            .select({
+              id: accountTransfers.id,
+              party: transferFromName,
+              amount: accountTransfers.amount,
+              at: accountTransfers.transferredOn,
+              clearedAt: accountTransfers.toClearedAt,
+            })
+            .from(accountTransfers)
+            .where(transferInWhere)
+            .orderBy(desc(accountTransfers.transferredOn))
+            .limit(300),
+          tx
+            .select({
+              id: accountTransfers.id,
+              party: transferToName,
+              amount: accountTransfers.amount,
+              at: accountTransfers.transferredOn,
+              clearedAt: accountTransfers.fromClearedAt,
+            })
+            .from(accountTransfers)
+            .where(transferOutWhere)
+            .orderBy(desc(accountTransfers.transferredOn))
+            .limit(300),
+          tx
+            .select({
               statementDate: accountReconciliations.statementDate,
               statementBalance: accountReconciliations.statementBalance,
               clearedBalance: accountReconciliations.clearedBalance,
@@ -112,8 +172,12 @@ export function createReconciliationRepository(db: Db) {
           account,
           receiptSums: receiptSums ?? { total: '0.00', cleared: '0.00' },
           paymentSums: paymentSums ?? { total: '0.00', cleared: '0.00' },
+          transferInSums: transferInSums ?? { total: '0.00', cleared: '0.00' },
+          transferOutSums: transferOutSums ?? { total: '0.00', cleared: '0.00' },
           receipts,
           payments,
+          transfersIn,
+          transfersOut,
           lastRec: lastRec ?? null,
         };
       });
@@ -138,6 +202,30 @@ export function createReconciliationRepository(db: Db) {
           .set({ clearedAt: cleared ? new Date() : null })
           .where(and(eq(expenses.id, entryId), isNotNull(expenses.accountId)))
           .returning({ id: expenses.id });
+        return row?.id ?? null;
+      });
+    },
+
+    /** Clear the destination side of a transfer (it credits this account). */
+    async setTransferInCleared(ctx: TenantContext, entryId: string, cleared: boolean) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [row] = await tx
+          .update(accountTransfers)
+          .set({ toClearedAt: cleared ? new Date() : null })
+          .where(eq(accountTransfers.id, entryId))
+          .returning({ id: accountTransfers.id });
+        return row?.id ?? null;
+      });
+    },
+
+    /** Clear the source side of a transfer (it debits this account). */
+    async setTransferOutCleared(ctx: TenantContext, entryId: string, cleared: boolean) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [row] = await tx
+          .update(accountTransfers)
+          .set({ fromClearedAt: cleared ? new Date() : null })
+          .where(eq(accountTransfers.id, entryId))
+          .returning({ id: accountTransfers.id });
         return row?.id ?? null;
       });
     },

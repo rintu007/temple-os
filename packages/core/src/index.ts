@@ -33,6 +33,7 @@ export * from './features/prasadam';
 export * from './features/reports';
 export * from './features/sevas';
 export * from './features/statements';
+export * from './features/transfers';
 export * from './features/tax';
 export * from './features/website';
 export * from './features/vendors';

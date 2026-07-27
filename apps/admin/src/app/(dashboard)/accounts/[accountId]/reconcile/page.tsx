@@ -80,7 +80,9 @@ export default async function ReconcilePage({ params }: ReconcilePageProps) {
           </p>
         ) : (
           <ul className="divide-y divide-border">
-            {r.entries.map((e) => (
+            {r.entries.map((e) => {
+              const isCredit = e.kind === 'receipt' || e.kind === 'transfer_in';
+              return (
               <li
                 key={`${e.kind}-${e.id}`}
                 className={cn('flex items-center gap-3 px-5 py-2.5 text-sm', e.cleared && 'bg-muted/30')}
@@ -104,7 +106,7 @@ export default async function ReconcilePage({ params }: ReconcilePageProps) {
                   <span className="text-muted-foreground"> · {e.party}</span>
                 </div>
                 <Badge variant="outline" className="shrink-0">
-                  {e.kind === 'receipt' ? 'In' : 'Out'}
+                  {isCredit ? 'In' : 'Out'}
                 </Badge>
                 <span className="shrink-0 text-xs text-muted-foreground">
                   {e.at.toLocaleDateString('en-IN', {
@@ -116,14 +118,15 @@ export default async function ReconcilePage({ params }: ReconcilePageProps) {
                 <span
                   className={cn(
                     'w-24 shrink-0 text-right font-medium tabular-nums',
-                    e.kind === 'receipt' ? 'text-success' : 'text-destructive',
+                    isCredit ? 'text-success' : 'text-destructive',
                   )}
                 >
-                  {e.kind === 'receipt' ? '+' : '−'}
+                  {isCredit ? '+' : '−'}
                   {formatMoney(e.amount, r.currency)}
                 </span>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </section>

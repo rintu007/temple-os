@@ -12,16 +12,20 @@ export interface AccountSummary {
   received: string;
   /** Derived — recorded expenses paid from this account. */
   paid: string;
-  /** openingBalance + received − paid. Can be negative (overdrawn). */
+  /** Derived — internal transfers into this account. */
+  transfersIn: string;
+  /** Derived — internal transfers out of this account. */
+  transfersOut: string;
+  /** openingBalance + received + transfersIn − paid − transfersOut. Can be negative. */
   balance: string;
 }
 
 export interface AccountMovement {
   id: string;
-  kind: 'receipt' | 'payment';
-  /** Receipt number (receipt) or voucher number (payment). */
+  kind: 'receipt' | 'payment' | 'transfer_in' | 'transfer_out';
+  /** Receipt number (receipt), voucher number (payment) or "Transfer" for a transfer. */
   ref: string;
-  /** Donor (receipt) or payee (payment). */
+  /** Donor / payee, or the counterparty account for a transfer. */
   party: string;
   amount: string;
   at: Date;

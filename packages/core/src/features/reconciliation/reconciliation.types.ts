@@ -1,7 +1,7 @@
 export interface ReconcileEntry {
-  kind: 'receipt' | 'payment';
+  kind: 'receipt' | 'payment' | 'transfer_in' | 'transfer_out';
   id: string;
-  /** Receipt number (receipt) or voucher number (payment). */
+  /** Receipt number, voucher number, or "Transfer" for a transfer. */
   ref: string;
   party: string;
   amount: string;

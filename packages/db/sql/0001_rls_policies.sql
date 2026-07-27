@@ -62,6 +62,7 @@ BEGIN
     'budgets',
     'financial_accounts',
     'account_reconciliations',
+    'account_transfers',
     'employees',
     'loans',
     'loan_repayments',

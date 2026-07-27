@@ -1,5 +1,6 @@
-import { and, asc, count, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, or, sql } from 'drizzle-orm';
 import {
+  accountTransfers,
   auditLogs,
   donations,
   expenses,
@@ -26,6 +27,24 @@ const accountPaid = sql<string>`coalesce((
   where e.account_id = financial_accounts.id and e.status = 'recorded'
 ), 0)::numeric(12, 2)`;
 
+const accountTransfersIn = sql<string>`coalesce((
+  select sum(t.amount) from account_transfers t
+  where t.to_account_id = financial_accounts.id
+), 0)::numeric(12, 2)`;
+
+const accountTransfersOut = sql<string>`coalesce((
+  select sum(t.amount) from account_transfers t
+  where t.from_account_id = financial_accounts.id
+), 0)::numeric(12, 2)`;
+
+// The counterparty account name on each side of a transfer.
+const fromName = sql<string>`(
+  select a.name from financial_accounts a where a.id = account_transfers.from_account_id
+)`.as('from_name');
+const toName = sql<string>`(
+  select a.name from financial_accounts a where a.id = account_transfers.to_account_id
+)`.as('to_name');
+
 export function createAccountRepository(db: Db) {
   const guc = (ctx: TenantContext) => ({
     organizationId: ctx.organizationId,
@@ -42,6 +61,8 @@ export function createAccountRepository(db: Db) {
     isActive: financialAccounts.isActive,
     received: accountReceived,
     paid: accountPaid,
+    transfersIn: accountTransfersIn,
+    transfersOut: accountTransfersOut,
   };
 
   const baseSelect = (tx: Tx) => tx.select(accountColumns).from(financialAccounts);
@@ -76,7 +97,7 @@ export function createAccountRepository(db: Db) {
           .limit(1);
         if (!org) throw new Error('organization not visible in tenant context');
 
-        const [receipts, payments] = await Promise.all([
+        const [receipts, payments, transfers] = await Promise.all([
           tx
             .select({
               id: donations.id,
@@ -101,8 +122,27 @@ export function createAccountRepository(db: Db) {
             .where(and(eq(expenses.accountId, accountId), eq(expenses.status, 'recorded')))
             .orderBy(desc(expenses.spentAt))
             .limit(200),
+          tx
+            .select({
+              id: accountTransfers.id,
+              fromAccountId: accountTransfers.fromAccountId,
+              toAccountId: accountTransfers.toAccountId,
+              fromName,
+              toName,
+              amount: accountTransfers.amount,
+              at: accountTransfers.transferredOn,
+            })
+            .from(accountTransfers)
+            .where(
+              or(
+                eq(accountTransfers.fromAccountId, accountId),
+                eq(accountTransfers.toAccountId, accountId),
+              ),
+            )
+            .orderBy(desc(accountTransfers.transferredOn))
+            .limit(200),
         ]);
-        return { currency: org.currency, receipts, payments };
+        return { currency: org.currency, receipts, payments, transfers };
       });
     },
 
@@ -200,6 +240,7 @@ export function createAccountRepository(db: Db) {
           .select({
             balance: sql<string>`coalesce(sum(
               ${financialAccounts.openingBalance} + ${accountReceived} - ${accountPaid}
+              + ${accountTransfersIn} - ${accountTransfersOut}
             ), 0)::numeric(12, 2)`,
             activeCount: count(),
           })

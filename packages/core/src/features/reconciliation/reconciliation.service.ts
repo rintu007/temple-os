@@ -30,8 +30,10 @@ export function createReconciliationService({ db }: { db: Db }) {
     if (!data) return null;
     return (
       paise(data.account.openingBalance) +
-      paise(data.receiptSums.cleared) -
-      paise(data.paymentSums.cleared)
+      paise(data.receiptSums.cleared) +
+      paise(data.transferInSums.cleared) -
+      paise(data.paymentSums.cleared) -
+      paise(data.transferOutSums.cleared)
     );
   }
 
@@ -47,10 +49,15 @@ export function createReconciliationService({ db }: { db: Db }) {
       if (!data) return err(notFound('Account'));
 
       const opening = paise(data.account.openingBalance);
-      const totalR = paise(data.receiptSums.total);
-      const clearedR = paise(data.receiptSums.cleared);
-      const totalP = paise(data.paymentSums.total);
-      const clearedP = paise(data.paymentSums.cleared);
+      // Credits into the account: donation receipts + transfers in.
+      const totalR = paise(data.receiptSums.total) + paise(data.transferInSums.total);
+      const clearedR = paise(data.receiptSums.cleared) + paise(data.transferInSums.cleared);
+      // Debits out of the account: expense payments + transfers out.
+      const totalP = paise(data.paymentSums.total) + paise(data.transferOutSums.total);
+      const clearedP = paise(data.paymentSums.cleared) + paise(data.transferOutSums.cleared);
+
+      // A transfer's date is a plain date; anchor to midnight UTC for ordering.
+      const transferAt = (d: string) => new Date(`${d}T00:00:00Z`);
 
       const entries: ReconcileEntry[] = [
         ...data.receipts.map((r) => ({
@@ -70,6 +77,24 @@ export function createReconciliationService({ db }: { db: Db }) {
           amount: Number(p.amount).toFixed(2),
           at: p.at,
           cleared: p.clearedAt != null,
+        })),
+        ...data.transfersIn.map((t) => ({
+          kind: 'transfer_in' as const,
+          id: t.id,
+          ref: 'Transfer',
+          party: `from ${t.party}`,
+          amount: Number(t.amount).toFixed(2),
+          at: transferAt(t.at),
+          cleared: t.clearedAt != null,
+        })),
+        ...data.transfersOut.map((t) => ({
+          kind: 'transfer_out' as const,
+          id: t.id,
+          ref: 'Transfer',
+          party: `to ${t.party}`,
+          amount: Number(t.amount).toFixed(2),
+          at: transferAt(t.at),
+          cleared: t.clearedAt != null,
         })),
       ];
       // Uncleared first (the actionable items), then newest first.
@@ -107,10 +132,13 @@ export function createReconciliationService({ db }: { db: Db }) {
       if (!parsed.success) return err(firstIssue(parsed.error));
 
       const { kind, entryId, cleared } = parsed.data;
-      const id =
-        kind === 'receipt'
-          ? await repo.setReceiptCleared(ctx, entryId, cleared)
-          : await repo.setPaymentCleared(ctx, entryId, cleared);
+      const setter = {
+        receipt: repo.setReceiptCleared,
+        payment: repo.setPaymentCleared,
+        transfer_in: repo.setTransferInCleared,
+        transfer_out: repo.setTransferOutCleared,
+      }[kind];
+      const id = await setter(ctx, entryId, cleared);
       if (!id) return err(notFound('Entry'));
       return ok(null);
     },
