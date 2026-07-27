@@ -13,6 +13,7 @@ import {
   createFacilityService,
   createExpenseService,
   createFundService,
+  createFundTransferService,
   createGalleryService,
   createGrantService,
   createHundiService,
@@ -55,6 +56,7 @@ import {
   type FacilityService,
   type ExpenseService,
   type FundService,
+  type FundTransferService,
   type GalleryService,
   type GrantService,
   type HundiService,
@@ -384,4 +386,11 @@ let _recurringExpenseService: RecurringExpenseService | undefined;
 export function recurringExpenseService(): RecurringExpenseService {
   _recurringExpenseService ??= createRecurringExpenseService({ db: getDb() });
   return _recurringExpenseService;
+}
+
+let _fundTransferService: FundTransferService | undefined;
+
+export function fundTransferService(): FundTransferService {
+  _fundTransferService ??= createFundTransferService({ db: getDb() });
+  return _fundTransferService;
 }

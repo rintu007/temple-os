@@ -1,8 +1,9 @@
-import { and, asc, count, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, or, sql } from 'drizzle-orm';
 import {
   auditLogs,
   donations,
   expenses,
+  fundTransfers,
   funds,
   newId,
   organizations,
@@ -26,6 +27,22 @@ const fundExpense = sql<string>`coalesce((
   where e.fund_id = funds.id and e.status = 'recorded'
 ), 0)::numeric(12, 2)`;
 
+const fundTransfersIn = sql<string>`coalesce((
+  select sum(t.amount) from fund_transfers t where t.to_fund_id = funds.id
+), 0)::numeric(12, 2)`;
+
+const fundTransfersOut = sql<string>`coalesce((
+  select sum(t.amount) from fund_transfers t where t.from_fund_id = funds.id
+), 0)::numeric(12, 2)`;
+
+// Counterparty fund name on each side of a transfer.
+const transferFromName = sql<string>`(
+  select f.name from funds f where f.id = fund_transfers.from_fund_id
+)`;
+const transferToName = sql<string>`(
+  select f.name from funds f where f.id = fund_transfers.to_fund_id
+)`;
+
 export function createFundRepository(db: Db) {
   const guc = (ctx: TenantContext) => ({
     organizationId: ctx.organizationId,
@@ -39,6 +56,8 @@ export function createFundRepository(db: Db) {
     isActive: funds.isActive,
     income: fundIncome,
     expense: fundExpense,
+    transfersIn: fundTransfersIn,
+    transfersOut: fundTransfersOut,
   };
 
   const baseSelect = (tx: Tx) => tx.select(fundColumns).from(funds);
@@ -61,10 +80,10 @@ export function createFundRepository(db: Db) {
       });
     },
 
-    /** Recorded income and expenditure earmarked to a fund — the detail ledger. */
+    /** Recorded income, expenditure and transfers earmarked to a fund. */
     async ledger(ctx: TenantContext, fundId: string) {
       return withTenantContext(db, guc(ctx), async (tx) => {
-        const [income, expenditure] = await Promise.all([
+        const [income, expenditure, transfers] = await Promise.all([
           tx
             .select({
               id: donations.id,
@@ -89,8 +108,24 @@ export function createFundRepository(db: Db) {
             .where(and(eq(expenses.fundId, fundId), eq(expenses.status, 'recorded')))
             .orderBy(desc(expenses.spentAt))
             .limit(100),
+          tx
+            .select({
+              id: fundTransfers.id,
+              fromFundId: fundTransfers.fromFundId,
+              toFundId: fundTransfers.toFundId,
+              fromName: transferFromName,
+              toName: transferToName,
+              amount: fundTransfers.amount,
+              at: fundTransfers.transferredOn,
+            })
+            .from(fundTransfers)
+            .where(
+              or(eq(fundTransfers.fromFundId, fundId), eq(fundTransfers.toFundId, fundId)),
+            )
+            .orderBy(desc(fundTransfers.transferredOn))
+            .limit(100),
         ]);
-        return { income, expenditure };
+        return { income, expenditure, transfers };
       });
     },
 
@@ -173,7 +208,9 @@ export function createFundRepository(db: Db) {
 
         const [row] = await tx
           .select({
-            balance: sql<string>`coalesce(sum(${fundIncome} - ${fundExpense}), 0)::numeric(12, 2)`,
+            balance: sql<string>`coalesce(sum(
+              ${fundIncome} - ${fundExpense} + ${fundTransfersIn} - ${fundTransfersOut}
+            ), 0)::numeric(12, 2)`,
             activeCount: count(),
           })
           .from(funds)

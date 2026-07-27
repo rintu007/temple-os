@@ -166,6 +166,7 @@ export function createStatementRepository(db: Db) {
         const subDonCap = asOf ? sql` and d.donated_at < (${asOf}::date + interval '1 day')` : sql``;
         const subExpCap = asOf ? sql` and e.spent_at < (${asOf}::date + interval '1 day')` : sql``;
         const subRepayCap = asOf ? sql` and lr.paid_on <= ${asOf}::date` : sql``;
+        const subFtCap = asOf ? sql` and ft.transferred_on <= ${asOf}::date` : sql``;
 
         const [
           [cashBase],
@@ -251,6 +252,10 @@ export function createStatementRepository(db: Db) {
                     where d.fund_id = funds.id and d.status = 'recorded'${subDonCap}), 0)
                   - coalesce((select sum(e.amount) from expenses e
                     where e.fund_id = funds.id and e.status = 'recorded'${subExpCap}), 0)
+                  + coalesce((select sum(ft.amount) from fund_transfers ft
+                    where ft.to_fund_id = funds.id${subFtCap}), 0)
+                  - coalesce((select sum(ft.amount) from fund_transfers ft
+                    where ft.from_fund_id = funds.id${subFtCap}), 0)
                 )::numeric(12, 2)`,
               })
               .from(funds)

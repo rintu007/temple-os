@@ -61,8 +61,9 @@ export default async function FundDetailPage({ params }: FundDetailProps) {
     fundService().getStats(ctx),
   ]);
   if (!result.ok) notFound();
-  const { fund, income, expenditure } = result.value;
+  const { fund, income, expenditure, transfers } = result.value;
   const currency = stats.ok ? stats.value.currency : 'INR';
+  const hasTransfers = Number(fund.transfersIn) > 0 || Number(fund.transfersOut) > 0;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -91,6 +92,13 @@ export default async function FundDetailPage({ params }: FundDetailProps) {
             </div>
             <div className="text-xs text-muted-foreground">
               {formatMoney(fund.income, currency)} in · {formatMoney(fund.expense, currency)} out
+              {hasTransfers ? (
+                <>
+                  {' · '}
+                  {formatMoney(fund.transfersIn, currency)} ⇄ in ·{' '}
+                  {formatMoney(fund.transfersOut, currency)} ⇄ out
+                </>
+              ) : null}
             </div>
           </div>
         </div>
@@ -110,6 +118,17 @@ export default async function FundDetailPage({ params }: FundDetailProps) {
           empty="Nothing drawn from this fund yet."
         />
       </section>
+
+      {transfers.length > 0 ? (
+        <section className="rounded-xl border border-border bg-card p-6 shadow-card">
+          <EntryList
+            title="Reallocations"
+            entries={transfers}
+            currency={currency}
+            empty="No reallocations."
+          />
+        </section>
+      ) : null}
 
       <section className="rounded-xl border border-border bg-card p-6 shadow-card">
         <h2 className="mb-4 text-sm font-medium text-muted-foreground">Fund details</h2>

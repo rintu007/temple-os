@@ -99,6 +99,40 @@ export const funds = pgTable(
   (t) => [index('funds_org_active_idx').on(t.organizationId, t.isActive)],
 );
 
+/**
+ * A reallocation of money between two funds — moving from the general fund into
+ * the building fund, say. Neither income nor expense (it nets to zero across
+ * the funds), so it stays out of the donation and expense ledgers, but it moves
+ * each fund's derived balance. Immutable once recorded; a mistake is corrected
+ * with a reversing transfer — the same discipline as account transfers.
+ */
+export const fundTransfers = pgTable(
+  'fund_transfers',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    fromFundId: uuid()
+      .notNull()
+      .references(() => funds.id),
+    toFundId: uuid()
+      .notNull()
+      .references(() => funds.id),
+    amount: numeric({ precision: 12, scale: 2 }).notNull(),
+    transferredOn: date().notNull(),
+    reference: text(),
+    note: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [
+    index('fund_transfers_org_date_idx').on(t.organizationId, t.transferredOn),
+    index('fund_transfers_from_idx').on(t.fromFundId),
+    index('fund_transfers_to_idx').on(t.toFundId),
+  ],
+);
+
 export const accountTypeEnum = pgEnum('account_type', ['bank', 'cash']);
 
 /**

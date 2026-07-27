@@ -36,6 +36,12 @@ export default async function FundsPage({ searchParams }: FundsPageProps) {
           </p>
         </div>
         <div className="flex gap-2">
+          <Link
+            href="/funds/transfers"
+            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+          >
+            Reallocate
+          </Link>
           <a
             href="/funds/export.csv"
             className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"

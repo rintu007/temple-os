@@ -60,6 +60,7 @@ BEGIN
     'vendor_bills',
     'pledges',
     'funds',
+    'fund_transfers',
     'budgets',
     'financial_accounts',
     'account_reconciliations',

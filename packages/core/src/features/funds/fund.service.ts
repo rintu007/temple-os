@@ -29,8 +29,11 @@ export function createFundService({ db }: { db: Db }) {
     isActive: boolean;
     income: string;
     expense: string;
+    transfersIn: string;
+    transfersOut: string;
   }): FundSummary => {
-    const balance = paise(f.income) - paise(f.expense);
+    const balance =
+      paise(f.income) + paise(f.transfersIn) - paise(f.expense) - paise(f.transfersOut);
     return {
       id: f.id,
       name: f.name,
@@ -38,6 +41,8 @@ export function createFundService({ db }: { db: Db }) {
       isActive: f.isActive,
       income: Number(f.income).toFixed(2),
       expense: Number(f.expense).toFixed(2),
+      transfersIn: Number(f.transfersIn).toFixed(2),
+      transfersOut: Number(f.transfersOut).toFixed(2),
       balance: (balance / 100).toFixed(2),
     };
   };
@@ -67,11 +72,12 @@ export function createFundService({ db }: { db: Db }) {
       if (!auth.ok) return auth;
       const fund = await repo.findById(ctx, fundId);
       if (!fund) return err(notFound('Fund'));
-      const { income, expenditure } = await repo.ledger(ctx, fundId);
+      const { income, expenditure, transfers } = await repo.ledger(ctx, fundId);
       return ok({
         fund: toSummary(fund),
         income: income.map((d) => ({
           id: d.id,
+          kind: 'income' as const,
           ref: d.receiptNumber,
           party: d.donorName,
           amount: Number(d.amount).toFixed(2),
@@ -79,11 +85,25 @@ export function createFundService({ db }: { db: Db }) {
         })),
         expenditure: expenditure.map((e) => ({
           id: e.id,
+          kind: 'expense' as const,
           ref: e.voucherNumber,
           party: e.paidTo,
           amount: Number(e.amount).toFixed(2),
           at: e.at,
         })),
+        transfers: transfers.map((t) => {
+          const incoming = t.toFundId === fundId;
+          return {
+            id: t.id,
+            kind: (incoming ? 'transfer_in' : 'transfer_out') as
+              | 'transfer_in'
+              | 'transfer_out',
+            ref: 'Transfer',
+            party: incoming ? `from ${t.fromName}` : `to ${t.toName}`,
+            amount: Number(t.amount).toFixed(2),
+            at: new Date(`${t.at}T00:00:00Z`),
+          };
+        }),
       });
     },
 
