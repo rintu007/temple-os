@@ -83,8 +83,11 @@ export function createStatementService({ db }: { db: Db }) {
     };
   }
 
-  async function buildBalanceSheet(ctx: TenantContext): Promise<BalanceSheet> {
-    const p = await repo.financialPosition(ctx);
+  async function buildBalanceSheet(
+    ctx: TenantContext,
+    asOf: string | null = null,
+  ): Promise<BalanceSheet> {
+    const p = await repo.financialPosition(ctx, asOf);
 
     const cashMinor = paise(p.cashBase) + paise(p.donationsTotal) - paise(p.expensesTotal);
     const fixedMinor = paise(p.fixedAssets);
@@ -121,7 +124,7 @@ export function createStatementService({ db }: { db: Db }) {
 
     return {
       currency: p.currency,
-      asOf: new Date().toISOString().slice(0, 10),
+      asOf: asOf ?? new Date().toISOString().slice(0, 10),
       assets,
       assetsTotal: fromMinor(assetsTotalMinor),
       liabilities,
@@ -151,10 +154,13 @@ export function createStatementService({ db }: { db: Db }) {
       return ok(await buildReceiptsAndPayments(ctx, range));
     },
 
-    async getBalanceSheet(ctx: TenantContext): Promise<Result<BalanceSheet>> {
+    async getBalanceSheet(
+      ctx: TenantContext,
+      asOf: string | null = null,
+    ): Promise<Result<BalanceSheet>> {
       const auth = authorize(ctx, 'reports:read');
       if (!auth.ok) return auth;
-      return ok(await buildBalanceSheet(ctx));
+      return ok(await buildBalanceSheet(ctx, asOf));
     },
 
     async exportCsv(
@@ -211,10 +217,13 @@ export function createStatementService({ db }: { db: Db }) {
       return ok(rows.join('\r\n') + '\r\n');
     },
 
-    async exportBalanceSheetCsv(ctx: TenantContext): Promise<Result<string>> {
+    async exportBalanceSheetCsv(
+      ctx: TenantContext,
+      asOf: string | null = null,
+    ): Promise<Result<string>> {
       const auth = authorize(ctx, 'reports:read');
       if (!auth.ok) return auth;
-      const s = await buildBalanceSheet(ctx);
+      const s = await buildBalanceSheet(ctx, asOf);
 
       const rows: string[] = [
         `Balance Sheet,As on ${csvField(s.asOf)}`,

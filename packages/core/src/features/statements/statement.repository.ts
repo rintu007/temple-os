@@ -138,7 +138,7 @@ export function createStatementRepository(db: Db) {
      * outstanding payables, and earmarked fund balances. The general fund is
      * left for the service to compute as the balancing figure.
      */
-    async financialPosition(ctx: TenantContext) {
+    async financialPosition(ctx: TenantContext, asOf: string | null = null) {
       return withTenantContext(db, guc(ctx), async (tx) => {
         const [org] = await tx
           .select({ currency: organizations.currency })
@@ -146,6 +146,26 @@ export function createStatementRepository(db: Db) {
           .where(eq(organizations.id, ctx.organizationId))
           .limit(1);
         if (!org) throw new Error('organization not visible in tenant context');
+
+        // When asOf is set, bound every ledger-derived figure to on/before that
+        // date. Top-level caps go into the drizzle where(); the `sub*` fragments
+        // splice into the raw correlated subqueries (empty = no bound). Fixed
+        // assets keep their current book value (no clean as-of date in schema).
+        const donTopCap = asOf
+          ? sql`${donations.donatedAt} < (${asOf}::date + interval '1 day')`
+          : undefined;
+        const expTopCap = asOf
+          ? sql`${expenses.spentAt} < (${asOf}::date + interval '1 day')`
+          : undefined;
+        const openingCap = asOf
+          ? sql`(${financialAccounts.openingDate} is null or ${financialAccounts.openingDate} <= ${asOf}::date)`
+          : undefined;
+        const billDateCap = asOf ? sql`${vendorBills.billDate} <= ${asOf}::date` : undefined;
+        const loanDateCap = asOf ? sql`${loans.disbursedOn} <= ${asOf}::date` : undefined;
+        const invDateCap = asOf ? sql`${investments.investedOn} <= ${asOf}::date` : undefined;
+        const subDonCap = asOf ? sql` and d.donated_at < (${asOf}::date + interval '1 day')` : sql``;
+        const subExpCap = asOf ? sql` and e.spent_at < (${asOf}::date + interval '1 day')` : sql``;
+        const subRepayCap = asOf ? sql` and lr.paid_on <= ${asOf}::date` : sql``;
 
         const [
           [cashBase],
@@ -162,7 +182,7 @@ export function createStatementRepository(db: Db) {
                 total: sql<string>`coalesce(sum(${financialAccounts.openingBalance}), '0.00')`,
               })
               .from(financialAccounts)
-              .where(eq(financialAccounts.organizationId, ctx.organizationId)),
+              .where(and(eq(financialAccounts.organizationId, ctx.organizationId), openingCap)),
             tx
               .select({ total: sql<string>`coalesce(sum(${donations.amount}), '0.00')` })
               .from(donations)
@@ -170,13 +190,18 @@ export function createStatementRepository(db: Db) {
                 and(
                   eq(donations.organizationId, ctx.organizationId),
                   eq(donations.status, 'recorded'),
+                  donTopCap,
                 ),
               ),
             tx
               .select({ total: sql<string>`coalesce(sum(${expenses.amount}), '0.00')` })
               .from(expenses)
               .where(
-                and(eq(expenses.organizationId, ctx.organizationId), eq(expenses.status, 'recorded')),
+                and(
+                  eq(expenses.organizationId, ctx.organizationId),
+                  eq(expenses.status, 'recorded'),
+                  expTopCap,
+                ),
               ),
             tx
               .select({ total: sql<string>`coalesce(sum(${assets.estimatedValue}), '0.00')` })
@@ -186,38 +211,46 @@ export function createStatementRepository(db: Db) {
               .select({
                 total: sql<string>`coalesce(sum(${vendorBills.amount} - coalesce((
                   select sum(e.amount) from expenses e
-                  where e.vendor_bill_id = vendor_bills.id and e.status = 'recorded'
+                  where e.vendor_bill_id = vendor_bills.id and e.status = 'recorded'${subExpCap}
                 ), 0)), '0.00')::numeric(12, 2)`,
               })
               .from(vendorBills)
               .where(
-                and(eq(vendorBills.organizationId, ctx.organizationId), eq(vendorBills.status, 'open')),
+                and(
+                  eq(vendorBills.organizationId, ctx.organizationId),
+                  eq(vendorBills.status, 'open'),
+                  billDateCap,
+                ),
               ),
             tx
               .select({
                 receivable: sql<string>`coalesce(sum(case when ${loans.direction} = 'given' then
-                  ${loans.principal} - coalesce((select sum(lr.amount) from loan_repayments lr where lr.loan_id = loans.id), 0)
+                  ${loans.principal} - coalesce((select sum(lr.amount) from loan_repayments lr where lr.loan_id = loans.id${subRepayCap}), 0)
                   else 0 end), 0)::numeric(14, 2)`,
                 payable: sql<string>`coalesce(sum(case when ${loans.direction} = 'taken' then
-                  ${loans.principal} - coalesce((select sum(lr.amount) from loan_repayments lr where lr.loan_id = loans.id), 0)
+                  ${loans.principal} - coalesce((select sum(lr.amount) from loan_repayments lr where lr.loan_id = loans.id${subRepayCap}), 0)
                   else 0 end), 0)::numeric(14, 2)`,
               })
               .from(loans)
-              .where(and(eq(loans.organizationId, ctx.organizationId), eq(loans.status, 'active'))),
+              .where(and(eq(loans.organizationId, ctx.organizationId), eq(loans.status, 'active'), loanDateCap)),
             tx
               .select({ total: sql<string>`coalesce(sum(${investments.principal}), 0)::numeric(14, 2)` })
               .from(investments)
               .where(
-                and(eq(investments.organizationId, ctx.organizationId), eq(investments.status, 'active')),
+                and(
+                  eq(investments.organizationId, ctx.organizationId),
+                  eq(investments.status, 'active'),
+                  invDateCap,
+                ),
               ),
             tx
               .select({
                 name: funds.name,
                 balance: sql<string>`(
                   coalesce((select sum(d.amount) from donations d
-                    where d.fund_id = funds.id and d.status = 'recorded'), 0)
+                    where d.fund_id = funds.id and d.status = 'recorded'${subDonCap}), 0)
                   - coalesce((select sum(e.amount) from expenses e
-                    where e.fund_id = funds.id and e.status = 'recorded'), 0)
+                    where e.fund_id = funds.id and e.status = 'recorded'${subExpCap}), 0)
                 )::numeric(12, 2)`,
               })
               .from(funds)

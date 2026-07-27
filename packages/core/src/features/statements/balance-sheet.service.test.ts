@@ -137,6 +137,27 @@ describe.skipIf(!hasDb)('statements: balance sheet (live db)', () => {
     }
   });
 
+  it('bounds every ledger figure to an as-on date', async () => {
+    // As on 30 Apr 2026 — before the donations/expense (10 May) and the
+    // vendor bill (1 May). Only the opening cash and fixed assets remain.
+    const result = await service.getBalanceSheet(ctx, '2026-04-30');
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const s = result.value;
+
+    expect(s.asOf).toBe('2026-04-30');
+    // Cash = opening 10000 only (no donations/expenses yet)
+    expect(s.assets.find((l) => l.label.startsWith('Cash'))?.total).toBe('10000.00');
+    expect(s.assetsTotal).toBe('60000.00'); // 10000 cash + 50000 assets
+    // The bill was not yet raised, so there are no payables.
+    expect(s.liabilitiesTotal).toBe('0.00');
+    // Nothing earmarked yet; the general fund absorbs everything.
+    expect(s.funds.find((l) => l.label === 'Building')).toBeUndefined();
+    expect(s.funds.find((l) => l.label === 'General fund')?.total).toBe('60000.00');
+    const liabPlusFunds = Number(s.liabilitiesTotal) + Number(s.fundsTotal);
+    expect(liabPlusFunds.toFixed(2)).toBe(s.assetsTotal);
+  });
+
   it('a viewer without reports:read is refused', async () => {
     const noReports: TenantContext = { ...ctx, roleKey: 'nobody' };
     const res = await service.getBalanceSheet(noReports);

@@ -74,10 +74,13 @@ export default async function AnnualReportPage({ searchParams }: AnnualReportPro
   const startYear = Number.isFinite(parsed) ? parsed : currentStart;
   const range = fyRange(startYear);
 
+  // Balance sheet as on the year-end, but never in the future.
+  const today = new Date().toISOString().slice(0, 10);
+  const asOf = range.to < today ? range.to : today;
   const [ie, rp, bs] = await Promise.all([
     statementService().getStatement(ctx, { from: range.from, to: range.to }),
     statementService().getReceiptsAndPayments(ctx, { from: range.from, to: range.to }),
-    statementService().getBalanceSheet(ctx),
+    statementService().getBalanceSheet(ctx, asOf),
   ]);
   if (!ie.ok || !rp.ok || !bs.ok) {
     const err = !ie.ok ? ie.error : !rp.ok ? rp.error : !bs.ok ? bs.error : null;
