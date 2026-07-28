@@ -43,6 +43,7 @@ BEGIN
     'membership_plans',
     'membership_subscriptions',
     'announcements',
+    'posts',
     'site_settings',
     'contact_messages',
     'gallery_images',

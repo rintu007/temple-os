@@ -1,4 +1,4 @@
-import { index, pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 import { id, timestamps } from './helpers';
 import { organizations } from './tenancy';
 
@@ -44,6 +44,37 @@ export const announcements = pgTable(
     ...timestamps,
   },
   (t) => [index('announcements_org_status_idx').on(t.organizationId, t.status)],
+);
+
+export const postStatusEnum = pgEnum('post_status', ['draft', 'published']);
+
+/**
+ * A blog/news article on the public site — longer-form and permalinked,
+ * unlike the scrolling `announcements` notice board. Published posts are
+ * indexable; drafts are admin-only.
+ */
+export const posts = pgTable(
+  'posts',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    title: text().notNull(),
+    /** URL-safe permalink segment, unique per organization. */
+    slug: text().notNull(),
+    excerpt: text(),
+    body: text().notNull(),
+    coverImageUrl: text(),
+    authorName: text(),
+    status: postStatusEnum().notNull().default('draft'),
+    publishedAt: timestamp({ withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex('posts_org_slug_uq').on(t.organizationId, t.slug),
+    index('posts_org_status_idx').on(t.organizationId, t.status),
+  ],
 );
 
 /** Gallery images; the binary lives in Supabase Storage at storagePath. */

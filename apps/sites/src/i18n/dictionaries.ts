@@ -14,6 +14,7 @@ export interface Dict {
     home: string;
     about: string;
     gallery: string;
+    blog: string;
     contact: string;
     donate: string;
     volunteer: string;
@@ -104,6 +105,14 @@ export interface Dict {
     comingSoon: string;
     seeSchedule: string;
   };
+  blog: {
+    eyebrow: string;
+    title: string;
+    comingSoon: string;
+    readMore: string;
+    by: (name: string) => string;
+    back: string;
+  };
   contact: {
     eyebrow: string;
     address: string;
@@ -150,6 +159,7 @@ const en: Dict = {
     home: 'Home',
     about: 'About',
     gallery: 'Gallery',
+    blog: 'Blog',
     contact: 'Contact',
     donate: 'Donate',
     volunteer: 'Volunteer',
@@ -245,6 +255,14 @@ const en: Dict = {
     comingSoon: 'Photos are coming soon. Meanwhile, see our',
     seeSchedule: 'daily schedule and events',
   },
+  blog: {
+    eyebrow: 'News & Updates',
+    title: 'From the Temple',
+    comingSoon: 'No posts yet. Please check back soon.',
+    readMore: 'Read more',
+    by: (name) => `By ${name}`,
+    back: '← All posts',
+  },
   contact: {
     eyebrow: 'Contact',
     address: 'Address',
@@ -293,6 +311,7 @@ const bn: Dict = {
     home: 'হোম',
     about: 'আমাদের সম্পর্কে',
     gallery: 'গ্যালারি',
+    blog: 'ব্লগ',
     contact: 'যোগাযোগ',
     donate: 'দান করুন',
     volunteer: 'স্বেচ্ছাসেবা',
@@ -386,6 +405,14 @@ const bn: Dict = {
     eyebrow: 'গ্যালারি',
     comingSoon: 'ছবি শীঘ্রই আসছে। ইতিমধ্যে দেখুন আমাদের',
     seeSchedule: 'দৈনিক সূচি ও অনুষ্ঠান',
+  },
+  blog: {
+    eyebrow: 'সংবাদ ও আপডেট',
+    title: 'মন্দির থেকে',
+    comingSoon: 'এখনো কোনো পোস্ট নেই। শীঘ্রই আবার দেখুন।',
+    readMore: 'আরও পড়ুন',
+    by: (name) => `লিখেছেন ${name}`,
+    back: '← সব পোস্ট',
   },
   contact: {
     eyebrow: 'যোগাযোগ',

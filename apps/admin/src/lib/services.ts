@@ -30,6 +30,7 @@ import {
   createOrganizationService,
   createOverviewService,
   createPledgeService,
+  createPostService,
   createPrasadamService,
   createPujaService,
   createRecurringDonationService,
@@ -75,6 +76,7 @@ import {
   type OrganizationService,
   type OverviewService,
   type PledgeService,
+  type PostService,
   type PrasadamService,
   type PujaService,
   type RecurringDonationService,
@@ -411,4 +413,11 @@ let _recurringDonationService: RecurringDonationService | undefined;
 export function recurringDonationService(): RecurringDonationService {
   _recurringDonationService ??= createRecurringDonationService({ db: getDb() });
   return _recurringDonationService;
+}
+
+let _postService: PostService | undefined;
+
+export function postService(): PostService {
+  _postService ??= createPostService({ db: getDb() });
+  return _postService;
 }

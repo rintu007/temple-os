@@ -51,6 +51,12 @@ export default async function WebsitePage() {
             Announcements
           </Link>
           <Link
+            href="/website/blog"
+            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+          >
+            Blog
+          </Link>
+          <Link
             href="/website/gallery"
             className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
           >

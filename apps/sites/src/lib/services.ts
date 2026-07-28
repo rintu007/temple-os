@@ -8,6 +8,7 @@ import {
   createMembershipService,
   createOrganizationService,
   createPaymentService,
+  createPostService,
   createPujaService,
   createTempleService,
   createWebhookService,
@@ -21,6 +22,7 @@ import {
   type MembershipService,
   type OrganizationService,
   type PaymentService,
+  type PostService,
   type PujaService,
   type TempleService,
   type WebhookService,
@@ -121,6 +123,13 @@ let _galleryService: GalleryService | undefined;
 export function galleryService(): GalleryService {
   _galleryService ??= createGalleryService({ db: getDb() });
   return _galleryService;
+}
+
+let _postService: PostService | undefined;
+
+export function postService(): PostService {
+  _postService ??= createPostService({ db: getDb() });
+  return _postService;
 }
 
 /** Per-request memoized host→tenant resolution (layout + page share one query). */
