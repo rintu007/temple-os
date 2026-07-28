@@ -48,6 +48,7 @@ import { Badge, Button } from '@templeos/ui';
 import { NavLink } from '@/components/nav-link';
 import { signOutAction } from '@/features/auth/actions';
 import { NotificationBell } from '@/features/notifications/components/notification-bell';
+import { CommandPalette } from '@/features/search/components/command-palette';
 import { notificationService } from '@/lib/services';
 import { requireTenantContext } from '@/lib/session';
 
@@ -198,6 +199,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               </Badge>
             </div>
             <div className="flex shrink-0 items-center gap-2">
+              <CommandPalette />
               <NotificationBell feed={feed} />
               <div className="lg:hidden">
                 <form action={signOutAction}>
