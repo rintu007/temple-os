@@ -37,6 +37,7 @@ import {
   createRecurringExpenseService,
   createReconciliationService,
   createReportService,
+  createRoleService,
   createSevaService,
   createStatementService,
   createTaxService,
@@ -83,6 +84,7 @@ import {
   type RecurringExpenseService,
   type ReconciliationService,
   type ReportService,
+  type RoleService,
   type SevaService,
   type StatementService,
   type TaxService,
@@ -420,4 +422,11 @@ let _postService: PostService | undefined;
 export function postService(): PostService {
   _postService ??= createPostService({ db: getDb() });
   return _postService;
+}
+
+let _roleService: RoleService | undefined;
+
+export function roleService(): RoleService {
+  _roleService ??= createRoleService({ db: getDb() });
+  return _roleService;
 }

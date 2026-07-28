@@ -6,14 +6,18 @@ import { createInvitationAction, type InviteFormState } from '../actions';
 
 const initialState: InviteFormState = {};
 
-const ROLES = [
-  { value: 'admin', label: 'Administrator — full access' },
-  { value: 'manager', label: 'Manager — temples, devotees, donations, events' },
-  { value: 'staff', label: 'Staff — day-to-day entry, no voiding' },
-  { value: 'viewer', label: 'Viewer — read only' },
-];
+const SYSTEM_ROLE_LABELS: Record<string, string> = {
+  admin: 'Administrator — full access',
+  manager: 'Manager — temples, devotees, donations, events',
+  staff: 'Staff — day-to-day entry, no voiding',
+  viewer: 'Viewer — read only',
+};
 
-export function InviteForm() {
+interface InviteFormProps {
+  roles: Array<{ key: string; name: string; isSystem: boolean }>;
+}
+
+export function InviteForm({ roles }: InviteFormProps) {
   const [state, formAction, pending] = useActionState(createInvitationAction, initialState);
 
   return (
@@ -28,9 +32,9 @@ export function InviteForm() {
           <div className="space-y-2">
             <Label htmlFor="roleKey">Role</Label>
             <Select id="roleKey" name="roleKey" defaultValue="staff" className="sm:w-72">
-              {ROLES.map((r) => (
-                <option key={r.value} value={r.value}>
-                  {r.label}
+              {roles.map((r) => (
+                <option key={r.key} value={r.key}>
+                  {r.isSystem ? (SYSTEM_ROLE_LABELS[r.key] ?? r.name) : `${r.name} (custom)`}
                 </option>
               ))}
             </Select>

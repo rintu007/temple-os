@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import type { User } from '@templeos/auth';
 import type { MembershipSummary, TenantContext } from '@templeos/core';
 import { createClient } from './supabase/server';
-import { organizationService } from './services';
+import { organizationService, roleService } from './services';
 
 /** Verified session user (validated against Supabase, deduped per request). */
 export const getSessionUser = cache(async (): Promise<User | null> => {
@@ -42,6 +42,12 @@ export async function requireTenantContext(): Promise<SessionWithTenant> {
   const user = await requireUser();
   const membership = await getActiveMembership(user.id);
   if (!membership) redirect('/onboarding');
+  // null for the 5 system roles — authorize() falls back to its static map.
+  // Only a custom role costs an extra query, and only once per request.
+  const permissions = await roleService().resolvePermissions(
+    membership.organizationId,
+    membership.roleKey,
+  );
   return {
     user,
     membership,
@@ -50,6 +56,7 @@ export async function requireTenantContext(): Promise<SessionWithTenant> {
       userId: user.id,
       roleKey: membership.roleKey,
       templeIds: null,
+      permissions: permissions ?? undefined,
     },
   };
 }

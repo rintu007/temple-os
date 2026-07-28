@@ -1,35 +1,46 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { Alert, Button } from '@templeos/ui';
 import { revokeInvitationAction } from '@/features/members/actions';
 import { InviteForm } from '@/features/members/components/invite-form';
 import { requireTenantContext } from '@/lib/session';
-import { memberService } from '@/lib/services';
+import { memberService, roleService } from '@/lib/services';
 
 export const metadata: Metadata = { title: 'Team' };
 
 export default async function TeamPage() {
   const { ctx, user } = await requireTenantContext();
-  const [members, invites] = await Promise.all([
+  const [members, invites, roles] = await Promise.all([
     memberService().listMembers(ctx),
     memberService().listInvitations(ctx),
+    roleService().listRoles(ctx),
   ]);
 
   if (!members.ok) {
     return <Alert tone="error">{members.error.message}</Alert>;
   }
+  const invitableRoles = roles.ok ? roles.value.filter((r) => r.key !== 'owner') : [];
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          People with access to this organization&apos;s admin portal.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Team</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            People with access to this organization&apos;s admin portal.
+          </p>
+        </div>
+        <Link
+          href="/team/roles"
+          className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+        >
+          Roles & permissions
+        </Link>
       </div>
 
       <section className="rounded-xl border border-border bg-card shadow-card p-6">
         <h2 className="mb-4 text-sm font-medium text-muted-foreground">Invite a team member</h2>
-        <InviteForm />
+        <InviteForm roles={invitableRoles} />
       </section>
 
       <section>

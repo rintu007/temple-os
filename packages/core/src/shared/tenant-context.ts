@@ -3,12 +3,20 @@
  * session (JWT claims) — never from client-supplied ids. Every repository
  * method takes this as its first argument; there is no unscoped data access.
  */
+import type { Permission } from './authorize';
+
 export interface TenantContext {
   readonly organizationId: string;
   readonly userId: string;
   readonly roleKey: string;
   /** null = access to all temples in the organization */
   readonly templeIds: readonly string[] | null;
+  /**
+   * Resolved permission set for a custom role. Undefined for the 5 system
+   * roles — they resolve via the static map in authorize.ts instead, so
+   * this never needs to be set by hand-built test contexts.
+   */
+  readonly permissions?: readonly Permission[];
 }
 
 /**

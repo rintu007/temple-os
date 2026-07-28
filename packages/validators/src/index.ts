@@ -22,6 +22,7 @@ export * from './membership';
 export * from './report';
 export * from './website';
 export * from './post';
+export * from './role';
 export * from './volunteer';
 export * from './vendor';
 export * from './communication';
