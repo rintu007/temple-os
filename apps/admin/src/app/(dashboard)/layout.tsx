@@ -47,6 +47,8 @@ import type { ReactNode } from 'react';
 import { Badge, Button } from '@templeos/ui';
 import { NavLink } from '@/components/nav-link';
 import { signOutAction } from '@/features/auth/actions';
+import { NotificationBell } from '@/features/notifications/components/notification-bell';
+import { notificationService } from '@/lib/services';
 import { requireTenantContext } from '@/lib/session';
 
 interface NavItem {
@@ -127,7 +129,9 @@ const NAV_GROUPS: NavGroup[] = [
 ];
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const { user, membership } = await requireTenantContext();
+  const { user, membership, ctx } = await requireTenantContext();
+  const feedResult = await notificationService().getFeed(ctx);
+  const feed = feedResult.ok ? feedResult.value : { items: [], unreadCount: 0 };
 
   const nav = (
     <nav className="flex flex-col gap-5">
@@ -193,12 +197,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                 {membership.roleName}
               </Badge>
             </div>
-            <div className="flex shrink-0 items-center gap-2 lg:hidden">
-              <form action={signOutAction}>
-                <Button variant="ghost" size="sm" type="submit">
-                  Sign out
-                </Button>
-              </form>
+            <div className="flex shrink-0 items-center gap-2">
+              <NotificationBell feed={feed} />
+              <div className="lg:hidden">
+                <form action={signOutAction}>
+                  <Button variant="ghost" size="sm" type="submit">
+                    Sign out
+                  </Button>
+                </form>
+              </div>
             </div>
           </div>
           {/* Mobile nav — horizontal scroll */}

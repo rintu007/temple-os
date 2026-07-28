@@ -295,6 +295,13 @@
       "when": 1785180053546,
       "tag": "0041_curly_layla_miller",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1785207716993,
+      "tag": "0042_majestic_veda",
+      "breakpoints": true
     }
   ]
 }

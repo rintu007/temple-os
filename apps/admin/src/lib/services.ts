@@ -25,6 +25,7 @@ import {
   createMeetingService,
   createMemberService,
   createMembershipService,
+  createNotificationService,
   createOfficerService,
   createOrganizationService,
   createOverviewService,
@@ -68,6 +69,7 @@ import {
   type MeetingService,
   type MemberService,
   type MembershipService,
+  type NotificationService,
   type OfficerService,
   type OrganizationService,
   type OverviewService,
@@ -393,4 +395,11 @@ let _fundTransferService: FundTransferService | undefined;
 export function fundTransferService(): FundTransferService {
   _fundTransferService ??= createFundTransferService({ db: getDb() });
   return _fundTransferService;
+}
+
+let _notificationService: NotificationService | undefined;
+
+export function notificationService(): NotificationService {
+  _notificationService ??= createNotificationService({ db: getDb() });
+  return _notificationService;
 }

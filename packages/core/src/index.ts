@@ -22,6 +22,7 @@ export * from './features/inventory';
 export * from './features/investments';
 export * from './features/loans';
 export * from './features/members';
+export * from './features/notifications';
 export * from './features/payments';
 export * from './features/payroll';
 export * from './features/pledges';
