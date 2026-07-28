@@ -1,9 +1,15 @@
-import { and, asc, count, desc, eq, gte, isNull, lt, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, ilike, isNull, lt, or, sql, type SQL } from 'drizzle-orm';
 import { auditLogs, events, newId, withTenantContext, type Db, type Tx } from '@templeos/db';
 import type { TenantContext } from '../../shared';
 
 const notDeleted = isNull(events.deletedAt);
 const effectiveEnd = sql`coalesce(${events.endsAt}, ${events.startsAt})`;
+
+function searchFilter(search: string | null | undefined): SQL | undefined {
+  if (!search) return undefined;
+  const term = `%${search}%`;
+  return or(ilike(events.title, term), ilike(events.location, term));
+}
 
 export interface EventWriteValues {
   kind: 'event' | 'festival';
@@ -28,13 +34,20 @@ export function createEventRepository(db: Db) {
   return {
     async list(
       ctx: TenantContext,
-      query: { scope: 'upcoming' | 'past'; page: number; pageSize: number },
+      query: {
+        scope: 'upcoming' | 'past';
+        search?: string | null;
+        page: number;
+        pageSize: number;
+      },
     ) {
       return withTenantContext(db, guc(ctx), async (tx: Tx) => {
+        // A search term looks across all time, not just the active scope tab —
+        // otherwise a past event would never turn up while browsing "upcoming".
         const where = and(
           eq(events.organizationId, ctx.organizationId),
           notDeleted,
-          scopeFilter(query.scope),
+          query.search ? searchFilter(query.search) : scopeFilter(query.scope),
         );
         const [items, [totalRow]] = await Promise.all([
           tx

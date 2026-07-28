@@ -142,6 +142,19 @@ describe.skipIf(!hasDb)('events: CRUD, publish gating, isolation (live db)', () 
     if (past.ok) expect(past.value.total).toBe(1);
   });
 
+  it('search finds a match regardless of scope, and an unmatched term finds nothing', async () => {
+    const found = await service.listEvents(ctx(), { scope: 'upcoming', search: 'Last Month' });
+    expect(found.ok).toBe(true);
+    if (found.ok) {
+      expect(found.value.total).toBe(1);
+      expect(found.value.items[0]?.title).toBe('Last Month Kirtan');
+    }
+
+    const miss = await service.listEvents(ctx(), { scope: 'upcoming', search: 'zzz-no-match' });
+    expect(miss.ok).toBe(true);
+    if (miss.ok) expect(miss.value.total).toBe(0);
+  });
+
   it('public listing shows only published upcoming events', async () => {
     const publicEvents = await service.listPublicUpcoming(orgId);
     const titles = publicEvents.map((e) => e.title);

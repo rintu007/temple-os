@@ -111,7 +111,7 @@ export function CommandPalette() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onInputKeyDown}
-                placeholder="Search devotees, donations, expenses, vendors…"
+                placeholder="Search devotees, donations, expenses, vendors, events…"
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               />
             </div>

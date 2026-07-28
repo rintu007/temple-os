@@ -1,7 +1,13 @@
 'use server';
 
 import { formatMoney } from '@templeos/ui';
-import { devoteeService, donationService, expenseService, vendorService } from '@/lib/services';
+import {
+  devoteeService,
+  donationService,
+  eventService,
+  expenseService,
+  vendorService,
+} from '@/lib/services';
 import { requireTenantContext } from '@/lib/session';
 
 export interface SearchResultItem {
@@ -24,11 +30,12 @@ export async function globalSearchAction(rawQuery: string): Promise<SearchResult
 
   const { ctx } = await requireTenantContext();
 
-  const [devotees, donations, expenses, vendors] = await Promise.all([
+  const [devotees, donations, expenses, vendors, events] = await Promise.all([
     devoteeService().listDevotees(ctx, { search: query, pageSize: RESULTS_PER_CATEGORY }),
     donationService().listDonations(ctx, { search: query, pageSize: RESULTS_PER_CATEGORY }),
     expenseService().listExpenses(ctx, { search: query, pageSize: RESULTS_PER_CATEGORY }),
     vendorService().listVendors(ctx, { search: query }),
+    eventService().listEvents(ctx, { search: query, scope: 'upcoming', pageSize: RESULTS_PER_CATEGORY }),
   ]);
 
   const groups: SearchResultGroup[] = [];
@@ -77,6 +84,22 @@ export async function globalSearchAction(rawQuery: string): Promise<SearchResult
         label: v.name,
         sublabel: v.category ?? v.phone ?? '',
         href: `/vendors/${v.id}`,
+      })),
+    });
+  }
+
+  if (events.ok && events.value.items.length > 0) {
+    groups.push({
+      category: 'Events',
+      items: events.value.items.map((e) => ({
+        id: e.id,
+        label: e.title,
+        sublabel: e.startsAt.toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        }),
+        href: `/events/${e.id}`,
       })),
     });
   }
