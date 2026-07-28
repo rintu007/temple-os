@@ -28,6 +28,7 @@ export default async function TenantLayout({ children, params }: TenantLayoutPro
     { href: '/darshan', label: t.nav.darshan },
     { href: '/facilities', label: t.nav.facilities },
     { href: '/contact', label: t.nav.contact },
+    { href: '/portal', label: t.nav.portal },
   ];
 
   // Links are root-relative to the public hostname — the middleware rewrites

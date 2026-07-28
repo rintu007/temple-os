@@ -2,6 +2,7 @@ import { cache } from 'react';
 import {
   createCampaignService,
   createDarshanService,
+  createDonorPortalService,
   createEventService,
   createFacilityService,
   createGalleryService,
@@ -16,6 +17,7 @@ import {
   createWebsiteService,
   type CampaignService,
   type DarshanService,
+  type DonorPortalService,
   type EventService,
   type FacilityService,
   type GalleryService,
@@ -130,6 +132,13 @@ let _postService: PostService | undefined;
 export function postService(): PostService {
   _postService ??= createPostService({ db: getDb() });
   return _postService;
+}
+
+let _donorPortalService: DonorPortalService | undefined;
+
+export function donorPortalService(): DonorPortalService {
+  _donorPortalService ??= createDonorPortalService({ db: getDb() });
+  return _donorPortalService;
 }
 
 /** Per-request memoized host→tenant resolution (layout + page share one query). */

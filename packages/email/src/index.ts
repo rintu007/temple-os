@@ -3,3 +3,4 @@ export { renderContactMessageEmail, type ContactMessageEmailParams } from './con
 export { renderDonationReceiptEmail, type DonationReceiptParams } from './donation-receipt';
 export { renderInvitationEmail, type InvitationEmailParams } from './invitation';
 export { renderBroadcastEmail, type BroadcastEmailParams } from './broadcast';
+export { renderDevoteeLoginEmail, type DevoteeLoginEmailParams } from './devotee-login';

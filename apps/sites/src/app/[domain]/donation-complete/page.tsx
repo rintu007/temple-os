@@ -35,6 +35,9 @@ export default async function DonationCompletePage({ params, searchParams }: Don
           <p className="mt-3 text-muted-foreground">
             {t.donationComplete.thankYouBody(site.name, receipt ?? '')}
           </p>
+          <Link href="/portal/login" className="mt-2 inline-block text-sm text-primary hover:underline">
+            {t.donationComplete.viewInPortal}
+          </Link>
         </>
       ) : (
         <>

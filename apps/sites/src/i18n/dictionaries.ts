@@ -20,6 +20,7 @@ export interface Dict {
     volunteer: string;
     facilities: string;
     darshan: string;
+    portal: string;
   };
   footer: { poweredBy: string };
   darshan: {
@@ -151,6 +152,25 @@ export interface Dict {
     failedBody: string;
     tryAgain: string;
     donateAgain: string;
+    viewInPortal: string;
+  };
+  portal: {
+    eyebrow: string;
+    loginTitle: string;
+    loginIntro: string;
+    emailLabel: string;
+    sendLink: string;
+    sending: string;
+    welcomeBack: (name: string) => string;
+    lifetimeGiving: string;
+    thisYear: string;
+    recentDonations: string;
+    viewAllDonations: string;
+    donationHistoryTitle: string;
+    viewReceipt: string;
+    noDonations: string;
+    logout: string;
+    backToDashboard: string;
   };
 }
 
@@ -165,6 +185,7 @@ const en: Dict = {
     volunteer: 'Volunteer',
     facilities: 'Halls',
     darshan: 'Darshan',
+    portal: 'My Donations',
   },
   footer: { poweredBy: 'Powered by' },
   darshan: {
@@ -303,6 +324,26 @@ const en: Dict = {
       'The payment could not be completed. No money has been recorded. Please try again.',
     tryAgain: 'Try again',
     donateAgain: 'Make another donation',
+    viewInPortal: 'View all your donations & receipts anytime in the donor portal',
+  },
+  portal: {
+    eyebrow: 'Donor portal',
+    loginTitle: 'View your donations',
+    loginIntro:
+      "Enter the email address on file with the temple and we'll send you a sign-in link — no password needed.",
+    emailLabel: 'Email address',
+    sendLink: 'Send sign-in link',
+    sending: 'Sending…',
+    welcomeBack: (name) => `Welcome back, ${name}`,
+    lifetimeGiving: 'Lifetime giving',
+    thisYear: 'This financial year',
+    recentDonations: 'Recent donations',
+    viewAllDonations: 'View all donations',
+    donationHistoryTitle: 'Donation history',
+    viewReceipt: 'View receipt',
+    noDonations: "You don't have any recorded donations yet.",
+    logout: 'Sign out',
+    backToDashboard: '← My donations',
   },
 };
 
@@ -317,6 +358,7 @@ const bn: Dict = {
     volunteer: 'স্বেচ্ছাসেবা',
     facilities: 'হল',
     darshan: 'দর্শন',
+    portal: 'আমার দান',
   },
   footer: { poweredBy: 'পরিচালনায়' },
   darshan: {
@@ -453,6 +495,26 @@ const bn: Dict = {
     failedBody: 'পেমেন্টটি সম্পন্ন করা যায়নি। কোনো টাকা কাটা হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।',
     tryAgain: 'আবার চেষ্টা করুন',
     donateAgain: 'আরেকটি দান করুন',
+    viewInPortal: 'দাতা পোর্টালে যেকোনো সময় আপনার সব দান ও রসিদ দেখুন',
+  },
+  portal: {
+    eyebrow: 'দাতা পোর্টাল',
+    loginTitle: 'আপনার দান দেখুন',
+    loginIntro:
+      'মন্দিরে নথিভুক্ত ইমেইল ঠিকানাটি দিন — আমরা আপনাকে সাইন-ইন লিঙ্ক পাঠাবো, কোনো পাসওয়ার্ড লাগবে না।',
+    emailLabel: 'ইমেইল ঠিকানা',
+    sendLink: 'সাইন-ইন লিঙ্ক পাঠান',
+    sending: 'পাঠানো হচ্ছে…',
+    welcomeBack: (name) => `স্বাগতম, ${name}`,
+    lifetimeGiving: 'সর্বমোট দান',
+    thisYear: 'এই আর্থিক বছর',
+    recentDonations: 'সাম্প্রতিক দান',
+    viewAllDonations: 'সব দান দেখুন',
+    donationHistoryTitle: 'দানের ইতিহাস',
+    viewReceipt: 'রসিদ দেখুন',
+    noDonations: 'আপনার এখনো কোনো নথিভুক্ত দান নেই।',
+    logout: 'সাইন আউট',
+    backToDashboard: '← আমার দান',
   },
 };
 
