@@ -116,6 +116,19 @@ export function createInsightsService({ db }: { db: Db }) {
           overdue: nextDue < today,
         });
       }
+      for (const r of candidates.recurringDonationRows) {
+        const nextDue = computeNextDue(r.frequency, r.startDate, r.endDate, 'active');
+        if (!nextDue || nextDue > horizon) continue;
+        push({
+          kind: 'recurring_donation',
+          id: r.id,
+          title: r.donorName,
+          subtitle: 'Recurring gift due',
+          dueDate: nextDue,
+          amount: Number(r.amount).toFixed(2),
+          overdue: nextDue < today,
+        });
+      }
 
       // Overdue first, then soonest due.
       reminders.sort((a, b) => {

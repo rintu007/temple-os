@@ -302,6 +302,13 @@
       "when": 1785207716993,
       "tag": "0042_majestic_veda",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1785209539400,
+      "tag": "0043_thankful_doctor_doom",
+      "breakpoints": true
     }
   ]
 }

@@ -492,6 +492,8 @@ export const donations = pgTable(
     grantId: uuid().references(() => grants.id),
     /** Set when this receipt pays toward a recurring seva — see `sevaSubscriptions`. */
     sevaSubscriptionId: uuid().references(() => sevaSubscriptions.id),
+    /** Set when this receipt fulfils a standing gift — see `recurringDonations`. */
+    recurringDonationId: uuid().references(() => recurringDonations.id),
     donorName: text().notNull(),
     amount: numeric({ precision: 12, scale: 2 }).notNull(),
     currency: currencyEnum().notNull(),
@@ -516,6 +518,7 @@ export const donations = pgTable(
     index('donations_account_idx').on(t.accountId),
     index('donations_grant_idx').on(t.grantId),
     index('donations_seva_idx').on(t.sevaSubscriptionId),
+    index('donations_recurring_donation_idx').on(t.recurringDonationId),
   ],
 );
 
@@ -672,6 +675,37 @@ export const recurringExpenses = pgTable(
     ...timestamps,
   },
   (t) => [index('recurring_expenses_org_status_idx').on(t.organizationId, t.status)],
+);
+
+/**
+ * A standing gift a devotee commits to on a cadence — the donation-side
+ * mirror of a recurring expense / seva subscription: the schedule is defined
+ * here, but what has actually been *given* is derived from the donation
+ * ledger (receipts tagged with `donations.recurringDonationId`), so the
+ * last-given date and next-due reminder always tie back to the books.
+ */
+export const recurringDonations = pgTable(
+  'recurring_donations',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    devoteeId: uuid().references(() => devotees.id),
+    donorName: text().notNull(),
+    amount: numeric({ precision: 12, scale: 2 }).notNull(),
+    frequency: recurringFrequencyEnum().notNull(),
+    /** Earmarks each collected payment to a fund — see `funds`. */
+    fundId: uuid().references(() => funds.id),
+    startDate: date().notNull(),
+    /** Null = open-ended (until paused/ended). */
+    endDate: date(),
+    status: recurringStatusEnum().notNull().default('active'),
+    note: text(),
+    recordedByUserId: uuid(),
+    ...timestamps,
+  },
+  (t) => [index('recurring_donations_org_status_idx').on(t.organizationId, t.status)],
 );
 
 export const expenseMethodEnum = pgEnum('expense_method', [

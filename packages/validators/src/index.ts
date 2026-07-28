@@ -34,6 +34,7 @@ export * from './loan';
 export * from './investment';
 export * from './fund-transfer';
 export * from './recurring-expense';
+export * from './recurring-donation';
 export * from './transfer';
 export * from './grant';
 export * from './seva';

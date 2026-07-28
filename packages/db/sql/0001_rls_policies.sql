@@ -56,6 +56,7 @@ BEGIN
     'expense_counters',
     'expenses',
     'recurring_expenses',
+    'recurring_donations',
     'vendors',
     'vendor_bills',
     'pledges',

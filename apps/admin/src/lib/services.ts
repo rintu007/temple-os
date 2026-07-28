@@ -32,6 +32,7 @@ import {
   createPledgeService,
   createPrasadamService,
   createPujaService,
+  createRecurringDonationService,
   createRecurringExpenseService,
   createReconciliationService,
   createReportService,
@@ -76,6 +77,7 @@ import {
   type PledgeService,
   type PrasadamService,
   type PujaService,
+  type RecurringDonationService,
   type RecurringExpenseService,
   type ReconciliationService,
   type ReportService,
@@ -402,4 +404,11 @@ let _notificationService: NotificationService | undefined;
 export function notificationService(): NotificationService {
   _notificationService ??= createNotificationService({ db: getDb() });
   return _notificationService;
+}
+
+let _recurringDonationService: RecurringDonationService | undefined;
+
+export function recurringDonationService(): RecurringDonationService {
+  _recurringDonationService ??= createRecurringDonationService({ db: getDb() });
+  return _recurringDonationService;
 }

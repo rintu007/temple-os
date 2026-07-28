@@ -45,12 +45,20 @@ export default async function DonationsPage({ searchParams }: DonationsPageProps
             voided.
           </p>
         </div>
-        <Link
-          href="/donations/new"
-          className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
-        >
-          Record donation
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/donations/recurring"
+            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+          >
+            Recurring gifts
+          </Link>
+          <Link
+            href="/donations/new"
+            className="inline-flex h-9.5 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-card transition-colors hover:bg-primary/90"
+          >
+            Record donation
+          </Link>
+        </div>
       </div>
 
       {stats.ok ? (

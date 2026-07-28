@@ -9,6 +9,7 @@ import {
   membershipSubscriptions,
   organizations,
   pledges,
+  recurringDonations,
   recurringExpenses,
   vendorBills,
   withTenantContext,
@@ -43,8 +44,15 @@ export function createInsightsRepository(db: Db) {
       return withTenantContext(db, guc(ctx), async (tx) => {
         const org = ctx.organizationId;
 
-        const [pledgeRows, billRows, loanRows, investmentRows, membershipRows, recurringRows] =
-          await Promise.all([
+        const [
+          pledgeRows,
+          billRows,
+          loanRows,
+          investmentRows,
+          membershipRows,
+          recurringRows,
+          recurringDonationRows,
+        ] = await Promise.all([
           tx
             .select({
               id: pledges.id,
@@ -154,9 +162,35 @@ export function createInsightsRepository(db: Db) {
                 eq(recurringExpenses.status, 'active'),
               ),
             ),
+          // Next-due is computed from the cadence in the service, so fetch all
+          // active standing gifts and let the service filter to the horizon.
+          tx
+            .select({
+              id: recurringDonations.id,
+              donorName: recurringDonations.donorName,
+              amount: recurringDonations.amount,
+              frequency: recurringDonations.frequency,
+              startDate: recurringDonations.startDate,
+              endDate: recurringDonations.endDate,
+            })
+            .from(recurringDonations)
+            .where(
+              and(
+                eq(recurringDonations.organizationId, org),
+                eq(recurringDonations.status, 'active'),
+              ),
+            ),
         ]);
 
-        return { pledgeRows, billRows, loanRows, investmentRows, membershipRows, recurringRows };
+        return {
+          pledgeRows,
+          billRows,
+          loanRows,
+          investmentRows,
+          membershipRows,
+          recurringRows,
+          recurringDonationRows,
+        };
       });
     },
 
