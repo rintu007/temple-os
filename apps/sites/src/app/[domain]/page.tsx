@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Badge, formatMoney, formatTime } from '@templeos/ui';
+import { JsonLd } from '@/components/json-ld';
 import { getDict } from '@/i18n/dictionaries';
 import { getLocale } from '@/i18n/locale';
 import { DonateForm } from '@/features/donations/components/donate-form';
@@ -66,22 +67,42 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
   const site = await organizationService().resolveSiteByHostname(hostnameFromDomainParam(domain));
   if (!site) notFound();
 
-  const [temples, upcomingEvents, pujaTypes, membershipPlans, notices, campaigns] = await Promise.all([
-    templeService().listPublicTemples(site.organizationId),
-    eventService().listPublicUpcoming(site.organizationId, 8),
-    pujaService().listPublicPujaTypes(site.organizationId),
-    membershipService().listPublicPlans(site.organizationId),
-    websiteService().listPublicAnnouncements(site.organizationId, 3),
-    campaignService().listPublicCampaigns(site.organizationId),
-  ]);
+  const [temples, upcomingEvents, pujaTypes, membershipPlans, notices, campaigns, content] =
+    await Promise.all([
+      templeService().listPublicTemples(site.organizationId),
+      eventService().listPublicUpcoming(site.organizationId, 8),
+      pujaService().listPublicPujaTypes(site.organizationId),
+      membershipService().listPublicPlans(site.organizationId),
+      websiteService().listPublicAnnouncements(site.organizationId, 3),
+      campaignService().listPublicCampaigns(site.organizationId),
+      websiteService().getPublicContent(site.organizationId),
+    ]);
   const locale = await getLocale();
   const t = getDict(locale);
   const checkoutAvailable = paymentService().isOnlineCheckoutAvailable(site.currency);
   // Puja booking + membership checkout are Razorpay-modal flows — INR only for now.
   const inrCheckoutAvailable = site.currency === 'INR' && checkoutAvailable;
 
+  const siteUrl = `https://${hostnameFromDomainParam(domain)}`;
+  const sameAs = [content.facebookUrl, content.instagramUrl, content.youtubeUrl].filter(
+    (v): v is string => Boolean(v),
+  );
+
   return (
     <main>
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'HinduTemple',
+          name: site.name,
+          url: siteUrl,
+          ...(content.tagline ? { description: content.tagline } : {}),
+          ...(content.addressText ? { address: content.addressText } : {}),
+          ...(content.contactPhone ? { telephone: content.contactPhone } : {}),
+          ...(content.contactEmail ? { email: content.contactEmail } : {}),
+          ...(sameAs.length > 0 ? { sameAs } : {}),
+        }}
+      />
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border/60">
         <div

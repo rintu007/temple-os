@@ -30,6 +30,12 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Skip static assets and Next internals
-  matcher: ['/((?!_next/|api/|favicon.ico|robots.txt|sitemap.xml|.*\\.[a-zA-Z0-9]+$).*)'],
+  // Skip static assets and Next internals — but NOT robots.txt/sitemap.xml,
+  // which must still be rewritten to the tenant's own metadata route so each
+  // site gets its own (see app/[domain]/robots.ts).
+  matcher: [
+    '/((?!_next/|api/|favicon.ico|robots.txt|sitemap.xml|.*\\.[a-zA-Z0-9]+$).*)',
+    '/robots.txt',
+    '/sitemap.xml',
+  ],
 };
