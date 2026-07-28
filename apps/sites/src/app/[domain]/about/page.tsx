@@ -30,7 +30,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
   const hasContent = Boolean(content.aboutText || content.historyText);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="mx-auto max-w-5xl px-6 py-16">
       <header className="text-center">
         <div className="text-sm font-medium uppercase tracking-widest text-primary">{t.about.eyebrow}</div>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight">{site.name}</h1>
@@ -47,7 +47,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
           </Link>
         </p>
       ) : (
-        <div className="mt-12 space-y-10">
+        <div className="mx-auto mt-12 max-w-2xl space-y-10">
           {content.aboutText ? (
             <section>
               <h2 className="text-sm font-medium uppercase tracking-widest text-muted-foreground">

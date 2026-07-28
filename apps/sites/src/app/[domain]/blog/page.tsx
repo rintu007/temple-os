@@ -29,7 +29,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
   const posts = await postService().listPublicPosts(site.organizationId);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="mx-auto max-w-5xl px-6 py-16">
       <header className="text-center">
         <div className="text-sm font-medium uppercase tracking-widest text-primary">
           {t.blog.eyebrow}
@@ -40,11 +40,11 @@ export default async function BlogPage({ params }: BlogPageProps) {
       {posts.length === 0 ? (
         <p className="mt-12 text-center text-muted-foreground">{t.blog.comingSoon}</p>
       ) : (
-        <ul className="mt-12 space-y-10">
+        <ul className="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2">
           {posts.map((p) => (
-            <li key={p.id} className="border-b border-border pb-10 last:border-0">
+            <li key={p.id} className="flex flex-col">
               {p.coverImageUrl ? (
-                <Link href={`/blog/${p.slug}`}>
+                <Link href={`/blog/${p.slug}`} className="block">
                   {/* Plain <img>: cover images may be hosted anywhere, not just Supabase */}
                   <img
                     src={p.coverImageUrl}
@@ -54,7 +54,7 @@ export default async function BlogPage({ params }: BlogPageProps) {
                   />
                 </Link>
               ) : null}
-              <h2 className="mt-4 text-2xl font-semibold tracking-tight">
+              <h2 className="mt-4 text-xl font-semibold tracking-tight text-balance">
                 <Link href={`/blog/${p.slug}`} className="hover:underline">
                   {p.title}
                 </Link>
@@ -67,7 +67,9 @@ export default async function BlogPage({ params }: BlogPageProps) {
                 })}
                 {p.authorName ? ` · ${t.blog.by(p.authorName)}` : ''}
               </p>
-              {p.excerpt ? <p className="mt-3 leading-relaxed">{p.excerpt}</p> : null}
+              {p.excerpt ? (
+                <p className="mt-3 line-clamp-3 leading-relaxed text-muted-foreground">{p.excerpt}</p>
+              ) : null}
               <Link
                 href={`/blog/${p.slug}`}
                 className="mt-3 inline-block text-sm font-medium text-primary hover:underline"

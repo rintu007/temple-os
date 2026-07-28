@@ -27,7 +27,7 @@ export default async function FacilitiesPage({ params }: FacilitiesPageProps) {
   const facilities = await facilityService().listPublicFacilities(site.organizationId);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="mx-auto max-w-5xl px-6 py-16">
       <header className="text-center">
         <div className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">
           {t.facilities.eyebrow}
@@ -41,7 +41,7 @@ export default async function FacilitiesPage({ params }: FacilitiesPageProps) {
       {facilities.length === 0 ? (
         <p className="mt-12 text-center text-muted-foreground">{t.facilities.none}</p>
       ) : (
-        <div className="mt-12 space-y-6">
+        <div className="mx-auto mt-12 max-w-2xl space-y-6">
           {facilities.map((f) => (
             <section key={f.id} className="rounded-2xl border border-border bg-card p-6 shadow-card">
               <div className="flex flex-wrap items-baseline justify-between gap-2">

@@ -36,7 +36,7 @@ export default async function TenantLayout({ children, params }: TenantLayoutPro
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-10 border-b border-border/80 bg-background/90 backdrop-blur-md">
-        <div className="mx-auto flex h-16 max-w-4xl items-center justify-between gap-4 px-6">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-6">
           <Link
             href="/"
             className="min-w-0 truncate font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight"
@@ -81,7 +81,7 @@ export default async function TenantLayout({ children, params }: TenantLayoutPro
       <div className="flex-1">{children}</div>
 
       <footer className="border-t border-border bg-muted/30">
-        <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 px-6 py-10 text-center">
+        <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 px-6 py-10 text-center">
           <div className="font-[family-name:var(--font-display)] text-base font-semibold">
             {site.name}
           </div>

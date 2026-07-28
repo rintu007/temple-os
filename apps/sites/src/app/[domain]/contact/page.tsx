@@ -35,7 +35,7 @@ export default async function ContactPage({ params }: ContactPageProps) {
   ].filter((s): s is { label: string; url: string } => Boolean(s.url));
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="mx-auto max-w-5xl px-6 py-16">
       <header className="text-center">
         <div className="text-sm font-medium uppercase tracking-widest text-primary">{t.contact.eyebrow}</div>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight">{site.name}</h1>

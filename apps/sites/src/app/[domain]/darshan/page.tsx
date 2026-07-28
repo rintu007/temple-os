@@ -34,7 +34,7 @@ export default async function DarshanPage({ params }: DarshanPageProps) {
   const slots = await darshanService().listPublicSlots(site.organizationId);
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-16">
+    <main className="mx-auto max-w-5xl px-6 py-16">
       <header className="text-center">
         <div className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">
           {t.darshan.eyebrow}
@@ -48,7 +48,7 @@ export default async function DarshanPage({ params }: DarshanPageProps) {
       {slots.length === 0 ? (
         <p className="mt-12 text-center text-muted-foreground">{t.darshan.none}</p>
       ) : (
-        <div className="mt-12 space-y-6">
+        <div className="mx-auto mt-12 max-w-2xl space-y-6">
           {slots.map((s) => (
             <section key={s.id} className="rounded-2xl border border-border bg-card p-6 shadow-card">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
