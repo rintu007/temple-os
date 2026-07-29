@@ -96,7 +96,9 @@ BEGIN
     'notification_reads',
     'devotee_login_tokens',
     'devotee_sessions',
-    'platform_subscriptions'
+    'platform_subscriptions',
+    'priest_duty_assignments',
+    'priest_leaves'
   ]
   LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);

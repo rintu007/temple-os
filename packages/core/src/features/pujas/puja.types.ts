@@ -42,6 +42,43 @@ export interface PriestSummary {
   isActive: boolean;
 }
 
+/** A standing weekly duty-roster line — priest × ritual × days of week. */
+export interface DutyRosterEntry {
+  id: string;
+  priestId: string;
+  priestName: string;
+  dailyScheduleId: string;
+  scheduleTitle: string;
+  startTime: string;
+  endTime: string | null;
+  templeName: string | null;
+  /** 0=Sunday..6=Saturday; empty = every day. */
+  daysOfWeek: number[];
+  notes: string | null;
+  isActive: boolean;
+}
+
+/** Today's roster resolved to actual priests, with a leave flag for planning substitutes. */
+export interface TodaysDutyEntry {
+  id: string;
+  priestId: string;
+  priestName: string;
+  scheduleTitle: string;
+  startTime: string;
+  endTime: string | null;
+  templeName: string | null;
+  onLeave: boolean;
+}
+
+export interface PriestLeaveSummary {
+  id: string;
+  priestId: string;
+  priestName: string;
+  startDate: string;
+  endDate: string;
+  reason: string | null;
+}
+
 export interface PujaBookingPage {
   items: PujaBookingSummary[];
   total: number;

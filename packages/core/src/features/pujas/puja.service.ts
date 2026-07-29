@@ -3,6 +3,8 @@ import {
   assignSevaSchema,
   confirmDonationOrderSchema,
   createBookingOrderSchema,
+  priestDutyAssignmentSchema,
+  priestLeaveSchema,
   priestSchema,
   pujaTypeSchema,
 } from '@templeos/validators';
@@ -20,11 +22,14 @@ import { createPujaRepository } from './puja.repository';
 import type {
   BookingOrder,
   ConfirmedBooking,
+  DutyRosterEntry,
+  PriestLeaveSummary,
   PriestSummary,
   PublicPujaType,
   PujaBookingPage,
   PujaBookingSummary,
   PujaTypeSummary,
+  TodaysDutyEntry,
 } from './puja.types';
 
 function firstIssue(error: { issues: Array<{ message: string }> }) {
@@ -207,6 +212,66 @@ export function createPujaService({ db }: { db: Db }) {
       if (!auth.ok) return auth;
       const updated = await repo.setPriestActive(ctx, priestId, isActive);
       if (!updated) return err(notFound('Priest'));
+      return ok(null);
+    },
+
+    async listDutyRoster(ctx: TenantContext): Promise<Result<DutyRosterEntry[]>> {
+      const auth = authorize(ctx, 'pujas:read');
+      if (!auth.ok) return auth;
+      const rows = await repo.listDutyRoster(ctx);
+      return ok(rows);
+    },
+
+    async createDutyAssignment(ctx: TenantContext, rawInput: unknown): Promise<Result<null>> {
+      const auth = authorize(ctx, 'pujas:write');
+      if (!auth.ok) return auth;
+      const parsed = priestDutyAssignmentSchema.safeParse(rawInput);
+      if (!parsed.success) return err(firstIssue(parsed.error));
+      const result = await repo.createDutyAssignment(ctx, parsed.data);
+      if (result.kind === 'priest_not_found') return err(notFound('Priest'));
+      if (result.kind === 'schedule_not_found') return err(notFound('Daily schedule'));
+      return ok(null);
+    },
+
+    async removeDutyAssignment(ctx: TenantContext, assignmentId: string): Promise<Result<null>> {
+      const auth = authorize(ctx, 'pujas:write');
+      if (!auth.ok) return auth;
+      const removed = await repo.removeDutyAssignment(ctx, assignmentId);
+      if (!removed) return err(notFound('Duty assignment'));
+      return ok(null);
+    },
+
+    /** Today's roster at a glance, flagging anyone on leave so a substitute can be arranged. */
+    async todaysDuty(ctx: TenantContext): Promise<Result<TodaysDutyEntry[]>> {
+      const auth = authorize(ctx, 'pujas:read');
+      if (!auth.ok) return auth;
+      const today = new Date().toISOString().slice(0, 10);
+      const rows = await repo.todaysDuty(ctx, today);
+      return ok(rows);
+    },
+
+    async listLeaves(ctx: TenantContext): Promise<Result<PriestLeaveSummary[]>> {
+      const auth = authorize(ctx, 'pujas:read');
+      if (!auth.ok) return auth;
+      const rows = await repo.listLeaves(ctx);
+      return ok(rows);
+    },
+
+    async recordLeave(ctx: TenantContext, rawInput: unknown): Promise<Result<null>> {
+      const auth = authorize(ctx, 'pujas:write');
+      if (!auth.ok) return auth;
+      const parsed = priestLeaveSchema.safeParse(rawInput);
+      if (!parsed.success) return err(firstIssue(parsed.error));
+      const result = await repo.createLeave(ctx, parsed.data);
+      if (result.kind === 'priest_not_found') return err(notFound('Priest'));
+      return ok(null);
+    },
+
+    async deleteLeave(ctx: TenantContext, leaveId: string): Promise<Result<null>> {
+      const auth = authorize(ctx, 'pujas:write');
+      if (!auth.ok) return auth;
+      const removed = await repo.deleteLeave(ctx, leaveId);
+      if (!removed) return err(notFound('Leave record'));
       return ok(null);
     },
 

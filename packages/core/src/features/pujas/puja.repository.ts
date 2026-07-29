@@ -1,16 +1,26 @@
-import { and, asc, count, desc, eq, isNull, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, isNull, lte, sql } from 'drizzle-orm';
 import {
   auditLogs,
+  dailySchedules,
   donations,
   newId,
   organizations,
+  priestDutyAssignments,
+  priestLeaves,
   priests,
   pujaBookings,
   pujaTypes,
+  temples,
   withTenantContext,
   type Db,
 } from '@templeos/db';
-import type { AssignSevaInput, PriestInput, PujaTypeInput } from '@templeos/validators';
+import type {
+  AssignSevaInput,
+  PriestDutyAssignmentInput,
+  PriestInput,
+  PriestLeaveInput,
+  PujaTypeInput,
+} from '@templeos/validators';
 import { allocateReceiptNumber, findOrCreateCategory } from '../donations/donation.repository';
 import type { TenantContext } from '../../shared';
 
@@ -216,6 +226,174 @@ export function createPujaRepository(db: Db) {
           .where(eq(priests.id, priestId))
           .returning();
         return updated ?? null;
+      });
+    },
+
+    // ---- Duty roster (standing weekly assignment, not a one-off booking) ----
+    async listDutyRoster(ctx: TenantContext) {
+      return withTenantContext(db, guc(ctx), (tx) =>
+        tx
+          .select({
+            id: priestDutyAssignments.id,
+            priestId: priestDutyAssignments.priestId,
+            priestName: priests.name,
+            dailyScheduleId: priestDutyAssignments.dailyScheduleId,
+            scheduleTitle: dailySchedules.title,
+            startTime: dailySchedules.startTime,
+            endTime: dailySchedules.endTime,
+            templeName: temples.name,
+            daysOfWeek: priestDutyAssignments.daysOfWeek,
+            notes: priestDutyAssignments.notes,
+            isActive: priestDutyAssignments.isActive,
+          })
+          .from(priestDutyAssignments)
+          .innerJoin(priests, eq(priestDutyAssignments.priestId, priests.id))
+          .innerJoin(dailySchedules, eq(priestDutyAssignments.dailyScheduleId, dailySchedules.id))
+          .leftJoin(temples, eq(dailySchedules.templeId, temples.id))
+          .where(eq(priestDutyAssignments.organizationId, ctx.organizationId))
+          .orderBy(asc(dailySchedules.startTime)),
+      );
+    },
+
+    async createDutyAssignment(ctx: TenantContext, input: PriestDutyAssignmentInput) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [priest] = await tx
+          .select({ id: priests.id })
+          .from(priests)
+          .where(eq(priests.id, input.priestId))
+          .limit(1);
+        if (!priest) return { kind: 'priest_not_found' as const };
+
+        const [schedule] = await tx
+          .select({ id: dailySchedules.id })
+          .from(dailySchedules)
+          .where(eq(dailySchedules.id, input.dailyScheduleId))
+          .limit(1);
+        if (!schedule) return { kind: 'schedule_not_found' as const };
+
+        const [row] = await tx
+          .insert(priestDutyAssignments)
+          .values({
+            id: newId(),
+            organizationId: ctx.organizationId,
+            priestId: input.priestId,
+            dailyScheduleId: input.dailyScheduleId,
+            daysOfWeek: input.daysOfWeek,
+            notes: input.notes ?? null,
+          })
+          .returning();
+        if (!row) throw new Error('duty assignment insert returned no row');
+        return { kind: 'ok' as const, assignment: row };
+      });
+    },
+
+    async removeDutyAssignment(ctx: TenantContext, assignmentId: string) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [deleted] = await tx
+          .delete(priestDutyAssignments)
+          .where(eq(priestDutyAssignments.id, assignmentId))
+          .returning({ id: priestDutyAssignments.id });
+        return deleted !== undefined;
+      });
+    },
+
+    /** Every active roster line applicable today, with an onLeave flag for planning substitutes. */
+    async todaysDuty(ctx: TenantContext, today: string) {
+      const dow = new Date(`${today}T00:00:00Z`).getUTCDay();
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const roster = await tx
+          .select({
+            id: priestDutyAssignments.id,
+            priestId: priestDutyAssignments.priestId,
+            priestName: priests.name,
+            scheduleTitle: dailySchedules.title,
+            startTime: dailySchedules.startTime,
+            endTime: dailySchedules.endTime,
+            templeName: temples.name,
+            daysOfWeek: priestDutyAssignments.daysOfWeek,
+          })
+          .from(priestDutyAssignments)
+          .innerJoin(priests, eq(priestDutyAssignments.priestId, priests.id))
+          .innerJoin(dailySchedules, eq(priestDutyAssignments.dailyScheduleId, dailySchedules.id))
+          .leftJoin(temples, eq(dailySchedules.templeId, temples.id))
+          .where(
+            and(
+              eq(priestDutyAssignments.organizationId, ctx.organizationId),
+              eq(priestDutyAssignments.isActive, true),
+              eq(dailySchedules.isActive, true),
+            ),
+          )
+          .orderBy(asc(dailySchedules.startTime));
+
+        const onLeaveToday = await tx
+          .select({ priestId: priestLeaves.priestId })
+          .from(priestLeaves)
+          .where(
+            and(
+              eq(priestLeaves.organizationId, ctx.organizationId),
+              lte(priestLeaves.startDate, today),
+              gte(priestLeaves.endDate, today),
+            ),
+          );
+        const onLeaveIds = new Set(onLeaveToday.map((r) => r.priestId));
+
+        return roster
+          .filter((r) => r.daysOfWeek.length === 0 || r.daysOfWeek.includes(dow))
+          .map((r) => ({ ...r, onLeave: onLeaveIds.has(r.priestId) }));
+      });
+    },
+
+    // ---- Time off ----
+    async listLeaves(ctx: TenantContext) {
+      return withTenantContext(db, guc(ctx), (tx) =>
+        tx
+          .select({
+            id: priestLeaves.id,
+            priestId: priestLeaves.priestId,
+            priestName: priests.name,
+            startDate: priestLeaves.startDate,
+            endDate: priestLeaves.endDate,
+            reason: priestLeaves.reason,
+          })
+          .from(priestLeaves)
+          .innerJoin(priests, eq(priestLeaves.priestId, priests.id))
+          .where(eq(priestLeaves.organizationId, ctx.organizationId))
+          .orderBy(desc(priestLeaves.startDate)),
+      );
+    },
+
+    async createLeave(ctx: TenantContext, input: PriestLeaveInput) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [priest] = await tx
+          .select({ id: priests.id })
+          .from(priests)
+          .where(eq(priests.id, input.priestId))
+          .limit(1);
+        if (!priest) return { kind: 'priest_not_found' as const };
+
+        const [row] = await tx
+          .insert(priestLeaves)
+          .values({
+            id: newId(),
+            organizationId: ctx.organizationId,
+            priestId: input.priestId,
+            startDate: input.startDate,
+            endDate: input.endDate,
+            reason: input.reason ?? null,
+          })
+          .returning();
+        if (!row) throw new Error('leave insert returned no row');
+        return { kind: 'ok' as const, leave: row };
+      });
+    },
+
+    async deleteLeave(ctx: TenantContext, leaveId: string) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [deleted] = await tx
+          .delete(priestLeaves)
+          .where(eq(priestLeaves.id, leaveId))
+          .returning({ id: priestLeaves.id });
+        return deleted !== undefined;
       });
     },
 

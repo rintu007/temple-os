@@ -87,6 +87,66 @@ export async function togglePriestAction(priestId: string, isActive: boolean): P
   revalidatePath('/pujas/priests');
 }
 
+// ---- Duty roster ----
+
+export async function addDutyAssignmentAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { ctx } = await requireTenantContext();
+  const field = (name: string) => {
+    const v = formData.get(name);
+    return typeof v === 'string' ? v : '';
+  };
+  const daysOfWeek = formData
+    .getAll('daysOfWeek')
+    .map((v) => Number(v))
+    .filter((n) => Number.isInteger(n));
+  const result = await pujaService().createDutyAssignment(ctx, {
+    priestId: field('priestId'),
+    dailyScheduleId: field('dailyScheduleId'),
+    daysOfWeek,
+    notes: field('notes'),
+  });
+  if (!result.ok) return { error: result.error.message };
+  revalidatePath('/pujas/priests');
+  return { message: 'Duty assigned' };
+}
+
+export async function removeDutyAssignmentAction(assignmentId: string): Promise<void> {
+  const { ctx } = await requireTenantContext();
+  await pujaService().removeDutyAssignment(ctx, assignmentId);
+  revalidatePath('/pujas/priests');
+}
+
+// ---- Time off ----
+
+export async function recordLeaveAction(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { ctx } = await requireTenantContext();
+  const field = (name: string) => {
+    const v = formData.get(name);
+    return typeof v === 'string' ? v : '';
+  };
+  const result = await pujaService().recordLeave(ctx, {
+    priestId: field('priestId'),
+    startDate: field('startDate'),
+    endDate: field('endDate'),
+    reason: field('reason'),
+  });
+  if (!result.ok) return { error: result.error.message };
+  revalidatePath('/pujas/priests');
+  return { message: 'Leave recorded' };
+}
+
+export async function deleteLeaveAction(leaveId: string): Promise<void> {
+  const { ctx } = await requireTenantContext();
+  await pujaService().deleteLeave(ctx, leaveId);
+  revalidatePath('/pujas/priests');
+}
+
 export async function assignSevaAction(
   bookingId: string,
   _prev: FormState,

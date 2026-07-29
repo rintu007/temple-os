@@ -2,6 +2,7 @@ import {
   boolean,
   date,
   index,
+  integer,
   numeric,
   pgEnum,
   pgTable,
@@ -80,6 +81,60 @@ export const priests = pgTable(
     ...timestamps,
   },
   (t) => [index('priests_org_idx').on(t.organizationId)],
+);
+
+/**
+ * Recurring duty roster: which priest covers a given daily-schedule ritual,
+ * and on which days. An empty daysOfWeek means every day. This is the
+ * standing rota — a puja booking's one-off priest assignment (puja_bookings)
+ * is separate and doesn't touch this table.
+ */
+export const priestDutyAssignments = pgTable(
+  'priest_duty_assignments',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    priestId: uuid()
+      .notNull()
+      .references(() => priests.id),
+    dailyScheduleId: uuid()
+      .notNull()
+      .references(() => dailySchedules.id),
+    /** 0=Sunday..6=Saturday. Empty array means every day. */
+    daysOfWeek: integer().array().notNull().default([]),
+    notes: text(),
+    isActive: boolean().notNull().default(true),
+    ...timestamps,
+  },
+  (t) => [
+    index('priest_duty_assignments_org_idx').on(t.organizationId),
+    index('priest_duty_assignments_priest_idx').on(t.priestId),
+    index('priest_duty_assignments_schedule_idx').on(t.dailyScheduleId),
+  ],
+);
+
+/** A priest's time-off window — used to flag duty-roster days needing a substitute. */
+export const priestLeaves = pgTable(
+  'priest_leaves',
+  {
+    id: id(),
+    organizationId: uuid()
+      .notNull()
+      .references(() => organizations.id),
+    priestId: uuid()
+      .notNull()
+      .references(() => priests.id),
+    startDate: date().notNull(),
+    endDate: date().notNull(),
+    reason: text(),
+    ...timestamps,
+  },
+  (t) => [
+    index('priest_leaves_org_idx').on(t.organizationId),
+    index('priest_leaves_priest_idx').on(t.priestId),
+  ],
 );
 
 export const pujaBookingStatusEnum = pgEnum('puja_booking_status', [

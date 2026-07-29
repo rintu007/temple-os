@@ -73,3 +73,26 @@ export const assignSevaSchema = z.object({
     .nullish(),
 });
 export type AssignSevaInput = z.infer<typeof assignSevaSchema>;
+
+/** A priest's standing duty on the daily-schedule roster (separate from one-off booking assignment). */
+export const priestDutyAssignmentSchema = z.object({
+  priestId: z.string().uuid('Choose a priest'),
+  dailyScheduleId: z.string().uuid('Choose a ritual'),
+  /** 0=Sunday..6=Saturday; empty = every day. */
+  daysOfWeek: z.array(z.number().int().min(0).max(6)).max(7).default([]),
+  notes: optionalTrimmed(300),
+});
+export type PriestDutyAssignmentInput = z.infer<typeof priestDutyAssignmentSchema>;
+
+export const priestLeaveSchema = z
+  .object({
+    priestId: z.string().uuid('Choose a priest'),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD'),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD'),
+    reason: optionalTrimmed(300),
+  })
+  .refine((v) => v.endDate >= v.startDate, {
+    message: 'End date must be on or after the start date',
+    path: ['endDate'],
+  });
+export type PriestLeaveInput = z.infer<typeof priestLeaveSchema>;
