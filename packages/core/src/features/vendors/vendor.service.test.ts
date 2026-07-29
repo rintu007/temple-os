@@ -9,6 +9,7 @@ import {
   expenseCounters,
   expenses,
   memberships,
+  platformSubscriptions,
   organizations,
   roles,
   users,
@@ -46,6 +47,7 @@ describe.skipIf(!hasDb)('vendors: accounts-payable ledger (live db)', () => {
       await admin.delete(memberships).where(inArray(memberships.organizationId, scope));
       await admin.delete(roles).where(inArray(roles.organizationId, scope));
       await admin.delete(domains).where(inArray(domains.organizationId, scope));
+      await admin.delete(platformSubscriptions).where(inArray(platformSubscriptions.organizationId, scope));
       await admin.delete(organizations).where(inArray(organizations.id, scope));
     }
     await admin.delete(users).where(inArray(users.id, [owner.userId]));

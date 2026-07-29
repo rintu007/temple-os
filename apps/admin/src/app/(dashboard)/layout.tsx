@@ -8,6 +8,7 @@ import {
   Building2,
   ClipboardList,
   Coins,
+  CreditCard,
   FileText,
   Flame,
   Gavel,
@@ -94,6 +95,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/meetings', label: 'Meetings', icon: Gavel },
       { href: '/activity', label: 'Activity', icon: ScrollText },
       { href: '/team', label: 'Team', icon: UserRoundCog },
+      { href: '/billing', label: 'Billing', icon: CreditCard },
     ],
   },
   {

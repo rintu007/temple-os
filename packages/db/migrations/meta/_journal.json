@@ -330,6 +330,13 @@
       "when": 1785266895733,
       "tag": "0046_blushing_gorgon",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1785304137654,
+      "tag": "0047_handy_magik",
+      "breakpoints": true
     }
   ]
 }

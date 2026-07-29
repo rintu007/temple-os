@@ -7,6 +7,7 @@ import {
   domains,
   investments,
   memberships,
+  platformSubscriptions,
   organizations,
   roles,
   users,
@@ -37,6 +38,7 @@ describe.skipIf(!hasDb)('investments: principal/maturity/interest (live db)', ()
       await admin.delete(memberships).where(inArray(memberships.organizationId, s));
       await admin.delete(roles).where(inArray(roles.organizationId, s));
       await admin.delete(domains).where(inArray(domains.organizationId, s));
+      await admin.delete(platformSubscriptions).where(inArray(platformSubscriptions.organizationId, s));
       await admin.delete(organizations).where(inArray(organizations.id, s));
     }
     await admin.delete(users).where(inArray(users.id, [owner.userId]));

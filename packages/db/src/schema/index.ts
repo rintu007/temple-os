@@ -15,3 +15,4 @@ export * from './events';
 export * from './facilities';
 export * from './content';
 export * from './audit';
+export * from './billing';

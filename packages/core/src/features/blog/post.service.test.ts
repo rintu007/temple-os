@@ -1,7 +1,17 @@
 import { randomUUID } from 'node:crypto';
 import { inArray } from 'drizzle-orm';
 import { afterAll, describe, expect, it } from 'vitest';
-import { auditLogs, createDb, domains, memberships, organizations, posts, roles, users } from '@templeos/db';
+import {
+  auditLogs,
+  createDb,
+  domains,
+  memberships,
+  organizations,
+  platformSubscriptions,
+  posts,
+  roles,
+  users,
+} from '@templeos/db';
 import { systemContext, type TenantContext } from '../../shared';
 import { createOrganizationService } from '../organizations/organization.service';
 import { createPostService } from './post.service';
@@ -28,6 +38,7 @@ describe.skipIf(!hasDb)('blog: posts with permalinks + publish gating (live db)'
       await admin.delete(memberships).where(inArray(memberships.organizationId, s));
       await admin.delete(roles).where(inArray(roles.organizationId, s));
       await admin.delete(domains).where(inArray(domains.organizationId, s));
+      await admin.delete(platformSubscriptions).where(inArray(platformSubscriptions.organizationId, s));
       await admin.delete(organizations).where(inArray(organizations.id, s));
     }
     await admin.delete(users).where(inArray(users.id, [owner.userId]));

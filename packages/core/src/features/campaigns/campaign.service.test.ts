@@ -10,6 +10,7 @@ import {
   donationCounters,
   donations,
   memberships,
+  platformSubscriptions,
   organizations,
   roles,
   users,
@@ -46,6 +47,7 @@ describe.skipIf(!hasDb)('campaigns: goals, earmarked donations, progress (live d
       await admin.delete(memberships).where(inArray(memberships.organizationId, [orgId]));
       await admin.delete(roles).where(inArray(roles.organizationId, [orgId]));
       await admin.delete(domains).where(inArray(domains.organizationId, [orgId]));
+      await admin.delete(platformSubscriptions).where(inArray(platformSubscriptions.organizationId, [orgId]));
       await admin.delete(organizations).where(inArray(organizations.id, [orgId]));
     }
     await admin.delete(users).where(inArray(users.id, [owner.userId]));

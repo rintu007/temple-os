@@ -9,6 +9,7 @@ import {
   donationCounters,
   donations,
   memberships,
+  platformSubscriptions,
   organizations,
   pujaBookings,
   pujaTypes,
@@ -58,6 +59,7 @@ describe.skipIf(!hasDb || !hasRazorpay)('pujas: types, booking, confirm (live Ra
       await admin.delete(memberships).where(inArray(memberships.organizationId, orgIds));
       await admin.delete(roles).where(inArray(roles.organizationId, orgIds));
       await admin.delete(domains).where(inArray(domains.organizationId, orgIds));
+      await admin.delete(platformSubscriptions).where(inArray(platformSubscriptions.organizationId, orgIds));
       await admin.delete(organizations).where(inArray(organizations.id, orgIds));
     }
     await admin.delete(users).where(inArray(users.id, [owner.userId]));

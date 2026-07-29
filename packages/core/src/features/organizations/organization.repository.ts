@@ -5,12 +5,13 @@ import {
   memberships,
   newId,
   organizations,
+  platformSubscriptions,
   roles,
   users,
   withTenantContext,
   type Db,
 } from '@templeos/db';
-import type { CreateOrganizationInput, Currency } from '@templeos/validators';
+import { TRIAL_LENGTH_DAYS, type CreateOrganizationInput, type Currency } from '@templeos/validators';
 import type { SystemContext, TenantContext } from '../../shared';
 import { SYSTEM_ROLES, type OwnerIdentity } from './organization.types';
 
@@ -80,6 +81,13 @@ export function createOrganizationRepository(db: Db) {
             type: 'subdomain',
             isPrimary: true,
             verifiedAt: new Date(),
+          });
+
+          await tx.insert(platformSubscriptions).values({
+            organizationId: orgId,
+            plan: 'trial',
+            status: 'trialing',
+            trialEndsAt: new Date(Date.now() + TRIAL_LENGTH_DAYS * 24 * 60 * 60 * 1000),
           });
 
           const seededRoles = await tx

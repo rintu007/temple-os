@@ -95,7 +95,8 @@ BEGIN
     'audit_logs',
     'notification_reads',
     'devotee_login_tokens',
-    'devotee_sessions'
+    'devotee_sessions',
+    'platform_subscriptions'
   ]
   LOOP
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', t);
