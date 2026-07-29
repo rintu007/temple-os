@@ -4,7 +4,7 @@ import type { User } from '@templeos/auth';
 import type { MembershipSummary, TenantContext } from '@templeos/core';
 import type { ModuleKey } from '@templeos/validators';
 import { createClient } from './supabase/server';
-import { billingService, organizationService, roleService } from './services';
+import { billingService, organizationService, platformService, roleService } from './services';
 
 /** Verified session user (validated against Supabase, deduped per request). */
 export const getSessionUser = cache(async (): Promise<User | null> => {
@@ -72,4 +72,21 @@ export async function requireTenantContext(requiredModule?: ModuleKey): Promise<
   }
 
   return { user, membership, ctx, entitledModules };
+}
+
+/** Whether the signed-in user is TempleOS staff, not any tenant's staff — see packages/db/sql/0004. */
+export async function checkIsPlatformAdmin(userId: string): Promise<boolean> {
+  return platformService().isPlatformAdmin(userId);
+}
+
+/**
+ * Guard for the cross-tenant /platform section. Deliberately separate from
+ * requireTenantContext — a platform admin may or may not also belong to a
+ * temple's org, and this check is completely independent of that.
+ */
+export async function requirePlatformAdmin(): Promise<{ user: User }> {
+  const user = await requireUser();
+  const isAdmin = await checkIsPlatformAdmin(user.id);
+  if (!isAdmin) redirect('/');
+  return { user };
 }

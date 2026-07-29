@@ -87,6 +87,22 @@ Afterwards, every `git push` to `main` auto-deploys both projects once the
 projects are connected to the GitHub repo (Vercel dashboard → Project →
 Settings → Git), or keep deploying via `vercel --prod` from CI/local.
 
+## Platform admin (TempleOS staff, cross-tenant ops view)
+
+`apps/admin`'s `/platform` section lists every organization's plan,
+subscription status, and MRR — for TempleOS staff, not tenant staff. Nobody
+has this by default; grant it from a dev machine (needs `DATABASE_URL_ADMIN`,
+never set on Vercel):
+
+```bash
+pnpm --filter @templeos/db db:grant-platform-admin -- someone@example.com
+pnpm --filter @templeos/db db:grant-platform-admin -- someone@example.com --revoke
+```
+
+The account must have signed in at least once already (the script matches
+by email in the `users` table). A "Platform" link appears in the dashboard
+sidebar once granted.
+
 ## Post-deploy smoke checklist
 
 1. `https://<admin>.vercel.app/login` renders; sign in works (after Supabase

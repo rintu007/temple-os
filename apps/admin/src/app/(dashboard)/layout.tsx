@@ -33,6 +33,7 @@ import {
   UserRound,
   HandHeart,
   ScrollText,
+  ShieldCheck,
   Sparkles,
   Ticket,
   Truck,
@@ -53,7 +54,7 @@ import { NotificationBell } from '@/features/notifications/components/notificati
 import { CommandPalette } from '@/features/search/components/command-palette';
 import { moduleForHref } from '@/lib/module-routes';
 import { notificationService } from '@/lib/services';
-import { requireTenantContext } from '@/lib/session';
+import { checkIsPlatformAdmin, requireTenantContext } from '@/lib/session';
 
 interface NavItem {
   href: string;
@@ -135,7 +136,10 @@ const NAV_GROUPS: NavGroup[] = [
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, membership, ctx, entitledModules } = await requireTenantContext();
-  const feedResult = await notificationService().getFeed(ctx);
+  const [feedResult, isPlatformAdmin] = await Promise.all([
+    notificationService().getFeed(ctx),
+    checkIsPlatformAdmin(user.id),
+  ]);
   const feed = feedResult.ok ? feedResult.value : { items: [], unreadCount: 0 };
 
   const isLocked = (href: string) => {
@@ -194,6 +198,15 @@ export default async function DashboardLayout({ children }: { children: ReactNod
         </div>
         <div className="flex-1 overflow-y-auto px-3 py-4">{nav}</div>
         <div className="border-t border-sidebar-border p-3">
+          {isPlatformAdmin ? (
+            <Link
+              href="/platform"
+              className="mb-2 flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 [&>svg]:size-4 [&>svg]:shrink-0"
+            >
+              <ShieldCheck aria-hidden />
+              Platform
+            </Link>
+          ) : null}
           <div className="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
               <UserRound className="size-4" aria-hidden />

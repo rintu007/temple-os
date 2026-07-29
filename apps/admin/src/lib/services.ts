@@ -30,6 +30,7 @@ import {
   createOfficerService,
   createOrganizationService,
   createOverviewService,
+  createPlatformService,
   createPledgeService,
   createPostService,
   createPrasadamService,
@@ -78,6 +79,7 @@ import {
   type OfficerService,
   type OrganizationService,
   type OverviewService,
+  type PlatformService,
   type PledgeService,
   type PostService,
   type PrasadamService,
@@ -249,6 +251,13 @@ let _billingService: BillingService | undefined;
 export function billingService(): BillingService {
   _billingService ??= createBillingService({ db: getDb() });
   return _billingService;
+}
+
+let _platformService: PlatformService | undefined;
+
+export function platformService(): PlatformService {
+  _platformService ??= createPlatformService({ db: getDb() });
+  return _platformService;
 }
 
 let _officerService: OfficerService | undefined;
