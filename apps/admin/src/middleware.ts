@@ -26,8 +26,11 @@ export async function middleware(request: NextRequest) {
   const isAuthPage = AUTH_PAGES.some((p) => path.startsWith(p));
   const isAuthFlow = path.startsWith('/auth'); // callback/confirm routes
   const isInvitePage = path.startsWith('/invite'); // viewable signed-out
+  // Webhook receivers are called by external services (Stripe, etc.), never
+  // a signed-in browser session — they authenticate via signature, not cookies.
+  const isWebhook = path.startsWith('/api/webhooks/');
 
-  if (!user && !isAuthPage && !isAuthFlow && !isInvitePage) {
+  if (!user && !isAuthPage && !isAuthFlow && !isInvitePage && !isWebhook) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.search = path !== '/' ? `?next=${encodeURIComponent(path)}` : '';
