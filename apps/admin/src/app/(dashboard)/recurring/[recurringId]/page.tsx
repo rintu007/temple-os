@@ -32,7 +32,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default async function RecurringDetailPage({ params }: RecurringDetailProps) {
   const { recurringId } = await params;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('finance-basic');
 
   const [result, accounts] = await Promise.all([
     recurringExpenseService().getDetail(ctx, recurringId),

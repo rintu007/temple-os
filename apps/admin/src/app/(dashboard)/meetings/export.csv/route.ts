@@ -3,7 +3,7 @@ import { meetingService } from '@/lib/services';
 
 /** Meetings register CSV download. Auth + governance:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const result = await meetingService().exportCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

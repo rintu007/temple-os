@@ -3,7 +3,7 @@ import { expenseService } from '@/lib/services';
 
 /** Voucher-book CSV download. Auth + reports:read enforced like every service call. */
 export async function GET(request: Request) {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const { searchParams } = new URL(request.url);
   const from = searchParams.get('from') ?? '';
   const to = searchParams.get('to') ?? '';

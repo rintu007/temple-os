@@ -21,7 +21,7 @@ function planInputFromForm(formData: FormData) {
 }
 
 export async function createPlanAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const result = await membershipService().createPlan(ctx, planInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/membership');
@@ -33,7 +33,7 @@ export async function updatePlanAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const result = await membershipService().updatePlan(ctx, planId, planInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath(`/membership/${planId}`);
@@ -42,14 +42,14 @@ export async function updatePlanAction(
 }
 
 export async function deletePlanAction(planId: string): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   await membershipService().deletePlan(ctx, planId);
   revalidatePath('/membership');
   redirect('/membership');
 }
 
 export async function cancelMembershipAction(subscriptionId: string): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   await membershipService().cancelMembership(ctx, subscriptionId);
   revalidatePath('/membership/members');
 }
@@ -59,7 +59,7 @@ export async function renewMembershipAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const field = (name: string) => {
     const v = formData.get(name);
     return typeof v === 'string' ? v : '';

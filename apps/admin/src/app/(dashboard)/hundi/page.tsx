@@ -7,7 +7,7 @@ import { hundiService } from '@/lib/services';
 export const metadata: Metadata = { title: 'Hundi collections' };
 
 export default async function HundiPage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const result = await hundiService().listCollections(ctx);
   if (!result.ok) {
     return <Alert tone="error">{result.error.message}</Alert>;

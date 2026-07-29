@@ -27,7 +27,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
   const status = STATUS_TABS.includes(rawStatus as (typeof STATUS_TABS)[number])
     ? (rawStatus as (typeof STATUS_TABS)[number])
     : 'active';
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
 
   const result = await membershipService().listMembers(ctx, { status, page: page ?? 1 });
   if (!result.ok) {

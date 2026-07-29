@@ -26,7 +26,7 @@ function inKindInput(formData: FormData) {
 }
 
 export async function recordInKindAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const result = await inKindService().recordInKind(ctx, inKindInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/in-kind');
@@ -38,7 +38,7 @@ export async function updateInKindAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const result = await inKindService().updateInKind(ctx, inKindId, inKindInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/in-kind');
@@ -51,7 +51,7 @@ export async function setDispositionAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const result = await inKindService().setDisposition(ctx, inKindId, {
     disposition: field(formData, 'disposition'),
     disposalNote: field(formData, 'disposalNote'),

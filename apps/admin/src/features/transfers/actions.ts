@@ -15,7 +15,7 @@ export async function createTransferAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await transferService().createTransfer(ctx, {
     fromAccountId: field(formData, 'fromAccountId'),
     toAccountId: field(formData, 'toAccountId'),

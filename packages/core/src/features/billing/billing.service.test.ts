@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { inArray } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import { afterAll, describe, expect, it } from 'vitest';
 import {
   auditLogs,
@@ -79,11 +79,81 @@ describe.skipIf(!hasDb)('billing: trial provisioning + access control (live db)'
 
   it('rejects checkout/portal creation when Stripe billing is not configured', async () => {
     if (billing$.isConfigured()) return; // this env has billing configured — nothing to assert
-    const checkout = await billing$.createUpgradeCheckout(ownerCtx, 'https://admin.test.invalid');
+    const checkout = await billing$.createUpgradeCheckout(ownerCtx, 'pro', 'https://admin.test.invalid');
     expect(checkout.ok).toBe(false);
 
     const portal = await billing$.createPortalSession(ownerCtx, 'https://admin.test.invalid');
     expect(portal.ok).toBe(false);
+  });
+
+  it('grants every module during an unexpired trial', async () => {
+    const modules = await billing$.getEntitledModules(ownerCtx);
+    expect(modules).toBe('all');
+  });
+
+  it('falls back to Starter (no gated modules) once the trial has expired', async () => {
+    await admin
+      .update(platformSubscriptions)
+      .set({ trialEndsAt: new Date(Date.now() - 60_000) })
+      .where(eq(platformSubscriptions.organizationId, orgId));
+
+    const modules = await billing$.getEntitledModules(ownerCtx);
+    expect(modules).not.toBe('all');
+    if (modules !== 'all') expect(modules.size).toBe(0);
+  });
+
+  it('grants only Growth-tier modules on an active Growth subscription', async () => {
+    await admin
+      .update(platformSubscriptions)
+      .set({ plan: 'growth', status: 'active' })
+      .where(eq(platformSubscriptions.organizationId, orgId));
+
+    const modules = await billing$.getEntitledModules(ownerCtx);
+    expect(modules).not.toBe('all');
+    if (modules !== 'all') {
+      expect(modules.has('worship')).toBe(true);
+      expect(modules.has('community')).toBe(true);
+      expect(modules.has('finance-basic')).toBe(true);
+      expect(modules.has('accounting')).toBe(false);
+    }
+  });
+
+  it('grants every module on an active Pro subscription', async () => {
+    await admin
+      .update(platformSubscriptions)
+      .set({ plan: 'pro', status: 'active' })
+      .where(eq(platformSubscriptions.organizationId, orgId));
+
+    const modules = await billing$.getEntitledModules(ownerCtx);
+    expect(modules).not.toBe('all');
+    if (modules !== 'all') expect(modules.has('accounting')).toBe(true);
+  });
+
+  it('falls back to Starter when a subscription is past_due or canceled', async () => {
+    await admin
+      .update(platformSubscriptions)
+      .set({ status: 'canceled' })
+      .where(eq(platformSubscriptions.organizationId, orgId));
+
+    const modules = await billing$.getEntitledModules(ownerCtx);
+    expect(modules).not.toBe('all');
+    if (modules !== 'all') expect(modules.size).toBe(0);
+  });
+
+  it('fails open (unrestricted) for a legacy org with no subscription row', async () => {
+    await admin
+      .delete(platformSubscriptions)
+      .where(eq(platformSubscriptions.organizationId, orgId));
+
+    const modules = await billing$.getEntitledModules(ownerCtx);
+    expect(modules).toBe('all');
+
+    // Recreate the row so afterAll's cleanup (and any later test) has something to delete/find.
+    await admin.insert(platformSubscriptions).values({
+      organizationId: orgId,
+      plan: 'trial',
+      status: 'trialing',
+    });
   });
 });
 

@@ -2,7 +2,7 @@ import { pgEnum, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { timestamps } from './helpers';
 import { organizations } from './tenancy';
 
-export const platformPlanEnum = pgEnum('platform_plan', ['trial', 'pro']);
+export const platformPlanEnum = pgEnum('platform_plan', ['trial', 'starter', 'growth', 'pro']);
 export const platformSubscriptionStatusEnum = pgEnum('platform_subscription_status', [
   'trialing',
   'active',

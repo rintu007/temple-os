@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: 'Opportunity' };
 
 export default async function OpportunityDetailPage({ params }: OpportunityDetailProps) {
   const { opportunityId } = await params;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
 
   const result = await volunteerService().getOpportunity(ctx, opportunityId);
   if (!result.ok) notFound();

@@ -3,7 +3,7 @@ import { sevaService } from '@/lib/services';
 
 /** Seva register CSV. Auth + sevas:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const result = await sevaService().exportCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

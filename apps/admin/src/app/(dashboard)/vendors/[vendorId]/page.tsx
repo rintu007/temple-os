@@ -41,7 +41,7 @@ function StatusBadge({ bill }: { bill: BillSummary }) {
 
 export default async function VendorDetailPage({ params }: VendorDetailProps) {
   const { vendorId } = await params;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
 
   const result = await vendorService().getVendorDetail(ctx, vendorId);
   if (!result.ok) notFound();

@@ -7,7 +7,7 @@ import { taxService } from '@/lib/services';
 export const metadata: Metadata = { title: '80G & tax' };
 
 export default async function TaxPage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await taxService().getProfile(ctx);
   if (!result.ok) {
     return <Alert tone="error">{result.error.message}</Alert>;

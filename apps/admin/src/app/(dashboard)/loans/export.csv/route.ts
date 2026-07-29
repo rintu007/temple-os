@@ -3,7 +3,7 @@ import { loanService } from '@/lib/services';
 
 /** Loan register CSV. Auth + loans:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await loanService().exportCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

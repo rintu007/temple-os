@@ -8,7 +8,7 @@ import { accountService, transferService } from '@/lib/services';
 export const metadata: Metadata = { title: 'Transfers' };
 
 export default async function TransfersPage() {
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('accounting');
 
   const [result, stats, accounts] = await Promise.all([
     transferService().listTransfers(ctx),

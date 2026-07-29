@@ -12,7 +12,7 @@ interface FundsPageProps {
 
 export default async function FundsPage({ searchParams }: FundsPageProps) {
   const { scope } = await searchParams;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const showAll = scope === 'all';
 
   const [result, stats] = await Promise.all([

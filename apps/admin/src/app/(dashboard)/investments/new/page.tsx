@@ -8,7 +8,7 @@ import { fundService } from '@/lib/services';
 export const metadata: Metadata = { title: 'Add investment' };
 
 export default async function NewInvestmentPage() {
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('accounting');
   const funds = await fundService().listActiveOptions(ctx);
 
   return (

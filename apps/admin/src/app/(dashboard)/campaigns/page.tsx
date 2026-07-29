@@ -14,7 +14,7 @@ const STATUS_VARIANT = {
 } as const;
 
 export default async function CampaignsPage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const result = await campaignService().listCampaigns(ctx);
   if (!result.ok) return <Alert tone="error">{result.error.message}</Alert>;
   const campaigns = result.value;

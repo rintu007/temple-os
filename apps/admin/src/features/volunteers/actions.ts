@@ -10,7 +10,7 @@ export async function createOpportunityAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const field = (name: string) => {
     const v = formData.get(name);
     return typeof v === 'string' ? v : '';
@@ -30,7 +30,7 @@ export async function setOpportunityStatusAction(
   opportunityId: string,
   status: 'open' | 'closed',
 ): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   await volunteerService().setOpportunityStatus(ctx, opportunityId, status);
   revalidatePath('/volunteers');
   revalidatePath(`/volunteers/${opportunityId}`);

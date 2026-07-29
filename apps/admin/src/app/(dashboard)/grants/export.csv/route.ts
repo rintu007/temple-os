@@ -3,7 +3,7 @@ import { grantService } from '@/lib/services';
 
 /** Grant register CSV. Auth + grants:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await grantService().exportCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

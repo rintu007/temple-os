@@ -7,7 +7,7 @@ import { pujaService } from '@/lib/services';
 export const metadata: Metadata = { title: 'Pujas' };
 
 export default async function PujasPage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const result = await pujaService().listPujaTypes(ctx);
   if (!result.ok) {
     return <Alert tone="error">{result.error.message}</Alert>;

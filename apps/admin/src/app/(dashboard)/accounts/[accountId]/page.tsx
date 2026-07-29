@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: 'Account' };
 
 export default async function AccountDetailPage({ params }: AccountDetailProps) {
   const { accountId } = await params;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('accounting');
 
   const result = await accountService().getPassbook(ctx, accountId);
   if (!result.ok) notFound();

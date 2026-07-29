@@ -3,7 +3,7 @@ import { employeeService } from '@/lib/services';
 
 /** Staff register CSV. Auth + payroll:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await employeeService().exportCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

@@ -27,7 +27,7 @@ const KIND_LABEL: Record<'in' | 'out' | 'adjust', string> = {
 
 export default async function InventoryItemPage({ params }: ItemPageProps) {
   const { itemId } = await params;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const [itemResult, movementsResult] = await Promise.all([
     inventoryService().getItem(ctx, itemId),
     inventoryService().listMovements(ctx, itemId),

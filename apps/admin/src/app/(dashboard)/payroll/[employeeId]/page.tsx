@@ -22,7 +22,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 export default async function EmployeeDetailPage({ params }: EmployeeDetailProps) {
   const { employeeId } = await params;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('accounting');
 
   const result = await employeeService().getEmployeeDetail(ctx, employeeId);
   if (!result.ok) notFound();

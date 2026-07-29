@@ -25,7 +25,7 @@ function vendorInputFromForm(formData: FormData) {
 }
 
 export async function createVendorAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await vendorService().createVendor(ctx, vendorInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/vendors');
@@ -37,7 +37,7 @@ export async function updateVendorAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await vendorService().updateVendor(ctx, vendorId, vendorInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/vendors');
@@ -46,7 +46,7 @@ export async function updateVendorAction(
 }
 
 export async function setVendorActiveAction(vendorId: string, isActive: boolean): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   await vendorService().setVendorActive(ctx, vendorId, isActive);
   revalidatePath('/vendors');
   revalidatePath(`/vendors/${vendorId}`);
@@ -57,7 +57,7 @@ export async function createBillAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await vendorService().createBill(ctx, vendorId, {
     billNumber: field(formData, 'billNumber'),
     description: field(formData, 'description'),
@@ -78,7 +78,7 @@ export async function recordPaymentAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await vendorService().recordPayment(ctx, billId, {
     amount: field(formData, 'amount'),
     method: field(formData, 'method'),
@@ -94,7 +94,7 @@ export async function recordPaymentAction(
 }
 
 export async function voidBillAction(vendorId: string, billId: string): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   await vendorService().voidBill(ctx, billId, { reason: 'Voided from vendor register' });
   revalidatePath(`/vendors/${vendorId}`);
   revalidatePath('/vendors');

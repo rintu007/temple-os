@@ -16,7 +16,7 @@ function formatDate(iso: string): string {
 }
 
 export default async function DarshanPage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const result = await darshanService().listSlots(ctx);
   if (!result.ok) {
     return <Alert tone="error">{result.error.message}</Alert>;

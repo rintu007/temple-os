@@ -32,7 +32,7 @@ export default async function MeetingsPage({ searchParams }: MeetingsPageProps) 
   const status = STATUS_TABS.includes(rawStatus as (typeof STATUS_TABS)[number])
     ? (rawStatus as (typeof STATUS_TABS)[number])
     : 'all';
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
 
   const result = await meetingService().listMeetings(ctx, status);
   if (!result.ok) {

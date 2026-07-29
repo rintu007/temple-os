@@ -38,7 +38,7 @@ export async function sendBroadcastAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('community');
 
   const subject = field(formData, 'subject');
   const message = field(formData, 'message');

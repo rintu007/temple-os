@@ -6,7 +6,7 @@ import { requireTenantContext } from '@/lib/session';
 export const metadata: Metadata = { title: 'Add membership plan' };
 
 export default async function NewPlanPage() {
-  const { membership } = await requireTenantContext();
+  const { membership } = await requireTenantContext('community');
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>

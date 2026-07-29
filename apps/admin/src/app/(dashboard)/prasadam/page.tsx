@@ -16,7 +16,7 @@ function formatDate(iso: string): string {
 }
 
 export default async function PrasadamPage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const [result, stats] = await Promise.all([
     prasadamService().listSessions(ctx),
     prasadamService().getStats(ctx),

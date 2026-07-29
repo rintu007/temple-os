@@ -8,7 +8,7 @@ import { employeeService } from '@/lib/services';
 export const metadata: Metadata = { title: 'Add loan' };
 
 export default async function NewLoanPage() {
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('accounting');
   const employees = await employeeService().listActiveOptions(ctx);
 
   return (

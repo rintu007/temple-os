@@ -10,7 +10,7 @@ export async function createFacilityAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const field = (name: string) => {
     const v = formData.get(name);
     return typeof v === 'string' ? v : '';
@@ -27,7 +27,7 @@ export async function createFacilityAction(
 }
 
 export async function toggleFacilityAction(facilityId: string, isActive: boolean): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   await facilityService().setFacilityActive(ctx, facilityId, isActive);
   revalidatePath('/facilities');
 }
@@ -37,7 +37,7 @@ export async function confirmBookingAction(
   _prev: FormState,
   _formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const result = await facilityService().confirmBooking(ctx, bookingId);
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/facilities/bookings');
@@ -45,7 +45,7 @@ export async function confirmBookingAction(
 }
 
 export async function cancelFacilityBookingAction(bookingId: string): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   await facilityService().cancelBooking(ctx, bookingId);
   revalidatePath('/facilities/bookings');
 }

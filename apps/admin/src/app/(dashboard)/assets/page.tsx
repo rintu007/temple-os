@@ -18,7 +18,7 @@ export default async function AssetsPage({ searchParams }: AssetsPageProps) {
   const status = STATUS_TABS.includes(rawStatus as (typeof STATUS_TABS)[number])
     ? (rawStatus as (typeof STATUS_TABS)[number])
     : 'active';
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
 
   const [result, stats] = await Promise.all([
     assetService().listAssets(ctx, status),

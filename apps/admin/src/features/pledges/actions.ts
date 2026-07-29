@@ -12,7 +12,7 @@ function field(formData: FormData, name: string) {
 }
 
 export async function createPledgeAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const result = await pledgeService().createPledge(ctx, {
     donorName: field(formData, 'donorName'),
     devoteeId: field(formData, 'devoteeId'),
@@ -32,7 +32,7 @@ export async function fulfilPledgeAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const result = await pledgeService().fulfilPledge(ctx, pledgeId, {
     amount: field(formData, 'amount'),
     method: field(formData, 'method'),
@@ -48,7 +48,7 @@ export async function fulfilPledgeAction(
 }
 
 export async function cancelPledgeAction(pledgeId: string): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   await pledgeService().cancelPledge(ctx, pledgeId, { reason: 'Cancelled from pledge register' });
   revalidatePath(`/pledges/${pledgeId}`);
   revalidatePath('/pledges');

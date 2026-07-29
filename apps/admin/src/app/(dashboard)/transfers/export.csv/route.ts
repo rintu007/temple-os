@@ -3,7 +3,7 @@ import { transferService } from '@/lib/services';
 
 /** Transfer register CSV. Auth + accounts:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await transferService().exportCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

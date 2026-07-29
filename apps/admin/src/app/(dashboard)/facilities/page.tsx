@@ -9,7 +9,7 @@ import { facilityService } from '@/lib/services';
 export const metadata: Metadata = { title: 'Facilities' };
 
 export default async function FacilitiesPage() {
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('worship');
   const result = await facilityService().listFacilities(ctx);
   if (!result.ok) return <Alert tone="error">{result.error.message}</Alert>;
   const facilities = result.value;

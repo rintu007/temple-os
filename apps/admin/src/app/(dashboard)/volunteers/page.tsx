@@ -7,7 +7,7 @@ import { volunteerService } from '@/lib/services';
 export const metadata: Metadata = { title: 'Volunteers' };
 
 export default async function VolunteersPage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const result = await volunteerService().listOpportunities(ctx);
   if (!result.ok) return <Alert tone="error">{result.error.message}</Alert>;
   const items = result.value;

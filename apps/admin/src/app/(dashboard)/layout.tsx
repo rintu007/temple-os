@@ -23,6 +23,7 @@ import {
   Landmark,
   LayoutDashboard,
   LineChart,
+  Lock,
   Mail,
   Package,
   PiggyBank,
@@ -45,11 +46,12 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { Badge, Button } from '@templeos/ui';
+import { Badge, Button, cn } from '@templeos/ui';
 import { NavLink } from '@/components/nav-link';
 import { signOutAction } from '@/features/auth/actions';
 import { NotificationBell } from '@/features/notifications/components/notification-bell';
 import { CommandPalette } from '@/features/search/components/command-palette';
+import { moduleForHref } from '@/lib/module-routes';
 import { notificationService } from '@/lib/services';
 import { requireTenantContext } from '@/lib/session';
 
@@ -132,9 +134,39 @@ const NAV_GROUPS: NavGroup[] = [
 ];
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
-  const { user, membership, ctx } = await requireTenantContext();
+  const { user, membership, ctx, entitledModules } = await requireTenantContext();
   const feedResult = await notificationService().getFeed(ctx);
   const feed = feedResult.ok ? feedResult.value : { items: [], unreadCount: 0 };
+
+  const isLocked = (href: string) => {
+    const mod = moduleForHref(href);
+    return mod !== null && entitledModules !== 'all' && !entitledModules.has(mod);
+  };
+
+  const navItem = ({ href, label, icon: Icon }: NavItem, className?: string) => {
+    if (isLocked(href)) {
+      return (
+        <Link
+          key={href}
+          href={`/billing?locked=${moduleForHref(href)}`}
+          className={cn(
+            'flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-muted-foreground/60 transition-colors hover:bg-muted/50 [&>svg]:size-4 [&>svg]:shrink-0',
+            className,
+          )}
+        >
+          <Icon aria-hidden />
+          {label}
+          <Lock className="ml-auto size-3" aria-hidden />
+        </Link>
+      );
+    }
+    return (
+      <NavLink key={href} href={href} className={className}>
+        <Icon aria-hidden />
+        {label}
+      </NavLink>
+    );
+  };
 
   const nav = (
     <nav className="flex flex-col gap-5">
@@ -145,14 +177,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               {group.label}
             </div>
           ) : null}
-          <div className="flex flex-col gap-0.5">
-            {group.items.map(({ href, label, icon: Icon }) => (
-              <NavLink key={href} href={href}>
-                <Icon aria-hidden />
-                {label}
-              </NavLink>
-            ))}
-          </div>
+          <div className="flex flex-col gap-0.5">{group.items.map((item) => navItem(item))}</div>
         </div>
       ))}
     </nav>
@@ -215,12 +240,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           {/* Mobile nav — horizontal scroll */}
           <div className="overflow-x-auto border-t border-border px-2 py-1.5 lg:hidden">
             <div className="flex w-max items-center gap-1">
-              {NAV_GROUPS.flatMap((g) => g.items).map(({ href, label, icon: Icon }) => (
-                <NavLink key={href} href={href} className="whitespace-nowrap">
-                  <Icon aria-hidden />
-                  {label}
-                </NavLink>
-              ))}
+              {NAV_GROUPS.flatMap((g) => g.items).map((item) => navItem(item, 'whitespace-nowrap'))}
             </div>
           </div>
         </header>

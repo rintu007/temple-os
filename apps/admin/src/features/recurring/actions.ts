@@ -30,7 +30,7 @@ export async function createRecurringAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const result = await recurringExpenseService().createRecurring(ctx, recurringInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/recurring');
@@ -42,7 +42,7 @@ export async function updateRecurringAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const result = await recurringExpenseService().updateRecurring(
     ctx,
     recurringId,
@@ -58,7 +58,7 @@ export async function setRecurringStatusAction(
   recurringId: string,
   status: RecurringStatus,
 ): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   await recurringExpenseService().setStatus(ctx, recurringId, status);
   revalidatePath('/recurring');
   revalidatePath(`/recurring/${recurringId}`);
@@ -70,7 +70,7 @@ export async function recordPaymentAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const detail = await recurringExpenseService().getDetail(ctx, recurringId);
   if (!detail.ok) return { error: detail.error.message };
   const r = detail.value.recurring;

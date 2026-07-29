@@ -25,7 +25,7 @@ const METHOD_LABELS: Record<string, string> = {
 /** Print-optimized payment voucher — the outgoing twin of the donation receipt. */
 export default async function ExpenseVoucherPage({ params }: VoucherPageProps) {
   const { expenseId } = await params;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('finance-basic');
 
   const result = await expenseService().getExpense(ctx, expenseId);
   if (!result.ok) notFound();

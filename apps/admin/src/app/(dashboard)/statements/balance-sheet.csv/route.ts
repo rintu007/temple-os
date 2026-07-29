@@ -3,7 +3,7 @@ import { statementService } from '@/lib/services';
 
 /** Balance sheet CSV. Auth + reports:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await statementService().exportBalanceSheetCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

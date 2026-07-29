@@ -8,7 +8,7 @@ import { campaignService } from '@/lib/services';
 export const metadata: Metadata = { title: 'Record pledge' };
 
 export default async function NewPledgePage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const campaigns = await campaignService().listActiveOptions(ctx);
 
   return (

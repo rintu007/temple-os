@@ -16,7 +16,7 @@ interface AssetPageProps {
 
 export default async function AssetPage({ params }: AssetPageProps) {
   const { assetId } = await params;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('accounting');
   const result = await assetService().getAsset(ctx, assetId);
   if (!result.ok) {
     if (result.error.code === 'NOT_FOUND') notFound();

@@ -27,7 +27,7 @@ function loanInput(formData: FormData) {
 }
 
 export async function createLoanAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await loanService().createLoan(ctx, loanInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/loans');
@@ -39,7 +39,7 @@ export async function updateLoanAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await loanService().updateLoan(ctx, loanId, loanInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/loans');
@@ -52,7 +52,7 @@ export async function recordRepaymentAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await loanService().recordRepayment(ctx, loanId, {
     amount: field(formData, 'amount'),
     paidOn: field(formData, 'paidOn'),
@@ -65,7 +65,7 @@ export async function recordRepaymentAction(
 }
 
 export async function setLoanStatusAction(loanId: string, status: LoanStatus): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   await loanService().setLoanStatus(ctx, loanId, status);
   revalidatePath('/loans');
   revalidatePath(`/loans/${loanId}`);

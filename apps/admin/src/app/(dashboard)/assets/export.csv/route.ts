@@ -3,7 +3,7 @@ import { assetService } from '@/lib/services';
 
 /** Asset register CSV download. Auth + assets:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await assetService().exportCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

@@ -24,7 +24,7 @@ function accountInput(formData: FormData) {
 }
 
 export async function createAccountAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await accountService().createAccount(ctx, accountInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/accounts');
@@ -36,7 +36,7 @@ export async function updateAccountAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await accountService().updateAccount(ctx, accountId, accountInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/accounts');
@@ -45,7 +45,7 @@ export async function updateAccountAction(
 }
 
 export async function setAccountActiveAction(accountId: string, isActive: boolean): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   await accountService().setAccountActive(ctx, accountId, isActive);
   revalidatePath('/accounts');
   revalidatePath(`/accounts/${accountId}`);

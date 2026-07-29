@@ -26,7 +26,7 @@ function sevaInput(formData: FormData) {
 }
 
 export async function createSevaAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const result = await sevaService().createSeva(ctx, sevaInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/sevas');
@@ -38,7 +38,7 @@ export async function updateSevaAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const result = await sevaService().updateSeva(ctx, sevaId, sevaInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/sevas');
@@ -50,7 +50,7 @@ export async function setSevaStatusAction(
   sevaId: string,
   status: 'active' | 'paused' | 'ended',
 ): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   await sevaService().setSevaStatus(ctx, sevaId, status);
   revalidatePath('/sevas');
   revalidatePath(`/sevas/${sevaId}`);
@@ -62,7 +62,7 @@ export async function recordSevaPaymentAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const detail = await sevaService().getSevaDetail(ctx, sevaId);
   if (!detail.ok) return { error: detail.error.message };
   const { seva } = detail.value;

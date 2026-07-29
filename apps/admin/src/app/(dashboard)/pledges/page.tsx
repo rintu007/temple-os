@@ -12,7 +12,7 @@ interface PledgesPageProps {
 
 export default async function PledgesPage({ searchParams }: PledgesPageProps) {
   const { q, scope } = await searchParams;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const showAll = scope === 'all';
 
   const [result, stats] = await Promise.all([

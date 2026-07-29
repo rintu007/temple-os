@@ -8,7 +8,7 @@ import { devoteeService } from '@/lib/services';
 export const metadata: Metadata = { title: 'Record offering' };
 
 export default async function NewInKindPage() {
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('finance-basic');
   const devotees = await devoteeService().listDevotees(ctx, { pageSize: 100 });
 
   return (

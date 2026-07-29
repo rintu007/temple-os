@@ -4,7 +4,7 @@ export type { BillingStatus, PlatformSubscriptionStatus } from './billing.types'
 export {
   createStripeBillingClient,
   stripeBillingFromEnv,
-  proPriceIdFromEnv,
+  priceIdForPlan,
   StripeBillingError,
   type StripeBillingClient,
   type StripeBillingConfig,

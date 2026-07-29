@@ -33,7 +33,7 @@ function formatQty(q: string | null, unit: string | null) {
 
 export default async function InKindPage({ searchParams }: InKindPageProps) {
   const { scope } = await searchParams;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const inStockOnly = scope !== 'all';
 
   const [result, stats] = await Promise.all([

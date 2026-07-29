@@ -25,7 +25,7 @@ function assetInputFromForm(formData: FormData) {
 }
 
 export async function createAssetAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await assetService().createAsset(ctx, assetInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/assets');
@@ -37,7 +37,7 @@ export async function updateAssetAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await assetService().updateAsset(ctx, assetId, assetInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/assets');
@@ -50,7 +50,7 @@ export async function disposeAssetAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const reason = formData.get('reason');
   const result = await assetService().disposeAsset(ctx, assetId, {
     reason: typeof reason === 'string' ? reason : '',

@@ -6,7 +6,7 @@ import { darshanService } from '@/lib/services';
 import { requireTenantContext } from '@/lib/session';
 
 export async function createSlotAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const field = (name: string) => {
     const v = formData.get(name);
     return typeof v === 'string' ? v : '';
@@ -30,20 +30,20 @@ export async function toggleSlotActiveAction(
   slotId: string,
   isActive: boolean,
 ): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   await darshanService().setSlotActive(ctx, slotId, isActive);
   revalidatePath('/darshan');
   revalidatePath(`/darshan/${slotId}`);
 }
 
 export async function markTokenUsedAction(slotId: string, tokenId: string): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   await darshanService().markTokenUsed(ctx, tokenId);
   revalidatePath(`/darshan/${slotId}`);
 }
 
 export async function cancelTokenAction(slotId: string, tokenId: string): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   await darshanService().cancelToken(ctx, tokenId);
   revalidatePath(`/darshan/${slotId}`);
 }

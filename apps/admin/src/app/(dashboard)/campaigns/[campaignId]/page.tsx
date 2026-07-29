@@ -21,7 +21,7 @@ const STATUS_VARIANT = {
 
 export default async function CampaignDetailPage({ params }: CampaignDetailProps) {
   const { campaignId } = await params;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
 
   const result = await campaignService().getCampaign(ctx, campaignId);
   if (!result.ok) notFound();

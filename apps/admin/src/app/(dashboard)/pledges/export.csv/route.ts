@@ -3,7 +3,7 @@ import { pledgeService } from '@/lib/services';
 
 /** Pledge register CSV download. Auth + donations:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const result = await pledgeService().exportCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

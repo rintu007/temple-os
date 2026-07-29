@@ -33,7 +33,7 @@ function formatDate(iso: string): string {
 
 export default async function DarshanSlotPage({ params }: SlotDetailProps) {
   const { slotId } = await params;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
 
   const [slotResult, tokensResult] = await Promise.all([
     darshanService().getSlot(ctx, slotId),

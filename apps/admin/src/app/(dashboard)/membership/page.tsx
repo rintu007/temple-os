@@ -14,7 +14,7 @@ function durationLabel(months: number): string {
 }
 
 export default async function MembershipPage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const [result, dueCount] = await Promise.all([
     membershipService().listPlans(ctx),
     membershipService().countRenewalsDue(ctx),

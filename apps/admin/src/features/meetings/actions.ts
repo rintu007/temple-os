@@ -28,7 +28,7 @@ export async function createMeetingAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const result = await meetingService().createMeeting(ctx, meetingInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/meetings');
@@ -40,7 +40,7 @@ export async function updateMeetingAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const result = await meetingService().updateMeeting(ctx, meetingId, meetingInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/meetings');

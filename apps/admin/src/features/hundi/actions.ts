@@ -10,7 +10,7 @@ export async function recordHundiCollectionAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const field = (name: string) => {
     const v = formData.get(name);
     return typeof v === 'string' ? v : '';

@@ -24,7 +24,7 @@ function grantInput(formData: FormData) {
 }
 
 export async function createGrantAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await grantService().createGrant(ctx, grantInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/grants');
@@ -36,7 +36,7 @@ export async function updateGrantAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await grantService().updateGrant(ctx, grantId, grantInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/grants');
@@ -48,7 +48,7 @@ export async function setGrantStatusAction(
   grantId: string,
   status: 'active' | 'closed',
 ): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   await grantService().setGrantStatus(ctx, grantId, status);
   revalidatePath('/grants');
   revalidatePath(`/grants/${grantId}`);

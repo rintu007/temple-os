@@ -4,7 +4,7 @@ import { statementService } from '@/lib/services';
 
 /** Income & Expenditure statement CSV. Auth + reports:read enforced in the service. */
 export async function GET(request: NextRequest) {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const { searchParams } = new URL(request.url);
   const range = { from: searchParams.get('from') ?? '', to: searchParams.get('to') ?? '' };
 

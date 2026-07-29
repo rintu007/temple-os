@@ -8,7 +8,7 @@ import { fundService, fundTransferService } from '@/lib/services';
 export const metadata: Metadata = { title: 'Fund reallocations' };
 
 export default async function FundTransfersPage() {
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('accounting');
 
   const [result, stats, funds] = await Promise.all([
     fundTransferService().listTransfers(ctx),

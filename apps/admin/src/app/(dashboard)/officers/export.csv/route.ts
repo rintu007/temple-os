@@ -3,7 +3,7 @@ import { officerService } from '@/lib/services';
 
 /** Office-bearers register CSV download. Auth + governance:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const result = await officerService().exportCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

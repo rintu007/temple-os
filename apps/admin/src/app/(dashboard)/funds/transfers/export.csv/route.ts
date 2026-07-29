@@ -3,7 +3,7 @@ import { fundTransferService } from '@/lib/services';
 
 /** Fund-reallocation CSV. Auth + funds:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await fundTransferService().exportCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

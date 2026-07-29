@@ -8,7 +8,7 @@ import { accountService } from '@/lib/services';
 export const metadata: Metadata = { title: 'Add standing order' };
 
 export default async function NewRecurringPage() {
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('finance-basic');
   const accounts = await accountService().listActiveOptions(ctx);
 
   return (

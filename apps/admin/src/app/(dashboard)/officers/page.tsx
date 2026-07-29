@@ -16,7 +16,7 @@ function formatDate(iso: string | null): string {
 }
 
 export default async function OfficersPage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const result = await officerService().listOfficers(ctx, 'all');
   if (!result.ok) {
     return <Alert tone="error">{result.error.message}</Alert>;

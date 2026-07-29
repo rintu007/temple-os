@@ -109,7 +109,7 @@ function SectionTable({
 
 export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
   const params = await searchParams;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const currentFy = financialYearOf(new Date());
   const fy = Number.isFinite(Number(params.fy)) && params.fy ? Number(params.fy) : currentFy;
 

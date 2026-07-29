@@ -6,7 +6,7 @@ import { requireTenantContext } from '@/lib/session';
 export const metadata: Metadata = { title: 'Add puja' };
 
 export default async function NewPujaPage() {
-  const { membership } = await requireTenantContext();
+  const { membership } = await requireTenantContext('worship');
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>

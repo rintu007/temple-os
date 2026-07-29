@@ -54,7 +54,7 @@ function EntryList({
 
 export default async function GrantDetailPage({ params }: GrantDetailProps) {
   const { grantId } = await params;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('accounting');
 
   const result = await grantService().getGrantDetail(ctx, grantId);
   if (!result.ok) notFound();

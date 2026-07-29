@@ -10,7 +10,7 @@ export async function createCampaignAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const field = (name: string) => {
     const v = formData.get(name);
     return typeof v === 'string' ? v : '';
@@ -29,7 +29,7 @@ export async function setCampaignStatusAction(
   campaignId: string,
   status: 'active' | 'completed' | 'archived',
 ): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   await campaignService().setCampaignStatus(ctx, campaignId, status);
   revalidatePath('/campaigns');
   revalidatePath(`/campaigns/${campaignId}`);

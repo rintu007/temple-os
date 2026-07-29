@@ -19,7 +19,7 @@ const METHOD_LABELS: Record<string, string> = {
 };
 
 export default async function ApprovalsPage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const [pending, settings] = await Promise.all([
     expenseService().listPendingApprovals(ctx),
     expenseService().getApprovalSettings(ctx),

@@ -3,7 +3,7 @@ import { recurringExpenseService } from '@/lib/services';
 
 /** Recurring-expense register CSV. Auth + expenses:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const result = await recurringExpenseService().exportCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

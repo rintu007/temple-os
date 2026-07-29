@@ -3,7 +3,7 @@ import { investmentService } from '@/lib/services';
 
 /** Investment register CSV. Auth + investments:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await investmentService().exportCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

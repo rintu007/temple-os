@@ -29,7 +29,7 @@ function formatDate(iso: string) {
 
 export default async function SevasPage({ searchParams }: SevasPageProps) {
   const { scope } = await searchParams;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const showAll = scope === 'all';
 
   const [result, stats] = await Promise.all([

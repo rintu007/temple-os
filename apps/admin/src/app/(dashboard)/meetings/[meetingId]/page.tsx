@@ -15,7 +15,7 @@ interface MeetingPageProps {
 
 export default async function MeetingPage({ params }: MeetingPageProps) {
   const { meetingId } = await params;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const result = await meetingService().getMeeting(ctx, meetingId);
   if (!result.ok) {
     if (result.error.code === 'NOT_FOUND') notFound();

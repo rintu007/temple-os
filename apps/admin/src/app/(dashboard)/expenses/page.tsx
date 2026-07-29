@@ -21,7 +21,7 @@ const METHOD_LABELS: Record<string, string> = {
 
 export default async function ExpensesPage({ searchParams }: ExpensesPageProps) {
   const { q, page } = await searchParams;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
 
   const [result, stats, pendingCount] = await Promise.all([
     expenseService().listExpenses(ctx, { search: q ?? '', page: page ?? 1 }),

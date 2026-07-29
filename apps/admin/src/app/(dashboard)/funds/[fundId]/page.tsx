@@ -54,7 +54,7 @@ function EntryList({
 
 export default async function FundDetailPage({ params }: FundDetailProps) {
   const { fundId } = await params;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
 
   const [result, stats] = await Promise.all([
     fundService().getFundDetail(ctx, fundId),

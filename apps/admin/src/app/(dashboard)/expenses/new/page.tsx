@@ -12,7 +12,7 @@ interface NewExpenseProps {
 
 export default async function NewExpensePage({ searchParams }: NewExpenseProps) {
   const { employee } = await searchParams;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('finance-basic');
   const [funds, accounts, employees, grants] = await Promise.all([
     fundService().listActiveOptions(ctx),
     accountService().listActiveOptions(ctx),

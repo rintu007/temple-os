@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: 'Office bearer' };
 
 export default async function OfficerDetailPage({ params }: OfficerDetailProps) {
   const { officerId } = await params;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
 
   const result = await officerService().getOfficer(ctx, officerId);
   if (!result.ok) notFound();

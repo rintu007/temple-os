@@ -8,7 +8,7 @@ import { devoteeService } from '@/lib/services';
 export const metadata: Metadata = { title: 'Add seva' };
 
 export default async function NewSevaPage() {
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('worship');
   const devotees = await devoteeService().listDevotees(ctx, { pageSize: 100 });
 
   return (

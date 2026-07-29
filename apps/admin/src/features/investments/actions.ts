@@ -31,7 +31,7 @@ export async function createInvestmentAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await investmentService().createInvestment(ctx, investmentInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/investments');
@@ -43,7 +43,7 @@ export async function updateInvestmentAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await investmentService().updateInvestment(
     ctx,
     investmentId,
@@ -59,7 +59,7 @@ export async function setInvestmentStatusAction(
   investmentId: string,
   status: InvestmentStatus,
 ): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   await investmentService().setInvestmentStatus(ctx, investmentId, status);
   revalidatePath('/investments');
   revalidatePath(`/investments/${investmentId}`);

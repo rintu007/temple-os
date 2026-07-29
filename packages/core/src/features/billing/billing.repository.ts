@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { platformSubscriptions, withTenantContext, type Db } from '@templeos/db';
+import type { PlatformPlan } from '@templeos/validators';
 import type { TenantContext } from '../../shared';
 import type { PlatformSubscriptionStatus } from './billing.types';
 
@@ -39,7 +40,7 @@ export function createBillingRepository(db: Db) {
     async syncFromStripe(
       organizationId: string,
       values: {
-        plan?: 'trial' | 'pro';
+        plan?: PlatformPlan;
         status: PlatformSubscriptionStatus;
         stripeCustomerId?: string;
         stripeSubscriptionId?: string | null;

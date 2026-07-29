@@ -34,7 +34,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const params = await searchParams;
   const from = params.from ?? firstOfMonth();
   const to = params.to ?? todayIso();
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
 
   const [result, expenseResult] = await Promise.all([
     reportService().getDonationReport(ctx, { from, to }),

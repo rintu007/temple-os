@@ -18,7 +18,7 @@ function fmtQty(value: string): string {
 export default async function InventoryPage({ searchParams }: InventoryPageProps) {
   const { status: rawStatus } = await searchParams;
   const status = rawStatus === 'all' ? 'all' : 'active';
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
 
   const [result, stats] = await Promise.all([
     inventoryService().listItems(ctx, status),

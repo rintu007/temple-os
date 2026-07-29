@@ -26,7 +26,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default async function InvestmentsPage({ searchParams }: InvestmentsPageProps) {
   const { scope } = await searchParams;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const showAll = scope === 'all';
 
   const [result, stats] = await Promise.all([

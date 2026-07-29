@@ -31,7 +31,7 @@ function formatDate(iso: string) {
 
 export default async function SevaDetailPage({ params }: SevaDetailProps) {
   const { sevaId } = await params;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('worship');
 
   const [result, devotees] = await Promise.all([
     sevaService().getSevaDetail(ctx, sevaId),

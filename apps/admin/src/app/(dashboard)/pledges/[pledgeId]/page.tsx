@@ -33,7 +33,7 @@ function formatDate(iso: string | null): string {
 
 export default async function PledgeDetailPage({ params }: PledgeDetailProps) {
   const { pledgeId } = await params;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
 
   const result = await pledgeService().getPledgeDetail(ctx, pledgeId);
   if (!result.ok) notFound();

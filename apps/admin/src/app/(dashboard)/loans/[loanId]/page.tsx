@@ -22,7 +22,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default async function LoanDetailPage({ params }: LoanDetailProps) {
   const { loanId } = await params;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('accounting');
 
   const [result, employees] = await Promise.all([
     loanService().getLoanDetail(ctx, loanId),

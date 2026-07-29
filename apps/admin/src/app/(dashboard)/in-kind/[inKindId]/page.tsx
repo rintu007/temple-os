@@ -32,7 +32,7 @@ const DISPOSITION_LABELS: Record<string, string> = {
 
 export default async function InKindDetailPage({ params }: InKindDetailProps) {
   const { inKindId } = await params;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('finance-basic');
 
   const [result, devotees] = await Promise.all([
     inKindService().getInKind(ctx, inKindId),

@@ -30,7 +30,7 @@ const METHOD_LABELS: Record<string, string> = {
 
 export default async function ExpenseDetailPage({ params }: ExpenseDetailProps) {
   const { expenseId } = await params;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
 
   const result = await expenseService().getExpense(ctx, expenseId);
   if (!result.ok) notFound();

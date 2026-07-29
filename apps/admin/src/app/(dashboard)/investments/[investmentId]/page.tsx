@@ -32,7 +32,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default async function InvestmentDetailPage({ params }: InvestmentDetailProps) {
   const { investmentId } = await params;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('accounting');
 
   const [result, funds, stats] = await Promise.all([
     investmentService().getInvestment(ctx, investmentId),

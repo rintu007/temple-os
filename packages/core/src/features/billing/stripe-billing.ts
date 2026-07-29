@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import type { PlatformPlan } from '@templeos/validators';
 
 /**
  * TempleOS's own subscription billing — separate Stripe integration from
@@ -14,6 +15,7 @@ export interface StripeBillingConfig {
 
 export interface CreateSubscriptionCheckoutParams {
   organizationId: string;
+  plan: PlatformPlan;
   priceId: string;
   /** Reuse the existing Stripe customer if this org has billed before. */
   existingCustomerId: string | null;
@@ -41,8 +43,10 @@ export function createStripeBillingClient({ secretKey, webhookSecret }: StripeBi
         mode: 'subscription',
         customer: params.existingCustomerId ?? undefined,
         line_items: [{ price: params.priceId, quantity: 1 }],
-        metadata: { organizationId: params.organizationId },
-        subscription_data: { metadata: { organizationId: params.organizationId } },
+        metadata: { organizationId: params.organizationId, plan: params.plan },
+        subscription_data: {
+          metadata: { organizationId: params.organizationId, plan: params.plan },
+        },
         success_url: params.successUrl,
         cancel_url: params.cancelUrl,
       });
@@ -82,7 +86,14 @@ export function stripeBillingFromEnv(): StripeBillingClient | null {
   });
 }
 
-/** The Stripe Price id for the Pro monthly plan — configured once in the Stripe dashboard. */
-export function proPriceIdFromEnv(): string | null {
-  return process.env.STRIPE_PRICE_PRO_MONTHLY ?? null;
+const PLAN_PRICE_ENV: Partial<Record<PlatformPlan, string>> = {
+  growth: 'STRIPE_PRICE_GROWTH_MONTHLY',
+  pro: 'STRIPE_PRICE_PRO_MONTHLY',
+};
+
+/** The Stripe Price id for a purchasable plan — configured once per plan in the Stripe dashboard. */
+export function priceIdForPlan(plan: PlatformPlan): string | null {
+  const envVar = PLAN_PRICE_ENV[plan];
+  if (!envVar) return null;
+  return process.env[envVar] ?? null;
 }

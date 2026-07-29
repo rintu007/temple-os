@@ -6,7 +6,7 @@ import { requireTenantContext } from '@/lib/session';
 export const metadata: Metadata = { title: 'New campaign' };
 
 export default async function NewCampaignPage() {
-  const { membership } = await requireTenantContext();
+  const { membership } = await requireTenantContext('finance-basic');
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">

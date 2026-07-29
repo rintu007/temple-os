@@ -25,7 +25,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default async function RecurringPage({ searchParams }: RecurringPageProps) {
   const { scope } = await searchParams;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const showAll = scope === 'all';
 
   const [result, stats] = await Promise.all([

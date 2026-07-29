@@ -10,7 +10,7 @@ export async function recordExpenseAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const field = (name: string) => {
     const v = formData.get(name);
     return typeof v === 'string' ? v : '';
@@ -42,7 +42,7 @@ export async function voidExpenseAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const reason = formData.get('reason');
   const result = await expenseService().voidExpense(ctx, expenseId, {
     reason: typeof reason === 'string' ? reason : '',
@@ -55,7 +55,7 @@ export async function voidExpenseAction(
 }
 
 export async function approveExpenseAction(expenseId: string): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   await expenseService().approveExpense(ctx, expenseId);
   revalidatePath('/expenses/approvals');
   revalidatePath(`/expenses/${expenseId}`);
@@ -67,7 +67,7 @@ export async function rejectExpenseAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const reason = formData.get('reason');
   const result = await expenseService().rejectExpense(ctx, expenseId, {
     reason: typeof reason === 'string' ? reason : '',
@@ -83,7 +83,7 @@ export async function setApprovalThresholdAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const threshold = formData.get('threshold');
   const result = await expenseService().setApprovalSettings(ctx, {
     threshold: typeof threshold === 'string' ? threshold : '',

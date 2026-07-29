@@ -3,7 +3,7 @@ import { inKindService } from '@/lib/services';
 
 /** In-kind offerings CSV. Auth + donations:read enforced in the service. */
 export async function GET() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('finance-basic');
   const result = await inKindService().exportCsv(ctx);
   if (!result.ok) {
     return new Response(result.error.message, {

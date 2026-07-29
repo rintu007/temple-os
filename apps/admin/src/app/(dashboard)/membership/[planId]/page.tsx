@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: 'Membership plan' };
 
 export default async function PlanDetailPage({ params }: PlanDetailProps) {
   const { planId } = await params;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('community');
 
   const plan = await membershipService().getPlan(ctx, planId);
   if (!plan.ok) notFound();

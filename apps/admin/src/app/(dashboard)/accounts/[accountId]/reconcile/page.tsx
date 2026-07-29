@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: 'Reconcile account' };
 
 export default async function ReconcilePage({ params }: ReconcilePageProps) {
   const { accountId } = await params;
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
 
   const result = await reconciliationService().getReconciliation(ctx, accountId);
   if (!result.ok) notFound();

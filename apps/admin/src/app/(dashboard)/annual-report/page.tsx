@@ -67,7 +67,7 @@ function StatementColumn({
 
 export default async function AnnualReportPage({ searchParams }: AnnualReportProps) {
   const { fy } = await searchParams;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('accounting');
 
   const currentStart = currentFyStartYear();
   const parsed = fy ? Number.parseInt(fy, 10) : currentStart;

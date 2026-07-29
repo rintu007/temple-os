@@ -283,7 +283,7 @@ async function BalanceSheetView({
 
 export default async function StatementPage({ searchParams }: StatementPageProps) {
   const params = await searchParams;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('accounting');
 
   const view: View = params.view === 'rnp' ? 'rnp' : params.view === 'bs' ? 'bs' : 'ie';
   const isRnp = view === 'rnp';

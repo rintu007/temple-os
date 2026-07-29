@@ -7,7 +7,7 @@ import { requireTenantContext } from '@/lib/session';
 export const metadata: Metadata = { title: 'Add asset' };
 
 export default async function NewAssetPage() {
-  const { membership } = await requireTenantContext();
+  const { membership } = await requireTenantContext('accounting');
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">

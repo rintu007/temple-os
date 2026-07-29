@@ -15,7 +15,7 @@ const STATUS_VARIANT: Record<BroadcastSummary['status'], 'success' | 'warning' |
 };
 
 export default async function CommunicationsPage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const [counts, history] = await Promise.all([
     communicationService().getSegmentCounts(ctx),
     communicationService().listBroadcasts(ctx),

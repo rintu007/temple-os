@@ -6,7 +6,7 @@ import { budgetService } from '@/lib/services';
 import { requireTenantContext } from '@/lib/session';
 
 export async function setBudgetAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const field = (name: string) => {
     const v = formData.get(name);
     return typeof v === 'string' ? v : '';
@@ -25,7 +25,7 @@ export async function setBudgetAction(_prev: FormState, formData: FormData): Pro
 }
 
 export async function removeBudgetAction(budgetId: string, fy: number): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   await budgetService().removeBudget(ctx, budgetId);
   revalidatePath('/budgets');
   void fy;

@@ -27,7 +27,7 @@ export default async function FacilityBookingsPage({ searchParams }: BookingsPag
   const status = TABS.includes(raw as (typeof TABS)[number])
     ? (raw as (typeof TABS)[number])
     : 'requested';
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
 
   const result = await facilityService().listBookings(ctx, status);
   if (!result.ok) return <Alert tone="error">{result.error.message}</Alert>;

@@ -22,7 +22,7 @@ function itemInputFromForm(formData: FormData) {
 }
 
 export async function createItemAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await inventoryService().createItem(ctx, itemInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/inventory');
@@ -34,7 +34,7 @@ export async function updateItemAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await inventoryService().updateItem(ctx, itemId, itemInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/inventory');
@@ -47,7 +47,7 @@ export async function recordMovementAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const field = (name: string) => {
     const v = formData.get(name);
     return typeof v === 'string' ? v : '';

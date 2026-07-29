@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: 'Priests' };
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default async function PriestsPage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const [priestsResult, rosterResult, todaysResult, leavesResult, templesResult] =
     await Promise.all([
       pujaService().listPriests(ctx),

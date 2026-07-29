@@ -25,7 +25,7 @@ function shiftDay(day: string, delta: number): string {
 export default async function SevaSchedulePage({ searchParams }: SchedulePageProps) {
   const { date } = await searchParams;
   const day = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : isoDate(new Date());
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
 
   const result = await pujaService().listSevaDay(ctx, day);
   if (!result.ok) return <Alert tone="error">{result.error.message}</Alert>;

@@ -7,7 +7,7 @@ import { requireTenantContext } from '@/lib/session';
 export const metadata: Metadata = { title: 'Add grant' };
 
 export default async function NewGrantPage() {
-  const { membership } = await requireTenantContext();
+  const { membership } = await requireTenantContext('accounting');
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">

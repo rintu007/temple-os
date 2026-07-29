@@ -22,7 +22,7 @@ function dueLabel(daysUntil: number): string {
 }
 
 export default async function RenewalsPage() {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const result = await membershipService().listRenewals(ctx);
   if (!result.ok) {
     return <Alert tone="error">{result.error.message}</Alert>;

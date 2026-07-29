@@ -29,7 +29,7 @@ export default async function PujaBookingsPage({ searchParams }: BookingsPagePro
   const status = STATUS_TABS.includes(rawStatus as (typeof STATUS_TABS)[number])
     ? (rawStatus as (typeof STATUS_TABS)[number])
     : 'confirmed';
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
 
   const [result, priestsResult] = await Promise.all([
     pujaService().listBookings(ctx, { status, page: page ?? 1 }),

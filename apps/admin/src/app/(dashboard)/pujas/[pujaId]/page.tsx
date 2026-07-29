@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: 'Puja' };
 
 export default async function PujaDetailPage({ params }: PujaDetailProps) {
   const { pujaId } = await params;
-  const { ctx, membership } = await requireTenantContext();
+  const { ctx, membership } = await requireTenantContext('worship');
 
   const puja = await pujaService().getPujaType(ctx, pujaId);
   if (!puja.ok) notFound();

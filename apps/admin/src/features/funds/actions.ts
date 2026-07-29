@@ -16,7 +16,7 @@ function fundInput(formData: FormData) {
 }
 
 export async function createFundAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await fundService().createFund(ctx, fundInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/funds');
@@ -28,7 +28,7 @@ export async function updateFundAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await fundService().updateFund(ctx, fundId, fundInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/funds');
@@ -37,7 +37,7 @@ export async function updateFundAction(
 }
 
 export async function setFundActiveAction(fundId: string, isActive: boolean): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   await fundService().setFundActive(ctx, fundId, isActive);
   revalidatePath('/funds');
   revalidatePath(`/funds/${fundId}`);

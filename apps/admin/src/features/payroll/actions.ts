@@ -28,7 +28,7 @@ export async function createEmployeeAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await employeeService().createEmployee(ctx, employeeInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/payroll');
@@ -40,7 +40,7 @@ export async function updateEmployeeAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   const result = await employeeService().updateEmployee(ctx, employeeId, employeeInput(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/payroll');
@@ -52,7 +52,7 @@ export async function setEmployeeActiveAction(
   employeeId: string,
   isActive: boolean,
 ): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('accounting');
   await employeeService().setEmployeeActive(ctx, employeeId, isActive);
   revalidatePath('/payroll');
   revalidatePath(`/payroll/${employeeId}`);

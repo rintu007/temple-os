@@ -23,7 +23,7 @@ export async function createPujaTypeAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const result = await pujaService().createPujaType(ctx, typeInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/pujas');
@@ -35,7 +35,7 @@ export async function updatePujaTypeAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const result = await pujaService().updatePujaType(ctx, typeId, typeInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath(`/pujas/${typeId}`);
@@ -44,20 +44,20 @@ export async function updatePujaTypeAction(
 }
 
 export async function deletePujaTypeAction(typeId: string): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   await pujaService().deletePujaType(ctx, typeId);
   revalidatePath('/pujas');
   redirect('/pujas');
 }
 
 export async function completeBookingAction(bookingId: string): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   await pujaService().markBookingCompleted(ctx, bookingId);
   revalidatePath('/pujas/bookings');
 }
 
 export async function cancelBookingAction(bookingId: string): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   await pujaService().cancelBooking(ctx, bookingId);
   revalidatePath('/pujas/bookings');
 }
@@ -65,7 +65,7 @@ export async function cancelBookingAction(bookingId: string): Promise<void> {
 // ---- Seva scheduling ----
 
 export async function addPriestAction(_prev: FormState, formData: FormData): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const field = (name: string) => {
     const v = formData.get(name);
     return typeof v === 'string' ? v : '';
@@ -82,7 +82,7 @@ export async function addPriestAction(_prev: FormState, formData: FormData): Pro
 }
 
 export async function togglePriestAction(priestId: string, isActive: boolean): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   await pujaService().setPriestActive(ctx, priestId, isActive);
   revalidatePath('/pujas/priests');
 }
@@ -93,7 +93,7 @@ export async function addDutyAssignmentAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const field = (name: string) => {
     const v = formData.get(name);
     return typeof v === 'string' ? v : '';
@@ -114,7 +114,7 @@ export async function addDutyAssignmentAction(
 }
 
 export async function removeDutyAssignmentAction(assignmentId: string): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   await pujaService().removeDutyAssignment(ctx, assignmentId);
   revalidatePath('/pujas/priests');
 }
@@ -125,7 +125,7 @@ export async function recordLeaveAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const field = (name: string) => {
     const v = formData.get(name);
     return typeof v === 'string' ? v : '';
@@ -142,7 +142,7 @@ export async function recordLeaveAction(
 }
 
 export async function deleteLeaveAction(leaveId: string): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   await pujaService().deleteLeave(ctx, leaveId);
   revalidatePath('/pujas/priests');
 }
@@ -152,7 +152,7 @@ export async function assignSevaAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('worship');
   const field = (name: string) => {
     const v = formData.get(name);
     return typeof v === 'string' ? v : '';

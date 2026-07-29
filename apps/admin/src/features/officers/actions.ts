@@ -27,7 +27,7 @@ export async function createOfficerAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const result = await officerService().createOfficer(ctx, officerInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/officers');
@@ -39,7 +39,7 @@ export async function updateOfficerAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   const result = await officerService().updateOfficer(ctx, officerId, officerInputFromForm(formData));
   if (!result.ok) return { error: result.error.message };
   revalidatePath('/officers');
@@ -51,7 +51,7 @@ export async function setOfficerActiveAction(
   officerId: string,
   isActive: boolean,
 ): Promise<void> {
-  const { ctx } = await requireTenantContext();
+  const { ctx } = await requireTenantContext('community');
   await officerService().setOfficerActive(ctx, officerId, isActive);
   revalidatePath('/officers');
   revalidatePath(`/officers/${officerId}`);
