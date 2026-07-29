@@ -14,7 +14,7 @@ export interface CreateBookingOrderResult {
 
 export async function createBookingOrder(
   organizationId: string,
-  organizationCurrency: 'INR' | 'BDT',
+  organizationCurrency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD',
   input: {
     pujaTypeId: string;
     devoteeName: string;

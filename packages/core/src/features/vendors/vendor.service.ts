@@ -69,7 +69,7 @@ export function createVendorService({ db }: { db: Db }) {
     billNumber: string;
     description: string | null;
     amount: string;
-    currency: 'INR' | 'BDT';
+    currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
     billDate: string;
     dueDate: string | null;
     note: string | null;

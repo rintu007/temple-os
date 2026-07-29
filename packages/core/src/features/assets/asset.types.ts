@@ -18,7 +18,7 @@ export interface AssetSummary {
   description: string | null;
   quantity: number;
   estimatedValue: string | null;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   acquiredOn: string | null;
   location: string | null;
   status: AssetStatus;
@@ -28,7 +28,7 @@ export interface AssetSummary {
 }
 
 export interface AssetStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   activeCount: number;
   /** Sum of estimatedValue × quantity across active assets. */
   activeValue: string;

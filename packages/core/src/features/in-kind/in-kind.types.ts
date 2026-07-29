@@ -10,7 +10,7 @@ export interface InKindSummary {
   quantity: string | null;
   unit: string | null;
   estimatedValue: string | null;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   receivedOn: string;
   disposition: InKindDisposition;
   disposalNote: string | null;
@@ -18,7 +18,7 @@ export interface InKindSummary {
 }
 
 export interface InKindStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   /** Count of offerings still held. */
   inStockCount: number;
   /** Total indicative value of offerings still held. */

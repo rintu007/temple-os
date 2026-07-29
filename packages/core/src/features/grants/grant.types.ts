@@ -29,13 +29,13 @@ export interface GrantLedgerEntry {
 
 export interface GrantDetail {
   grant: GrantSummary;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   receipts: GrantLedgerEntry[];
   utilizations: GrantLedgerEntry[];
 }
 
 export interface GrantStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   activeCount: number;
   /** Total unspent across active grants — money that must still be utilized. */
   totalUnspent: string;

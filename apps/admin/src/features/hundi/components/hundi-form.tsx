@@ -8,7 +8,7 @@ import { initialFormState } from '@/lib/form-state';
 import { recordHundiCollectionAction } from '../actions';
 
 interface HundiFormProps {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
 }
 
 export function HundiForm({ currency }: HundiFormProps) {

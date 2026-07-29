@@ -53,15 +53,15 @@ function threeDigits(n: number): string {
   return [head, tail].filter(Boolean).join(' ');
 }
 
-/** Integer part in Indian groups: crore, lakh, thousand, hundred-units. */
-function integerInWords(n: number): string {
+/** Integer part in South Asian groups: crore, lakh, thousand, hundred-units. */
+function integerInWordsSouthAsian(n: number): string {
   if (n === 0) return 'Zero';
   const crore = Math.floor(n / 10_000_000);
   const lakh = Math.floor((n % 10_000_000) / 100_000);
   const thousand = Math.floor((n % 100_000) / 1_000);
   const rest = n % 1_000;
   return [
-    crore ? `${integerInWords(crore)} Crore` : '',
+    crore ? `${integerInWordsSouthAsian(crore)} Crore` : '',
     lakh ? `${twoDigits(lakh)} Lakh` : '',
     thousand ? `${twoDigits(thousand)} Thousand` : '',
     rest ? threeDigits(rest) : '',
@@ -70,12 +70,45 @@ function integerInWords(n: number): string {
     .join(' ');
 }
 
+/** Integer part in international groups: billion, million, thousand, hundred-units. */
+function integerInWordsInternational(n: number): string {
+  if (n === 0) return 'Zero';
+  const billion = Math.floor(n / 1_000_000_000);
+  const million = Math.floor((n % 1_000_000_000) / 1_000_000);
+  const thousand = Math.floor((n % 1_000_000) / 1_000);
+  const rest = n % 1_000;
+  return [
+    billion ? `${threeDigits(billion)} Billion` : '',
+    million ? `${threeDigits(million)} Million` : '',
+    thousand ? `${threeDigits(thousand)} Thousand` : '',
+    rest ? threeDigits(rest) : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+}
+
+type Currency = 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
+
+/** India and Bangladesh both use the lakh/crore grouping; everywhere else uses thousand/million/billion. */
+const SOUTH_ASIAN_CURRENCIES: ReadonlySet<Currency> = new Set(['INR', 'BDT']);
+
+const UNITS: Record<Currency, { unit: string; subunit: string }> = {
+  INR: { unit: 'Rupees', subunit: 'Paise' },
+  BDT: { unit: 'Taka', subunit: 'Poisha' },
+  USD: { unit: 'Dollars', subunit: 'Cents' },
+  GBP: { unit: 'Pounds', subunit: 'Pence' },
+  CAD: { unit: 'Dollars', subunit: 'Cents' },
+  AUD: { unit: 'Dollars', subunit: 'Cents' },
+};
+
 /** "1250.50", "INR" → "Rupees One Thousand Two Hundred Fifty and Paise Fifty Only" */
-export function amountInWords(amount: string, currency: 'INR' | 'BDT'): string {
+export function amountInWords(amount: string, currency: Currency): string {
   const value = Number(amount);
   if (!Number.isFinite(value) || value < 0) return '';
-  const unit = currency === 'INR' ? 'Rupees' : 'Taka';
-  const subunit = currency === 'INR' ? 'Paise' : 'Poisha';
+  const { unit, subunit } = UNITS[currency];
+  const integerInWords = SOUTH_ASIAN_CURRENCIES.has(currency)
+    ? integerInWordsSouthAsian
+    : integerInWordsInternational;
   const whole = Math.floor(value);
   const fraction = Math.round((value - whole) * 100);
 

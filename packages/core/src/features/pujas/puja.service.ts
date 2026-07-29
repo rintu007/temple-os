@@ -39,7 +39,7 @@ export function createPujaService({ db }: { db: Db }) {
     name: string;
     description: string | null;
     price: string;
-    currency: 'INR' | 'BDT';
+    currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
     isActive: boolean;
   }): PujaTypeSummary => ({
     id: t.id,
@@ -57,7 +57,7 @@ export function createPujaService({ db }: { db: Db }) {
     email: string | null;
     phone: string | null;
     amount: string;
-    currency: 'INR' | 'BDT';
+    currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
     preferredDate: string | null;
     note: string | null;
     status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
@@ -250,7 +250,7 @@ export function createPujaService({ db }: { db: Db }) {
 
     async createBookingOrder(
       organizationId: string,
-      organizationCurrency: 'INR' | 'BDT',
+      organizationCurrency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD',
       rawInput: unknown,
     ): Promise<Result<BookingOrder>> {
       const razorpay = razorpayFromEnv();

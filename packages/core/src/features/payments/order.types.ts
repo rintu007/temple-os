@@ -1,4 +1,7 @@
-/** Provider-specific checkout hand-off. Razorpay opens an in-page modal; SSLCommerz redirects. */
+/** Global (non-INR/BDT) currencies — all route through Stripe Checkout. */
+export type GlobalCurrency = 'USD' | 'GBP' | 'CAD' | 'AUD';
+
+/** Provider-specific checkout hand-off. Razorpay opens an in-page modal; SSLCommerz and Stripe redirect. */
 export type DonationOrder =
   | {
       kind: 'razorpay';
@@ -11,12 +14,16 @@ export type DonationOrder =
   | {
       kind: 'sslcommerz';
       gatewayUrl: string;
+    }
+  | {
+      kind: 'stripe';
+      gatewayUrl: string;
     };
 
 export interface ConfirmedDonation {
   receiptNumber: string;
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | GlobalCurrency;
   donorName: string;
   /** Donor email captured at order time — for receipt emails on server-side confirms. */
   email: string | null;

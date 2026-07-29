@@ -56,7 +56,7 @@ export function createDonationService({ db }: { db: Db }) {
     devoteeName?: string | null;
     categoryName?: string | null;
     amount: string;
-    currency: 'INR' | 'BDT';
+    currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
     method: DonationSummary['method'];
     reference: string | null;
     note: string | null;

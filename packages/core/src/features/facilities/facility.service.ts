@@ -28,7 +28,7 @@ function toFacility(row: {
   description: string | null;
   capacity: number | null;
   rentAmount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   isActive: boolean;
 }): FacilitySummary {
   return {
@@ -52,7 +52,7 @@ function toBooking(row: {
   eventDate: string;
   purpose: string | null;
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   status: 'requested' | 'confirmed' | 'cancelled';
   note: string | null;
   createdAt: Date;

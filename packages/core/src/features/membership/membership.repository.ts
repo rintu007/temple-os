@@ -396,7 +396,7 @@ export function createMembershipRepository(db: Db) {
         email: string | null;
         phone: string | null;
         amount: string;
-        currency: 'INR' | 'BDT';
+        currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
         providerOrderId: string;
       },
     ) {

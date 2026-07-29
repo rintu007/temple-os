@@ -19,6 +19,7 @@ import { createOrganizationService } from '../organizations/organization.service
 import { createPaymentService } from './payment.service';
 import { razorpayFromEnv } from './razorpay';
 import { sslcommerzFromEnv } from './sslcommerz';
+import { stripeFromEnv } from './stripe';
 
 const hasDb = Boolean(process.env.DATABASE_URL && process.env.DATABASE_URL_ADMIN);
 const hasRazorpay = razorpayFromEnv() !== null;
@@ -75,6 +76,8 @@ describe.skipIf(!hasDb || !hasRazorpay)('payments: order + confirm (live Razorpa
     expect(service.isOnlineCheckoutAvailable('INR')).toBe(true);
     // BDT rides on SSLCommerz — available exactly when its credentials exist.
     expect(service.isOnlineCheckoutAvailable('BDT')).toBe(sslcommerzFromEnv() !== null);
+    // Every other currency rides on Stripe — same rule.
+    expect(service.isOnlineCheckoutAvailable('USD')).toBe(stripeFromEnv() !== null);
   });
 
   it('rejects a malformed order request', async () => {
@@ -91,6 +94,16 @@ describe.skipIf(!hasDb || !hasRazorpay)('payments: order + confirm (live Razorpa
     const rejected = await service.createDonationOrder({
       organizationId: orgId,
       organizationCurrency: 'BDT',
+      rawInput: { amount: 100, donorName: 'X' },
+    });
+    expect(rejected.ok).toBe(false);
+  });
+
+  it('rejects order creation for a USD organization when Stripe is not configured', async () => {
+    if (stripeFromEnv() !== null) return; // this env has Stripe configured — nothing to assert
+    const rejected = await service.createDonationOrder({
+      organizationId: orgId,
+      organizationCurrency: 'USD',
       rawInput: { amount: 100, donorName: 'X' },
     });
     expect(rejected.ok).toBe(false);

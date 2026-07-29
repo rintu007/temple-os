@@ -20,7 +20,7 @@ export interface ReconciliationRecord {
 export interface ReconciliationView {
   accountId: string;
   accountName: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   openingBalance: string;
   /** opening + all recorded receipts − all recorded payments. */
   bookBalance: string;

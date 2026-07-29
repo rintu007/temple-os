@@ -25,7 +25,7 @@ function toSummary(row: {
   description: string | null;
   quantity: number;
   estimatedValue: string | null;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   acquiredOn: string | null;
   location: string | null;
   status: AssetStatus;
@@ -50,7 +50,10 @@ function toSummary(row: {
   };
 }
 
-async function orgCurrency(db: Db, organizationId: string): Promise<'INR' | 'BDT'> {
+async function orgCurrency(
+  db: Db,
+  organizationId: string,
+): Promise<'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD'> {
   return withTenantContext(db, { organizationId }, async (tx) => {
     const [org] = await tx
       .select({ currency: organizations.currency })

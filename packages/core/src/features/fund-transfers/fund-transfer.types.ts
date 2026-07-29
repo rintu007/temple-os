@@ -11,7 +11,7 @@ export interface FundTransferSummary {
 }
 
 export interface FundTransferStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   count: number;
   total: string;
 }

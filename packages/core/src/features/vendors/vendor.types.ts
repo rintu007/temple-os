@@ -24,7 +24,7 @@ export interface BillSummary {
   billNumber: string;
   description: string | null;
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   billDate: string;
   dueDate: string | null;
   note: string | null;
@@ -43,7 +43,7 @@ export interface VendorDetail {
 }
 
 export interface PayablesStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   totalOutstanding: string;
   overdueOutstanding: string;
   openBillCount: number;

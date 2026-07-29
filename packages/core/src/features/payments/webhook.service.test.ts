@@ -41,6 +41,15 @@ describe('verifyWebhookSignature', () => {
   });
 });
 
+describe.skipIf(!hasDb)('handleStripeEvent without Stripe configured', () => {
+  it('reports not_configured rather than throwing', async () => {
+    const webhookServiceInstance = createWebhookService({ db: createDb() });
+    expect(webhookServiceInstance.isStripeConfigured()).toBe(false);
+    const result = await webhookServiceInstance.handleStripeEvent('{}', 't=1,v1=deadbeef');
+    expect(result.outcome).toBe('not_configured');
+  });
+});
+
 /**
  * Live suite: creates a REAL Razorpay test-mode order through the payment
  * service (which stores organizationId in the order notes), then delivers the

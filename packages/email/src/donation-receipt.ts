@@ -4,13 +4,20 @@ export interface DonationReceiptParams {
   organizationName: string;
   donorName: string;
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   receiptNumber: string;
   donatedAt: Date;
   categoryName?: string | null;
 }
 
-const CURRENCY_SYMBOL: Record<string, string> = { INR: '₹', BDT: '৳' };
+const CURRENCY_SYMBOL: Record<string, string> = {
+  INR: '₹',
+  BDT: '৳',
+  USD: '$',
+  GBP: '£',
+  CAD: 'C$',
+  AUD: 'A$',
+};
 
 export function renderDonationReceiptEmail(params: DonationReceiptParams): {
   subject: string;

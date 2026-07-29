@@ -64,6 +64,10 @@ export function CreateOrgForm() {
         <Select id="country" name="country" defaultValue="IN" required>
           <option value="IN">India (₹ INR)</option>
           <option value="BD">Bangladesh (৳ BDT)</option>
+          <option value="US">United States ($ USD)</option>
+          <option value="GB">United Kingdom (£ GBP)</option>
+          <option value="CA">Canada (C$ CAD)</option>
+          <option value="AU">Australia (A$ AUD)</option>
         </Select>
       </div>
 

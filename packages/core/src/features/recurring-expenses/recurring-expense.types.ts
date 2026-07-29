@@ -30,12 +30,12 @@ export interface RecurringExpensePayment {
 
 export interface RecurringExpenseDetail {
   recurring: RecurringExpenseSummary;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   payments: RecurringExpensePayment[];
 }
 
 export interface RecurringExpenseStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   activeCount: number;
   /** Sum of active standing orders normalised to a monthly figure. */
   monthlyEquivalent: string;

@@ -6,12 +6,32 @@ import { getDict, type Locale } from '@/i18n/dictionaries';
 import { confirmDonationOrder, createDonationOrder } from '../actions';
 import { loadRazorpayCheckout } from '../razorpay-types';
 
+type Currency = 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
+
 interface DonateFormProps {
   locale: Locale;
   organizationId: string;
   organizationName: string;
-  currency: 'INR' | 'BDT';
+  currency: Currency;
 }
+
+const CURRENCY_SYMBOLS: Record<Currency, string> = {
+  INR: '₹',
+  BDT: '৳',
+  USD: '$',
+  GBP: '£',
+  CAD: 'C$',
+  AUD: 'A$',
+};
+
+const CURRENCY_PROVIDER: Record<Currency, string> = {
+  INR: 'Razorpay',
+  BDT: 'SSLCommerz',
+  USD: 'Stripe',
+  GBP: 'Stripe',
+  CAD: 'Stripe',
+  AUD: 'Stripe',
+};
 
 const SUGGESTED_AMOUNTS = [101, 501, 1101, 2101];
 
@@ -32,9 +52,10 @@ export function DonateForm({ locale, organizationId, organizationName, currency 
     setError('');
     setStep('processing');
 
-    // BDT: SSLCommerz hosted checkout — the whole page redirects to the
-    // gateway and returns via /donation-complete. No script to load.
-    if (currency === 'BDT') {
+    // BDT (SSLCommerz) and USD/GBP/CAD/AUD (Stripe): hosted checkout — the
+    // whole page redirects to the gateway and returns via /donation-complete.
+    // No script to load, unlike Razorpay's in-page modal below.
+    if (currency !== 'INR') {
       const created = await createDonationOrder(organizationId, currency, {
         amount,
         donorName,
@@ -185,10 +206,10 @@ export function DonateForm({ locale, organizationId, organizationName, currency 
       <Button type="submit" className="w-full" disabled={step === 'processing'}>
         {step === 'processing'
           ? t.forms.processing
-          : t.forms.donateFor(`${currency === 'INR' ? '₹' : '৳'}${amount || '0'}`)}
+          : t.forms.donateFor(`${CURRENCY_SYMBOLS[currency]}${amount || '0'}`)}
       </Button>
       <p className="text-center text-xs text-muted-foreground">
-        {t.forms.poweredBy(currency === 'INR' ? 'Razorpay' : 'SSLCommerz')}
+        {t.forms.poweredBy(CURRENCY_PROVIDER[currency])}
       </p>
     </form>
   );

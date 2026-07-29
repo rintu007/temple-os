@@ -19,7 +19,7 @@ export interface BudgetSection {
 }
 
 export interface BudgetComparison {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   financialYear: number;
   income: BudgetSection;
   expense: BudgetSection;

@@ -15,11 +15,19 @@ export {
   type SslcommerzConfig,
   type SslcommerzValidation,
 } from './sslcommerz';
+export {
+  createStripeClient,
+  stripeFromEnv,
+  StripeClientError,
+  type StripeClient,
+  type StripeConfig,
+} from './stripe';
 export { createPaymentService, type PaymentService } from './payment.service';
 export {
   createWebhookService,
   verifyWebhookSignature,
   type WebhookOutcome,
+  type StripeWebhookOutcome,
   type WebhookService,
 } from './webhook.service';
-export type { ConfirmedDonation, DonationOrder } from './order.types';
+export type { ConfirmedDonation, DonationOrder, GlobalCurrency } from './order.types';

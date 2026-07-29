@@ -1,5 +1,10 @@
 import type { Db } from '@templeos/db';
-import { CURRENCY_BY_COUNTRY, createOrganizationSchema } from '@templeos/validators';
+import {
+  CURRENCY_BY_COUNTRY,
+  createOrganizationSchema,
+  type Country,
+  type Currency,
+} from '@templeos/validators';
 import {
   conflict,
   domainError,
@@ -35,8 +40,8 @@ export function createOrganizationService({ db, rootDomain }: OrganizationServic
     id: string;
     name: string;
     slug: string;
-    country: 'IN' | 'BD';
-    currency: 'INR' | 'BDT';
+    country: Country;
+    currency: Currency;
     status: 'pending' | 'active' | 'suspended';
   }): OrganizationSummary => ({
     id: org.id,

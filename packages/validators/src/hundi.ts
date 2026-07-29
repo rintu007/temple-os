@@ -2,12 +2,17 @@ import { z } from 'zod';
 
 /**
  * Standard note/coin denominations by currency, largest first — used by the
- * counting UI to lay out one row per denomination. INR and BDT share the same
- * face values in practice.
+ * counting UI to lay out one row per denomination. Whole-unit face values
+ * only (no sub-unit coins like cents/paise — hundi counting is note-and-coin
+ * by hand, not to the penny).
  */
-export const DENOMINATIONS: Record<'INR' | 'BDT', number[]> = {
+export const DENOMINATIONS: Record<'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD', number[]> = {
   INR: [2000, 500, 200, 100, 50, 20, 10, 5, 2, 1],
   BDT: [1000, 500, 200, 100, 50, 20, 10, 5, 2, 1],
+  USD: [100, 50, 20, 10, 5, 1],
+  GBP: [50, 20, 10, 5, 2, 1],
+  CAD: [100, 50, 20, 10, 5, 2, 1],
+  AUD: [100, 50, 20, 10, 5, 2, 1],
 };
 
 export const denominationLineSchema = z.object({

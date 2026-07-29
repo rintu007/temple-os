@@ -343,7 +343,7 @@ export function createPujaRepository(db: Db) {
         email: string | null;
         phone: string | null;
         amount: string;
-        currency: 'INR' | 'BDT';
+        currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
         preferredDate: string | null;
         note: string | null;
         providerOrderId: string;

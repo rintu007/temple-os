@@ -11,7 +11,7 @@ export interface TransferSummary {
 }
 
 export interface TransferStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   /** Number of transfers recorded. */
   count: number;
   /** Total value moved across all transfers (gross). */

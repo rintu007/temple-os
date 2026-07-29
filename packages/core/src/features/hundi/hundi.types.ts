@@ -10,7 +10,7 @@ export interface HundiCollectionSummary {
   countedOn: string;
   denominations: DenominationLine[] | null;
   totalAmount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   note: string | null;
   /** Receipt of the ledger entry this counting created. */
   receiptNumber: string;

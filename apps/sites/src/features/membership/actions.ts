@@ -14,7 +14,7 @@ export interface CreateJoinOrderResult {
 
 export async function createJoinOrder(
   organizationId: string,
-  organizationCurrency: 'INR' | 'BDT',
+  organizationCurrency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD',
   input: { planId: string; memberName: string; email: string; phone: string },
 ): Promise<CreateJoinOrderResult> {
   const result = await membershipService().createJoinOrder(

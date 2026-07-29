@@ -30,7 +30,7 @@ function LineTable({
   tailRow,
 }: {
   lines: StatementLine[];
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   leadRow?: { label: string; value: string };
   totalLabel: string;
   total: string;

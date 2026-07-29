@@ -20,7 +20,7 @@ export interface Receipt80G {
   donorName: string;
   donorPan: string | null;
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   method: string;
   categoryName: string | null;
   isVoid: boolean;

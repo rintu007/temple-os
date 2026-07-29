@@ -25,7 +25,7 @@ function toSummary(row: {
   createdAt: Date;
   sponsorReceiptNumber: string | null;
   sponsorAmount: string | null;
-  currency: 'INR' | 'BDT' | null;
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD' | null;
 }): PrasadamSessionSummary {
   return {
     id: row.id,

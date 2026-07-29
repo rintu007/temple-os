@@ -59,7 +59,7 @@ export function createAssetRepository(db: Db) {
       });
     },
 
-    async create(ctx: TenantContext, input: AssetInput, currency: 'INR' | 'BDT') {
+    async create(ctx: TenantContext, input: AssetInput, currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD') {
       return withTenantContext(db, guc(ctx), async (tx) => {
         const [row] = await tx
           .insert(assets)

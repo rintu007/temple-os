@@ -3,7 +3,7 @@ export interface PujaTypeSummary {
   name: string;
   description: string | null;
   price: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   isActive: boolean;
 }
 
@@ -13,7 +13,7 @@ export interface PublicPujaType {
   name: string;
   description: string | null;
   price: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
 }
 
 export interface PujaBookingSummary {
@@ -23,7 +23,7 @@ export interface PujaBookingSummary {
   email: string | null;
   phone: string | null;
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   preferredDate: string | null;
   note: string | null;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
@@ -61,7 +61,7 @@ export interface ConfirmedBooking {
   receiptNumber: string;
   pujaName: string;
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   devoteeName: string;
   /** True when another path (client confirm or webhook) already recorded it. */
   alreadyPaid: boolean;

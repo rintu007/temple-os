@@ -23,7 +23,7 @@ function toSummary(row: {
   countedOn: string;
   denominations: DenominationLine[] | null;
   totalAmount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   note: string | null;
   receiptNumber: string;
   status: 'recorded' | 'void';

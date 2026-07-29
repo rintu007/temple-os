@@ -30,7 +30,7 @@ export interface EmployeeDetail {
 }
 
 export interface PayrollStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   activeCount: number;
   /** Sum of expected monthly salaries across active staff. */
   monthlyPayroll: string;

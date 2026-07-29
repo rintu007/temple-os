@@ -24,7 +24,7 @@ function toSummary(row: {
   goalAmount: string;
   raisedAmount: string;
   donationCount: number;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   status: 'active' | 'completed' | 'archived';
   createdAt: Date;
 }): CampaignSummary {

@@ -1,16 +1,39 @@
 import { z } from 'zod';
 import { RESERVED_SLUGS, slugSchema } from './shared';
 
-export const countrySchema = z.enum(['IN', 'BD']);
+export const countrySchema = z.enum(['IN', 'BD', 'US', 'GB', 'CA', 'AU']);
 export type Country = z.infer<typeof countrySchema>;
 
-export const currencySchema = z.enum(['INR', 'BDT']);
+export const currencySchema = z.enum(['INR', 'BDT', 'USD', 'GBP', 'CAD', 'AUD']);
 export type Currency = z.infer<typeof currencySchema>;
 
-/** Launch markets: the organization's country determines currency and payment provider. */
+/** The organization's country determines currency and, in turn, payment provider. */
 export const CURRENCY_BY_COUNTRY: Record<Country, Currency> = {
   IN: 'INR',
   BD: 'BDT',
+  US: 'USD',
+  GB: 'GBP',
+  CA: 'CAD',
+  AU: 'AUD',
+};
+
+export const COUNTRY_NAMES: Record<Country, string> = {
+  IN: 'India',
+  BD: 'Bangladesh',
+  US: 'United States',
+  GB: 'United Kingdom',
+  CA: 'Canada',
+  AU: 'Australia',
+};
+
+/** Symbol shown next to amounts on donor-facing forms and receipts. */
+export const CURRENCY_SYMBOLS: Record<Currency, string> = {
+  INR: '₹',
+  BDT: '৳',
+  USD: '$',
+  GBP: '£',
+  CAD: 'C$',
+  AUD: 'A$',
 };
 
 /** What the onboarding form submits. Owner identity comes from the verified session, never the form. */

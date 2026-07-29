@@ -11,8 +11,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import { id, softDelete, timestamps } from './helpers';
 
-export const countryEnum = pgEnum('country', ['IN', 'BD']);
-export const currencyEnum = pgEnum('currency', ['INR', 'BDT']);
+export const countryEnum = pgEnum('country', ['IN', 'BD', 'US', 'GB', 'CA', 'AU']);
+export const currencyEnum = pgEnum('currency', ['INR', 'BDT', 'USD', 'GBP', 'CAD', 'AUD']);
 export const organizationStatusEnum = pgEnum('organization_status', [
   'pending',
   'active',

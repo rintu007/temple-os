@@ -34,7 +34,7 @@ export interface FundDetail {
 }
 
 export interface FundStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   totalBalance: string;
   activeCount: number;
 }

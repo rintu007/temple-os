@@ -4,6 +4,8 @@ import { organizations, withTenantContext, type Db } from '@templeos/db';
 import { createMembershipRepository } from '../membership/membership.repository';
 import { createPujaRepository } from '../pujas/puja.repository';
 import { createPaymentOrderRepository } from './order.repository';
+import { stripeFromEnv } from './stripe';
+import type { GlobalCurrency } from './order.types';
 
 /**
  * Razorpay webhook handling — the server-side complement to the client-driven
@@ -53,10 +55,25 @@ export type WebhookOutcome =
       email: string | null;
       receiptNumber: string;
       amount: string;
-      currency: 'INR' | 'BDT';
+      currency: 'INR' | 'BDT' | GlobalCurrency;
       donorName: string;
       /** Receipt line item for pujas/memberships, e.g. "Puja: Satyanarayan". */
       categoryName: string | null;
+    };
+
+export type StripeWebhookOutcome =
+  | { outcome: 'not_configured' }
+  | { outcome: 'invalid_signature' }
+  | { outcome: 'ignored'; reason: string }
+  | {
+      outcome: 'confirmed';
+      alreadyPaid: boolean;
+      organizationName: string;
+      email: string | null;
+      receiptNumber: string;
+      amount: string;
+      currency: 'INR' | 'BDT' | GlobalCurrency;
+      donorName: string;
     };
 
 export function createWebhookService({ db }: { db: Db }) {
@@ -175,6 +192,55 @@ export function createWebhookService({ db }: { db: Db }) {
         if (outcome) return outcome;
       }
       return { outcome: 'ignored', reason: 'order not found' };
+    },
+
+    isStripeConfigured(): boolean {
+      return Boolean(process.env.STRIPE_WEBHOOK_SECRET);
+    },
+
+    /**
+     * Stripe webhook — the server-side complement to confirmStripeDonation.
+     * Scoped to donations only (Stripe doesn't yet back puja/membership
+     * checkout), so it calls the donation repo directly rather than dispatch.
+     */
+    async handleStripeEvent(rawBody: string, signature: string): Promise<StripeWebhookOutcome> {
+      const stripe = stripeFromEnv();
+      if (!stripe || !stripe.webhookSecret) return { outcome: 'not_configured' };
+
+      const event = stripe.constructWebhookEvent(rawBody, signature);
+      if (!event) return { outcome: 'invalid_signature' };
+
+      if (event.type !== 'checkout.session.completed') {
+        return { outcome: 'ignored', reason: `event ${event.type}` };
+      }
+
+      const session = event.data.object as {
+        id: string;
+        payment_status?: string;
+        payment_intent?: string | null;
+        metadata?: Record<string, string> | null;
+      };
+      if (session.payment_status !== 'paid') {
+        return { outcome: 'ignored', reason: `payment_status ${session.payment_status}` };
+      }
+      const organizationId = session.metadata?.organizationId;
+      if (!organizationId) return { outcome: 'ignored', reason: 'no organizationId in metadata' };
+
+      const paymentIntentId =
+        typeof session.payment_intent === 'string' ? session.payment_intent : session.id;
+      const result = await orderRepo.confirmPaid(organizationId, session.id, paymentIntentId);
+      if (result.kind !== 'ok') return { outcome: 'ignored', reason: 'order not found' };
+
+      return {
+        outcome: 'confirmed',
+        alreadyPaid: result.alreadyPaid,
+        organizationName: await organizationName(organizationId),
+        email: result.email,
+        receiptNumber: result.donation.receiptNumber,
+        amount: result.donation.amount,
+        currency: result.donation.currency,
+        donorName: result.donation.donorName,
+      };
     },
   };
 }

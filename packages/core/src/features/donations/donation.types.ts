@@ -9,7 +9,7 @@ export interface DonationSummary {
   categoryName: string | null;
   /** Decimal string, e.g. '501.00' — never a float */
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   method: DonationMethod;
   reference: string | null;
   note: string | null;
@@ -26,7 +26,7 @@ export interface DonationPage {
 }
 
 export interface DonationStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   monthTotal: string;
   monthCount: number;
   allTimeTotal: string;
@@ -34,7 +34,7 @@ export interface DonationStats {
 
 /** A devotee's giving snapshot for their profile page. */
 export interface DevoteeGiving {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   lifetimeTotal: string;
   lifetimeCount: number;
   fyTotal: string;
@@ -50,7 +50,7 @@ export interface DevoteeGiving {
 export interface DevoteeStatement {
   fyStartYear: number;
   fyLabel: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   items: DonationSummary[];
   total: string;
   count: number;

@@ -44,7 +44,7 @@ function BreakdownCard({
 }: {
   title: string;
   rows: NamedTotal[];
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   empty: string;
 }) {
   const max = rows.reduce((m, r) => Math.max(m, Number(r.total)), 0);

@@ -22,7 +22,7 @@ function EntryList({
 }: {
   title: string;
   entries: GrantLedgerEntry[];
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   empty: string;
 }) {
   return (

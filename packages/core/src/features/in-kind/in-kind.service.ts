@@ -30,7 +30,7 @@ type InKindRow = {
   quantity: string | null;
   unit: string | null;
   estimatedValue: string | null;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   receivedOn: string;
   disposition: InKindSummary['disposition'];
   disposalNote: string | null;

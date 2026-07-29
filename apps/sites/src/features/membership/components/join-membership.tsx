@@ -11,7 +11,7 @@ interface PlanOption {
   name: string;
   description: string | null;
   price: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   durationMonths: number;
 }
 
@@ -19,7 +19,7 @@ interface JoinMembershipProps {
   locale: Locale;
   organizationId: string;
   organizationName: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   plans: PlanOption[];
 }
 

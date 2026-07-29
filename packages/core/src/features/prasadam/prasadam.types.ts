@@ -9,7 +9,7 @@ export interface PrasadamSessionSummary {
   /** Receipt of the sponsorship donation, when one was recorded. */
   sponsorReceiptNumber: string | null;
   sponsorAmount: string | null;
-  currency: 'INR' | 'BDT' | null;
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD' | null;
   note: string | null;
   createdAt: Date;
 }

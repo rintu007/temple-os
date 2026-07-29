@@ -4,7 +4,7 @@ export interface FacilitySummary {
   description: string | null;
   capacity: number | null;
   rentAmount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   isActive: boolean;
 }
 
@@ -18,7 +18,7 @@ export interface FacilityBookingSummary {
   eventDate: string;
   purpose: string | null;
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   status: 'requested' | 'confirmed' | 'cancelled';
   note: string | null;
   createdAt: Date;
@@ -31,5 +31,5 @@ export interface PublicFacility {
   description: string | null;
   capacity: number | null;
   rentAmount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
 }

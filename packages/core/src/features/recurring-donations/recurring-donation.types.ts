@@ -29,12 +29,12 @@ export interface RecurringDonationPayment {
 
 export interface RecurringDonationDetail {
   recurring: RecurringDonationSummary;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   payments: RecurringDonationPayment[];
 }
 
 export interface RecurringDonationStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   activeCount: number;
   /** Sum of active standing gifts normalised to a monthly figure. */
   monthlyEquivalent: string;

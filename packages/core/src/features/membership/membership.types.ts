@@ -3,7 +3,7 @@ export interface MembershipPlanSummary {
   name: string;
   description: string | null;
   price: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   durationMonths: number;
   isActive: boolean;
 }
@@ -14,7 +14,7 @@ export interface PublicMembershipPlan {
   name: string;
   description: string | null;
   price: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   durationMonths: number;
 }
 
@@ -26,7 +26,7 @@ export interface SubscriptionSummary {
   email: string | null;
   phone: string | null;
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   startsOn: string | null;
   expiresOn: string | null;
   status: 'pending' | 'active' | 'cancelled';
@@ -49,7 +49,7 @@ export interface RenewalItem {
   email: string | null;
   phone: string | null;
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   expiresOn: string;
   /** Whole days until expiry; negative when already lapsed. */
   daysUntil: number;
@@ -74,7 +74,7 @@ export interface ConfirmedJoin {
   planName: string;
   memberName: string;
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   expiresOn: string | null;
   /** True when another path (client confirm or webhook) already recorded it. */
   alreadyPaid: boolean;

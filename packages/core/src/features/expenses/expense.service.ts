@@ -38,7 +38,7 @@ export function createExpenseService({ db }: { db: Db }) {
     paidTo: string;
     categoryName?: string | null;
     amount: string;
-    currency: 'INR' | 'BDT';
+    currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
     method: ExpenseSummary['method'];
     reference: string | null;
     note: string | null;

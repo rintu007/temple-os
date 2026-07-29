@@ -113,7 +113,7 @@ export function createCampaignRepository(db: Db) {
       );
     },
 
-    async create(ctx: TenantContext, input: CampaignInput, currency: 'INR' | 'BDT') {
+    async create(ctx: TenantContext, input: CampaignInput, currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD') {
       return withTenantContext(db, guc(ctx), async (tx) => {
         const [row] = await tx
           .insert(campaigns)

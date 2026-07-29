@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import type { UpcomingKind } from '@templeos/core';
+import { COUNTRY_NAMES, type Country } from '@templeos/validators';
 import {
   Badge,
   Card,
@@ -404,7 +405,7 @@ export default async function DashboardPage() {
               <div>
                 <dt className="text-muted-foreground">Country</dt>
                 <dd className="mt-0.5 font-medium">
-                  {membership.country === 'IN' ? 'India' : 'Bangladesh'}
+                  {COUNTRY_NAMES[membership.country as Country] ?? membership.country}
                 </dd>
               </div>
               <div>

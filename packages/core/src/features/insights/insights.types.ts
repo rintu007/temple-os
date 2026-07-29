@@ -1,4 +1,4 @@
-export type Currency = 'INR' | 'BDT';
+export type Currency = 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
 
 export type ReminderKind =
   | 'pledge'

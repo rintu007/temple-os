@@ -40,7 +40,7 @@ export function createPledgeService({ db }: { db: Db }) {
     campaignId: string | null;
     campaignTitle: string | null;
     amount: string;
-    currency: 'INR' | 'BDT';
+    currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
     pledgedOn: string;
     dueDate: string | null;
     note: string | null;

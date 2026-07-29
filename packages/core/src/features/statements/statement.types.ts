@@ -4,7 +4,7 @@ export interface StatementLine {
 }
 
 export interface IncomeExpenditureStatement {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   from: string;
   to: string;
   income: StatementLine[];
@@ -21,7 +21,7 @@ export interface IncomeExpenditureStatement {
  * openingBalance + receiptsTotal = paymentsTotal + closingBalance.
  */
 export interface ReceiptsAndPaymentsStatement {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   from: string;
   to: string;
   openingBalance: string;
@@ -38,7 +38,7 @@ export interface ReceiptsAndPaymentsStatement {
  * two sides always agree: assetsTotal = liabilitiesTotal + fundsTotal.
  */
 export interface BalanceSheet {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   asOf: string;
   assets: StatementLine[];
   assetsTotal: string;

@@ -30,12 +30,12 @@ export interface LoanRepaymentEntry {
 
 export interface LoanDetail {
   loan: LoanSummary;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   repayments: LoanRepaymentEntry[];
 }
 
 export interface LoanStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   /** Outstanding across active loans the temple gave out (money owed to it). */
   receivable: string;
   /** Outstanding across active loans the temple took (money it owes). */

@@ -27,7 +27,7 @@ export interface InvestmentSummary {
 }
 
 export interface InvestmentStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   /** Principal across active holdings — the corpus currently parked. */
   totalInvested: string;
   /** Sum of active maturity values (falls back to principal when not stated). */

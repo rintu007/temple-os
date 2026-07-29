@@ -37,7 +37,7 @@ function StatementColumn({
   lines: StatementLine[];
   total: string;
   totalLabel: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   empty: string;
 }) {
   return (

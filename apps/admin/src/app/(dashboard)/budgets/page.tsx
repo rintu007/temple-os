@@ -18,7 +18,7 @@ function SectionTable({
   fy,
 }: {
   section: BudgetSection;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   fy: number;
 }) {
   const isIncome = section.kind === 'income';

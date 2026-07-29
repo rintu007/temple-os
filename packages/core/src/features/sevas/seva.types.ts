@@ -29,12 +29,12 @@ export interface SevaPayment {
 
 export interface SevaDetail {
   seva: SevaSummary;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   payments: SevaPayment[];
 }
 
 export interface SevaStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   activeCount: number;
   /** Sum of one occurrence across all active sevas — the recurring run-rate. */
   perCycleValue: string;

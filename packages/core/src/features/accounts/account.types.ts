@@ -35,12 +35,12 @@ export interface AccountMovement {
 
 export interface AccountPassbook {
   account: AccountSummary;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   movements: AccountMovement[];
 }
 
 export interface AccountStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   totalBalance: string;
   activeCount: number;
 }

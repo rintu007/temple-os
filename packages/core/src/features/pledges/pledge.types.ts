@@ -7,7 +7,7 @@ export interface PledgeSummary {
   campaignId: string | null;
   campaignTitle: string | null;
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   pledgedOn: string;
   dueDate: string | null;
   note: string | null;
@@ -34,7 +34,7 @@ export interface PledgeDetail {
 }
 
 export interface PledgeStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   totalPledged: string;
   totalOutstanding: string;
   overdueOutstanding: string;

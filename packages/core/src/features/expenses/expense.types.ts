@@ -6,7 +6,7 @@ export interface ExpenseSummary {
   paidTo: string;
   categoryName: string | null;
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   method: ExpenseMethod;
   reference: string | null;
   note: string | null;
@@ -18,7 +18,7 @@ export interface ExpenseSummary {
 }
 
 export interface ExpenseApprovalSettings {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   threshold: string | null;
 }
 
@@ -30,7 +30,7 @@ export interface ExpensePage {
 }
 
 export interface ExpenseStats {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   allTimeTotal: string;
   monthTotal: string;
   monthCount: number;

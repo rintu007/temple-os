@@ -50,7 +50,7 @@ export function createMembershipService({ db }: { db: Db }) {
     name: string;
     description: string | null;
     price: string;
-    currency: 'INR' | 'BDT';
+    currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
     durationMonths: number;
     isActive: boolean;
   }): MembershipPlanSummary => ({
@@ -70,7 +70,7 @@ export function createMembershipService({ db }: { db: Db }) {
     email: string | null;
     phone: string | null;
     amount: string;
-    currency: 'INR' | 'BDT';
+    currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
     startsOn: string | null;
     expiresOn: string | null;
     status: 'pending' | 'active' | 'cancelled';
@@ -241,7 +241,7 @@ export function createMembershipService({ db }: { db: Db }) {
 
     async createJoinOrder(
       organizationId: string,
-      organizationCurrency: 'INR' | 'BDT',
+      organizationCurrency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD',
       rawInput: unknown,
     ): Promise<Result<JoinOrder>> {
       const razorpay = razorpayFromEnv();

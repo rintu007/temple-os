@@ -6,7 +6,7 @@ export interface ReportBucket {
 }
 
 export interface DonationReport {
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   from: string | null;
   to: string | null;
   /** Recorded (non-void) donations only. */

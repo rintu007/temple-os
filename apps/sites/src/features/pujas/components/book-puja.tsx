@@ -11,14 +11,14 @@ interface PujaOption {
   name: string;
   description: string | null;
   price: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
 }
 
 interface BookPujaProps {
   locale: Locale;
   organizationId: string;
   organizationName: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   pujaTypes: PujaOption[];
 }
 

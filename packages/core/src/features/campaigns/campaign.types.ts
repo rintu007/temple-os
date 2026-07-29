@@ -5,7 +5,7 @@ export interface CampaignSummary {
   goalAmount: string;
   raisedAmount: string;
   donationCount: number;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   status: 'active' | 'completed' | 'archived';
   createdAt: Date;
 }
@@ -17,7 +17,7 @@ export interface PublicCampaign {
   description: string | null;
   goalAmount: string;
   raisedAmount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD';
   /** Whole-percent progress, capped at 100 for the bar. */
   percent: number;
 }

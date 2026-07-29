@@ -10,7 +10,7 @@ import {
   withTenantContext,
   type Db,
 } from '@templeos/db';
-import type { CreateOrganizationInput } from '@templeos/validators';
+import type { CreateOrganizationInput, Currency } from '@templeos/validators';
 import type { SystemContext, TenantContext } from '../../shared';
 import { SYSTEM_ROLES, type OwnerIdentity } from './organization.types';
 
@@ -39,7 +39,7 @@ export function createOrganizationRepository(db: Db) {
     async provision(
       ctx: SystemContext,
       input: CreateOrganizationInput & {
-        currency: 'INR' | 'BDT';
+        currency: Currency;
         hostname: string;
         owner: OwnerIdentity;
       },

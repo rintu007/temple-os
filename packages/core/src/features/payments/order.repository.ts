@@ -9,12 +9,13 @@ import {
   type Db,
 } from '@templeos/db';
 import { allocateReceiptNumber, findOrCreateCategory } from '../donations/donation.repository';
+import type { GlobalCurrency } from './order.types';
 
 export interface CreatePaymentOrderValues {
   providerOrderId: string;
-  provider: 'razorpay' | 'sslcommerz';
+  provider: 'razorpay' | 'sslcommerz' | 'stripe';
   amount: string;
-  currency: 'INR' | 'BDT';
+  currency: 'INR' | 'BDT' | GlobalCurrency;
   donorName: string;
   email: string | null;
   phone: string | null;
@@ -137,7 +138,7 @@ export function createPaymentOrderRepository(db: Db) {
           after: {
             receiptNumber: donation.receiptNumber,
             amount: donation.amount,
-            provider: 'razorpay',
+            provider: order.provider,
             providerPaymentId,
           },
         });

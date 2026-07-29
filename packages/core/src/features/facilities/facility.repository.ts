@@ -27,7 +27,7 @@ export function createFacilityRepository(db: Db) {
       );
     },
 
-    async createFacility(ctx: TenantContext, input: FacilityInput, currency: 'INR' | 'BDT') {
+    async createFacility(ctx: TenantContext, input: FacilityInput, currency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD') {
       return withTenantContext(db, guc(ctx), async (tx) => {
         const [row] = await tx
           .insert(facilities)

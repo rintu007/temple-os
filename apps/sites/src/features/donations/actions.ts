@@ -26,7 +26,7 @@ async function callbackBaseUrl(): Promise<string> {
 /** organizationId/organizationName/currency are bound server-side from the resolved tenant page. */
 export async function createDonationOrder(
   organizationId: string,
-  organizationCurrency: 'INR' | 'BDT',
+  organizationCurrency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD',
   input: {
     amount: string;
     donorName: string;
@@ -51,6 +51,7 @@ export async function createDonationOrder(
       keyId: result.value.keyId,
     };
   }
+  // sslcommerz / stripe — both redirect flows.
   return { ok: true, redirectUrl: result.value.gatewayUrl };
 }
 
