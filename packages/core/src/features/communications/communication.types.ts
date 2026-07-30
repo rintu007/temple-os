@@ -1,8 +1,11 @@
-import type { BroadcastSegment } from '@templeos/validators';
+import type { BroadcastChannel, BroadcastSegment } from '@templeos/validators';
 
 export interface BroadcastRecipient {
   name: string;
-  email: string;
+  /** Present when reachable by email — null if this recipient only has a phone. */
+  email: string | null;
+  /** Present when reachable by WhatsApp — null if this recipient only has an email. */
+  phone: string | null;
 }
 
 export interface SegmentCounts {
@@ -15,6 +18,7 @@ export interface BroadcastSummary {
   id: string;
   subject: string;
   segment: BroadcastSegment;
+  channel: BroadcastChannel;
   recipientCount: number;
   sentCount: number;
   failedCount: number;

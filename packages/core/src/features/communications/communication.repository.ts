@@ -10,7 +10,7 @@ import {
   type Db,
   type Tx,
 } from '@templeos/db';
-import type { BroadcastSegment } from '@templeos/validators';
+import type { BroadcastChannel, BroadcastSegment } from '@templeos/validators';
 import type { TenantContext } from '../../shared';
 
 export function createCommunicationRepository(db: Db) {
@@ -19,16 +19,23 @@ export function createCommunicationRepository(db: Db) {
     userId: ctx.userId,
   });
 
-  /** Base predicate: an active devotee we can actually email. */
-  const contactable = (organizationId: string) =>
-    and(
+  /** Base predicate: an active devotee we can actually reach on this channel. */
+  const contactable = (organizationId: string, channel: BroadcastChannel) => {
+    const field = channel === 'email' ? devotees.email : devotees.phone;
+    return and(
       eq(devotees.organizationId, organizationId),
       eq(devotees.status, 'active'),
-      isNotNull(devotees.email),
-      ne(devotees.email, ''),
+      isNotNull(field),
+      ne(field, ''),
     );
+  };
 
-  const segmentFilter = (ctx: TenantContext, segment: BroadcastSegment, tx: Tx) => {
+  const segmentFilter = (
+    ctx: TenantContext,
+    segment: BroadcastSegment,
+    channel: BroadcastChannel,
+    tx: Tx,
+  ) => {
     if (segment === 'donors') {
       const donorIds = tx
         .select({ id: donations.devoteeId })
@@ -40,7 +47,7 @@ export function createCommunicationRepository(db: Db) {
             isNotNull(donations.devoteeId),
           ),
         );
-      return and(contactable(ctx.organizationId), inArray(devotees.id, donorIds));
+      return and(contactable(ctx.organizationId, channel), inArray(devotees.id, donorIds));
     }
     if (segment === 'members') {
       const memberIds = tx
@@ -53,29 +60,29 @@ export function createCommunicationRepository(db: Db) {
             isNotNull(membershipSubscriptions.devoteeId),
           ),
         );
-      return and(contactable(ctx.organizationId), inArray(devotees.id, memberIds));
+      return and(contactable(ctx.organizationId, channel), inArray(devotees.id, memberIds));
     }
-    return contactable(ctx.organizationId);
+    return contactable(ctx.organizationId, channel);
   };
 
   return {
-    async recipients(ctx: TenantContext, segment: BroadcastSegment) {
+    async recipients(ctx: TenantContext, segment: BroadcastSegment, channel: BroadcastChannel) {
       return withTenantContext(db, guc(ctx), (tx) =>
         tx
-          .select({ name: devotees.fullName, email: devotees.email })
+          .select({ name: devotees.fullName, email: devotees.email, phone: devotees.phone })
           .from(devotees)
-          .where(segmentFilter(ctx, segment, tx))
+          .where(segmentFilter(ctx, segment, channel, tx))
           .orderBy(devotees.fullName),
       );
     },
 
-    async segmentCounts(ctx: TenantContext) {
+    async segmentCounts(ctx: TenantContext, channel: BroadcastChannel) {
       return withTenantContext(db, guc(ctx), async (tx) => {
         const countFor = async (segment: BroadcastSegment) => {
           const [row] = await tx
             .select({ value: count() })
             .from(devotees)
-            .where(segmentFilter(ctx, segment, tx));
+            .where(segmentFilter(ctx, segment, channel, tx));
           return row?.value ?? 0;
         };
         const [all, donors, members] = await Promise.all([
@@ -93,6 +100,7 @@ export function createCommunicationRepository(db: Db) {
         subject: string;
         message: string;
         segment: BroadcastSegment;
+        channel: BroadcastChannel;
         recipientCount: number;
         sentCount: number;
         failedCount: number;
@@ -115,6 +123,7 @@ export function createCommunicationRepository(db: Db) {
           after: {
             subject: values.subject,
             segment: values.segment,
+            channel: values.channel,
             sentCount: values.sentCount,
             failedCount: values.failedCount,
           },

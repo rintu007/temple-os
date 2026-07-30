@@ -33,6 +33,7 @@ Set on **both** projects unless noted. Use *Production* scope (Preview can share
 | `NEXT_PUBLIC_APP_URL` | `https://<admin>.vercel.app` (admin only) | Invite links + auth redirects |
 | `RESEND_API_KEY` | `re_…` | receipts, invites, contact notifications |
 | `RESEND_FROM_EMAIL` | optional | after verifying a domain in Resend; sandbox sender otherwise (sandbox only delivers to your own inbox) |
+| `WHATSAPP_ACCESS_TOKEN` / `WHATSAPP_PHONE_NUMBER_ID` | from Meta Business Manager → WhatsApp → API Setup | admin only. WhatsApp devotee broadcasts. Absent → WhatsApp option disabled in Communications, email still works. v1 sends free-form text, which Meta only delivers within 24h of the devotee last messaging the temple's WhatsApp number — reaching devotees outside that window needs an approved message template (not yet built). |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | `rzp_test_…` | test mode until go-live |
 | `SSLCOMMERZ_STORE_ID` / `SSLCOMMERZ_STORE_PASSWORD` | sandbox creds from developer.sslcommerz.com | BDT donations (Bangladesh orgs). Redirect flow via `/api/payments/sslcommerz/callback`. Absent → BDT checkout hidden. |
 | `SSLCOMMERZ_SANDBOX` | `false` for go-live | defaults to sandbox when unset |

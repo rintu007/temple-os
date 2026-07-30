@@ -9,9 +9,18 @@ export const BROADCAST_SEGMENT_LABELS: Record<BroadcastSegment, string> = {
   members: 'Current members',
 };
 
+export const BROADCAST_CHANNELS = ['email', 'whatsapp'] as const;
+export type BroadcastChannel = (typeof BROADCAST_CHANNELS)[number];
+
+export const BROADCAST_CHANNEL_LABELS: Record<BroadcastChannel, string> = {
+  email: 'Email',
+  whatsapp: 'WhatsApp',
+};
+
 export const composeBroadcastSchema = z.object({
   subject: z.string().trim().min(3, 'Add a subject line').max(150),
   message: z.string().trim().min(10, 'Write a longer message').max(5000),
   segment: z.enum(BROADCAST_SEGMENTS),
+  channel: z.enum(BROADCAST_CHANNELS).default('email'),
 });
 export type ComposeBroadcastInput = z.infer<typeof composeBroadcastSchema>;

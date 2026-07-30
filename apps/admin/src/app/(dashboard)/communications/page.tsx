@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
+import { isWhatsAppConfigured } from '@templeos/whatsapp';
 import type { BroadcastSummary } from '@templeos/core';
-import { BROADCAST_SEGMENT_LABELS } from '@templeos/validators';
+import { BROADCAST_CHANNEL_LABELS, BROADCAST_SEGMENT_LABELS } from '@templeos/validators';
 import { Alert, Badge } from '@templeos/ui';
 import { ComposeForm } from '@/features/communications/components/compose-form';
 import { requireTenantContext } from '@/lib/session';
@@ -16,13 +17,17 @@ const STATUS_VARIANT: Record<BroadcastSummary['status'], 'success' | 'warning' |
 
 export default async function CommunicationsPage() {
   const { ctx } = await requireTenantContext('community');
-  const [counts, history] = await Promise.all([
-    communicationService().getSegmentCounts(ctx),
+  const [emailCounts, whatsappCounts, history] = await Promise.all([
+    communicationService().getSegmentCounts(ctx, 'email'),
+    communicationService().getSegmentCounts(ctx, 'whatsapp'),
     communicationService().listBroadcasts(ctx),
   ]);
 
-  if (!counts.ok) {
-    return <Alert tone="error">{counts.error.message}</Alert>;
+  if (!emailCounts.ok) {
+    return <Alert tone="error">{emailCounts.error.message}</Alert>;
+  }
+  if (!whatsappCounts.ok) {
+    return <Alert tone="error">{whatsappCounts.error.message}</Alert>;
   }
 
   return (
@@ -30,14 +35,18 @@ export default async function CommunicationsPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Communications</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Email your devotees — festival notices, event reminders, appeals. Every send is logged.
+          Reach your devotees over email or WhatsApp — festival notices, event reminders, appeals.
+          Every send is logged.
         </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
         <section className="rounded-xl border border-border bg-card p-6 shadow-card">
           <h2 className="mb-4 text-sm font-medium text-muted-foreground">New broadcast</h2>
-          <ComposeForm counts={counts.value} />
+          <ComposeForm
+            countsByChannel={{ email: emailCounts.value, whatsapp: whatsappCounts.value }}
+            whatsappConfigured={isWhatsAppConfigured()}
+          />
         </section>
 
         <section className="space-y-3">
@@ -56,7 +65,7 @@ export default async function CommunicationsPage() {
                     <div className="min-w-0">
                       <div className="truncate font-medium">{b.subject}</div>
                       <div className="mt-0.5 text-sm text-muted-foreground">
-                        {BROADCAST_SEGMENT_LABELS[b.segment]} ·{' '}
+                        {BROADCAST_CHANNEL_LABELS[b.channel]} · {BROADCAST_SEGMENT_LABELS[b.segment]} ·{' '}
                         {b.sentAt.toLocaleDateString('en-IN', {
                           day: 'numeric',
                           month: 'short',

@@ -2,7 +2,13 @@
 
 import { revalidatePath } from 'next/cache';
 import { renderBroadcastEmail, sendEmail } from '@templeos/email';
-import { BROADCAST_SEGMENTS, type BroadcastSegment } from '@templeos/validators';
+import { sendWhatsApp, toWhatsAppNumber } from '@templeos/whatsapp';
+import {
+  BROADCAST_CHANNELS,
+  BROADCAST_SEGMENTS,
+  type BroadcastChannel,
+  type BroadcastSegment,
+} from '@templeos/validators';
 import type { FormState } from '@/lib/form-state';
 import { communicationService } from '@/lib/services';
 import { requireTenantContext } from '@/lib/session';
@@ -16,7 +22,11 @@ function isSegment(v: string): v is BroadcastSegment {
   return (BROADCAST_SEGMENTS as readonly string[]).includes(v);
 }
 
-/** Sends emails in small batches so we don't trip the provider's rate limit. */
+function isChannel(v: string): v is BroadcastChannel {
+  return (BROADCAST_CHANNELS as readonly string[]).includes(v);
+}
+
+/** Sends in small batches so we don't trip the provider's rate limit. */
 async function sendInBatches<T>(
   items: T[],
   size: number,
@@ -43,25 +53,40 @@ export async function sendBroadcastAction(
   const subject = field(formData, 'subject');
   const message = field(formData, 'message');
   const segmentRaw = field(formData, 'segment');
+  const channelRaw = field(formData, 'channel') || 'email';
   if (!isSegment(segmentRaw)) return { error: 'Choose a valid audience' };
-  const input = { subject, message, segment: segmentRaw };
+  if (!isChannel(channelRaw)) return { error: 'Choose a valid channel' };
+  const input = { subject, message, segment: segmentRaw, channel: channelRaw };
 
-  const recipientsResult = await communicationService().getRecipients(ctx, segmentRaw);
+  const recipientsResult = await communicationService().getRecipients(ctx, segmentRaw, channelRaw);
   if (!recipientsResult.ok) return { error: recipientsResult.error.message };
   const recipients = recipientsResult.value;
   if (recipients.length === 0) {
-    return { error: 'No devotees with an email address match that audience' };
+    return {
+      error:
+        channelRaw === 'email'
+          ? 'No devotees with an email address match that audience'
+          : 'No devotees with a phone number match that audience',
+    };
   }
 
-  const { sent, failed } = await sendInBatches(recipients, 5, async (r) => {
-    const { subject: subj, html } = renderBroadcastEmail({
-      organizationName: membership.organizationName,
-      subject,
-      message,
-      recipientName: r.name,
-    });
-    return sendEmail({ to: r.email, subject: subj, html });
-  });
+  const { sent, failed } =
+    channelRaw === 'email'
+      ? await sendInBatches(recipients, 5, async (r) => {
+          if (!r.email) return false;
+          const { subject: subj, html } = renderBroadcastEmail({
+            organizationName: membership.organizationName,
+            subject,
+            message,
+            recipientName: r.name,
+          });
+          return sendEmail({ to: r.email, subject: subj, html });
+        })
+      : await sendInBatches(recipients, 5, async (r) => {
+          const to = r.phone ? toWhatsAppNumber(r.phone, membership.country) : null;
+          if (!to) return false;
+          return sendWhatsApp({ to, body: `*${subject}*\n\n${message}` });
+        });
 
   const recorded = await communicationService().recordBroadcast(ctx, input, {
     recipientCount: recipients.length,

@@ -1,6 +1,7 @@
 import type { Db } from '@templeos/db';
 import {
   composeBroadcastSchema,
+  type BroadcastChannel,
   type BroadcastSegment,
   type ComposeBroadcastInput,
 } from '@templeos/validators';
@@ -24,16 +25,23 @@ function firstIssue(error: { issues: Array<{ message: string }> }) {
   return domainError('VALIDATION', error.issues[0]?.message ?? 'Invalid input');
 }
 
-/** Dedupe by lowercased email so a shared family address is mailed once. */
-function dedupe(rows: Array<{ name: string; email: string | null }>): BroadcastRecipient[] {
+/**
+ * Dedupe by the channel's contact field (lowercased email, or phone as
+ * stored) so a shared family address/number is contacted once.
+ */
+function dedupe(
+  rows: Array<{ name: string; email: string | null; phone: string | null }>,
+  channel: BroadcastChannel,
+): BroadcastRecipient[] {
   const seen = new Set<string>();
   const out: BroadcastRecipient[] = [];
   for (const row of rows) {
-    if (!row.email) continue;
-    const key = row.email.trim().toLowerCase();
+    const raw = channel === 'email' ? row.email : row.phone;
+    if (!raw) continue;
+    const key = channel === 'email' ? raw.trim().toLowerCase() : raw.trim();
     if (!key || seen.has(key)) continue;
     seen.add(key);
-    out.push({ name: row.name, email: row.email.trim() });
+    out.push({ name: row.name, email: row.email?.trim() ?? null, phone: row.phone?.trim() ?? null });
   }
   return out;
 }
@@ -42,25 +50,29 @@ export function createCommunicationService({ db }: { db: Db }) {
   const repo = createCommunicationRepository(db);
 
   return {
-    /** Live per-segment reach for the compose screen. */
-    async getSegmentCounts(ctx: TenantContext): Promise<Result<SegmentCounts>> {
+    /** Live per-segment reach for the compose screen, for the given channel. */
+    async getSegmentCounts(
+      ctx: TenantContext,
+      channel: BroadcastChannel = 'email',
+    ): Promise<Result<SegmentCounts>> {
       const auth = authorize(ctx, 'communications:read');
       if (!auth.ok) return auth;
-      return ok(await repo.segmentCounts(ctx));
+      return ok(await repo.segmentCounts(ctx, channel));
     },
 
     /**
-     * The deduped recipient list for a segment. Write-gated because it exposes
-     * devotee email addresses and is the precursor to actually sending.
+     * The deduped recipient list for a segment/channel. Write-gated because it
+     * exposes devotee contact details and is the precursor to actually sending.
      */
     async getRecipients(
       ctx: TenantContext,
       segment: BroadcastSegment,
+      channel: BroadcastChannel = 'email',
     ): Promise<Result<BroadcastRecipient[]>> {
       const auth = authorize(ctx, 'communications:write');
       if (!auth.ok) return auth;
-      const rows = await repo.recipients(ctx, segment);
-      return ok(dedupe(rows));
+      const rows = await repo.recipients(ctx, segment, channel);
+      return ok(dedupe(rows, channel));
     },
 
     /**
@@ -90,6 +102,7 @@ export function createCommunicationService({ db }: { db: Db }) {
         subject: input.subject,
         message: input.message,
         segment: input.segment,
+        channel: input.channel,
         recipientCount: tally.recipientCount,
         sentCount: tally.sentCount,
         failedCount: tally.failedCount,
@@ -100,6 +113,7 @@ export function createCommunicationService({ db }: { db: Db }) {
         id: row.id,
         subject: row.subject,
         segment: row.segment,
+        channel: row.channel,
         recipientCount: row.recipientCount,
         sentCount: row.sentCount,
         failedCount: row.failedCount,
@@ -117,6 +131,7 @@ export function createCommunicationService({ db }: { db: Db }) {
           id: row.id,
           subject: row.subject,
           segment: row.segment,
+          channel: row.channel,
           recipientCount: row.recipientCount,
           sentCount: row.sentCount,
           failedCount: row.failedCount,

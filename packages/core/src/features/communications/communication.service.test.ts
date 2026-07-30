@@ -36,6 +36,7 @@ describe.skipIf(!hasDb)('communications: devotee broadcasts (live db)', () => {
   const plainDevoteeId = newId();
   const noEmailDevoteeId = newId();
   const archivedDevoteeId = newId();
+  const phoneOnlyDevoteeId = newId();
 
   afterAll(async () => {
     if (orgId) {
@@ -67,10 +68,11 @@ describe.skipIf(!hasDb)('communications: devotee broadcasts (live db)', () => {
     ctx = { organizationId: orgId, userId: owner.userId, roleKey: 'owner', templeIds: null };
 
     await admin.insert(devotees).values([
-      { id: donorDevoteeId, organizationId: orgId, fullName: 'Aditi Donor', email: 'aditi@test.invalid', status: 'active' },
+      { id: donorDevoteeId, organizationId: orgId, fullName: 'Aditi Donor', email: 'aditi@test.invalid', phone: '9876500001', status: 'active' },
       { id: plainDevoteeId, organizationId: orgId, fullName: 'Bala Plain', email: 'bala@test.invalid', status: 'active' },
       { id: noEmailDevoteeId, organizationId: orgId, fullName: 'Chandra NoEmail', status: 'active' },
       { id: archivedDevoteeId, organizationId: orgId, fullName: 'Deep Archived', email: 'deep@test.invalid', status: 'archived' },
+      { id: phoneOnlyDevoteeId, organizationId: orgId, fullName: 'Esha PhoneOnly', phone: '9876500002', status: 'active' },
     ]);
 
     await admin.insert(donations).values({
@@ -121,14 +123,30 @@ describe.skipIf(!hasDb)('communications: devotee broadcasts (live db)', () => {
     expect(donors.ok && donors.value).toHaveLength(1);
   });
 
-  it('records a broadcast and derives delivery status', async () => {
+  it('counts and resolves WhatsApp reach separately from email, by phone instead', async () => {
+    const counts = await service.getSegmentCounts(ctx, 'whatsapp');
+    expect(counts.ok).toBe(true);
+    if (counts.ok) expect(counts.value.all).toBe(2); // Aditi + Esha (not Bala, who has no phone)
+
+    const all = await service.getRecipients(ctx, 'all', 'whatsapp');
+    expect(all.ok).toBe(true);
+    if (all.ok) {
+      expect(all.value.map((r) => r.name).sort()).toEqual(['Aditi Donor', 'Esha PhoneOnly']);
+      expect(all.value.map((r) => r.phone).sort()).toEqual(['9876500001', '9876500002']);
+    }
+  });
+
+  it('records a broadcast and derives delivery status, defaulting channel to email', async () => {
     const sent = await service.recordBroadcast(
       ctx,
       { subject: 'Temple festival this weekend', message: 'Please join us for the celebrations.', segment: 'all' },
       { recipientCount: 2, sentCount: 2, failedCount: 0 },
     );
     expect(sent.ok).toBe(true);
-    if (sent.ok) expect(sent.value.status).toBe('sent');
+    if (sent.ok) {
+      expect(sent.value.status).toBe('sent');
+      expect(sent.value.channel).toBe('email');
+    }
 
     const partial = await service.recordBroadcast(
       ctx,
@@ -136,6 +154,21 @@ describe.skipIf(!hasDb)('communications: devotee broadcasts (live db)', () => {
       { recipientCount: 2, sentCount: 1, failedCount: 1 },
     );
     expect(partial.ok && partial.value.status).toBe('partial');
+  });
+
+  it('records a WhatsApp broadcast with its own channel', async () => {
+    const sent = await service.recordBroadcast(
+      ctx,
+      {
+        subject: 'Aarti reminder',
+        message: 'Evening aarti starts at 7pm today.',
+        segment: 'all',
+        channel: 'whatsapp',
+      },
+      { recipientCount: 2, sentCount: 2, failedCount: 0 },
+    );
+    expect(sent.ok).toBe(true);
+    if (sent.ok) expect(sent.value.channel).toBe('whatsapp');
   });
 
   it('validates the compose input', async () => {
@@ -152,8 +185,9 @@ describe.skipIf(!hasDb)('communications: devotee broadcasts (live db)', () => {
     const list = await service.listBroadcasts(ctx);
     expect(list.ok).toBe(true);
     if (list.ok) {
-      expect(list.value).toHaveLength(2);
-      expect(list.value[0]?.subject).toBe('Second notice about the mela');
+      expect(list.value).toHaveLength(3);
+      expect(list.value[0]?.subject).toBe('Aarti reminder');
+      expect(list.value[0]?.channel).toBe('whatsapp');
     }
   });
 
