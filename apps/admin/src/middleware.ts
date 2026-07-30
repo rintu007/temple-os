@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createSupabaseServerClient } from '@templeos/auth';
 
-const AUTH_PAGES = ['/login', '/signup'];
+const AUTH_PAGES = ['/login', '/signup', '/forgot-password'];
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
