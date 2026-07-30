@@ -162,6 +162,32 @@ export function createEventRepository(db: Db) {
           .limit(limit),
       );
     },
+
+    /** Public site: the full calendar, paginated — published only. */
+    async publicList(
+      organizationId: string,
+      query: { scope: 'upcoming' | 'past'; page: number; pageSize: number },
+    ) {
+      return withTenantContext(db, { organizationId }, async (tx) => {
+        const where = and(
+          eq(events.organizationId, organizationId),
+          eq(events.isPublished, true),
+          notDeleted,
+          scopeFilter(query.scope),
+        );
+        const [items, [totalRow]] = await Promise.all([
+          tx
+            .select()
+            .from(events)
+            .where(where)
+            .orderBy(query.scope === 'upcoming' ? asc(events.startsAt) : desc(events.startsAt))
+            .limit(query.pageSize)
+            .offset((query.page - 1) * query.pageSize),
+          tx.select({ value: count() }).from(events).where(where),
+        ]);
+        return { items, total: totalRow?.value ?? 0 };
+      });
+    },
   };
 }
 

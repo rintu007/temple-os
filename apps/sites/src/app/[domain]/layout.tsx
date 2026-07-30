@@ -24,6 +24,7 @@ export default async function TenantLayout({ children, params }: TenantLayoutPro
     { href: '/about', label: t.nav.about },
     { href: '/gallery', label: t.nav.gallery },
     { href: '/blog', label: t.nav.blog },
+    { href: '/events', label: t.nav.events },
     { href: '/volunteer', label: t.nav.volunteer },
     { href: '/darshan', label: t.nav.darshan },
     { href: '/facilities', label: t.nav.facilities },

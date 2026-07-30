@@ -19,3 +19,10 @@ export interface EventPage {
 
 /** What the public tenant site renders — published events only. */
 export type PublicEvent = Omit<EventSummary, 'isPublished'>;
+
+export interface PublicEventPage {
+  items: PublicEvent[];
+  total: number;
+  page: number;
+  pageSize: number;
+}

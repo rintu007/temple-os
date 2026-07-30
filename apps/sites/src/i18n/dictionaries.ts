@@ -15,6 +15,7 @@ export interface Dict {
     about: string;
     gallery: string;
     blog: string;
+    events: string;
     contact: string;
     donate: string;
     volunteer: string;
@@ -86,6 +87,7 @@ export interface Dict {
     calendarEyebrow: string;
     upcomingEvents: string;
     festival: string;
+    viewAllEvents: string;
     servicesEyebrow: string;
     bookPuja: string;
     communityEyebrow: string;
@@ -113,6 +115,17 @@ export interface Dict {
     readMore: string;
     by: (name: string) => string;
     back: string;
+  };
+  events: {
+    eyebrow: string;
+    title: string;
+    none: string;
+    upcoming: string;
+    past: string;
+    festival: string;
+    prev: string;
+    next: string;
+    pageOf: (page: number, pages: number) => string;
   };
   contact: {
     eyebrow: string;
@@ -180,6 +193,7 @@ const en: Dict = {
     about: 'About',
     gallery: 'Gallery',
     blog: 'Blog',
+    events: 'Events',
     contact: 'Contact',
     donate: 'Donate',
     volunteer: 'Volunteer',
@@ -255,6 +269,7 @@ const en: Dict = {
     calendarEyebrow: 'Calendar',
     upcomingEvents: 'Upcoming Events & Festivals',
     festival: 'Festival',
+    viewAllEvents: 'View full calendar',
     servicesEyebrow: 'Services',
     bookPuja: 'Book a Puja',
     communityEyebrow: 'Community',
@@ -283,6 +298,17 @@ const en: Dict = {
     readMore: 'Read more',
     by: (name) => `By ${name}`,
     back: '← All posts',
+  },
+  events: {
+    eyebrow: 'Calendar',
+    title: 'Events & Festivals',
+    none: 'Nothing on the calendar yet. Please check back soon.',
+    upcoming: 'Upcoming',
+    past: 'Past',
+    festival: 'Festival',
+    prev: 'Previous',
+    next: 'Next',
+    pageOf: (page, pages) => `Page ${page} of ${pages}`,
   },
   contact: {
     eyebrow: 'Contact',
@@ -353,6 +379,7 @@ const bn: Dict = {
     about: 'আমাদের সম্পর্কে',
     gallery: 'গ্যালারি',
     blog: 'ব্লগ',
+    events: 'অনুষ্ঠান',
     contact: 'যোগাযোগ',
     donate: 'দান করুন',
     volunteer: 'স্বেচ্ছাসেবা',
@@ -427,6 +454,7 @@ const bn: Dict = {
     calendarEyebrow: 'পঞ্জিকা',
     upcomingEvents: 'আসন্ন অনুষ্ঠান ও উৎসব',
     festival: 'উৎসব',
+    viewAllEvents: 'সম্পূর্ণ পঞ্জিকা দেখুন',
     servicesEyebrow: 'সেবা',
     bookPuja: 'পূজা বুক করুন',
     communityEyebrow: 'সম্প্রদায়',
@@ -455,6 +483,17 @@ const bn: Dict = {
     readMore: 'আরও পড়ুন',
     by: (name) => `লিখেছেন ${name}`,
     back: '← সব পোস্ট',
+  },
+  events: {
+    eyebrow: 'পঞ্জিকা',
+    title: 'অনুষ্ঠান ও উৎসব',
+    none: 'পঞ্জিকায় এখনো কিছু নেই। শীঘ্রই আবার দেখুন।',
+    upcoming: 'আসন্ন',
+    past: 'অতীত',
+    festival: 'উৎসব',
+    prev: 'পূর্ববর্তী',
+    next: 'পরবর্তী',
+    pageOf: (page, pages) => `পৃষ্ঠা ${page} / ${pages}`,
   },
   contact: {
     eyebrow: 'যোগাযোগ',

@@ -166,6 +166,30 @@ describe.skipIf(!hasDb)('events: CRUD, publish gating, isolation (live db)', () 
     expect(titles).not.toContain('Last Month Kirtan'); // past
   });
 
+  it('public calendar paginates and separates upcoming from past', async () => {
+    const upcoming = await service.listPublic(orgId, { scope: 'upcoming', pageSize: 25 });
+    expect(upcoming.ok).toBe(true);
+    if (upcoming.ok) {
+      expect(upcoming.value.total).toBe(2); // draft excluded
+      expect(upcoming.value.items.map((e) => e.title)).toEqual([
+        'Satsang Evening',
+        'Durga Puja',
+      ]);
+    }
+
+    const past = await service.listPublic(orgId, { scope: 'past' });
+    expect(past.ok).toBe(true);
+    if (past.ok) {
+      expect(past.value.total).toBe(1);
+      expect(past.value.items[0]?.title).toBe('Last Month Kirtan');
+    }
+
+    const firstPage = await service.listPublic(orgId, { scope: 'upcoming', pageSize: 1, page: 1 });
+    const secondPage = await service.listPublic(orgId, { scope: 'upcoming', pageSize: 1, page: 2 });
+    expect(firstPage.ok && firstPage.value.items[0]?.title).toBe('Satsang Evening');
+    expect(secondPage.ok && secondPage.value.items[0]?.title).toBe('Durga Puja');
+  });
+
   it('updates and deletes; viewer denied', async () => {
     const updated = await service.updateEvent(ctx(), eventId, {
       title: 'Satsang & Bhajan Evening',

@@ -9,6 +9,7 @@ import { getLocale } from '@/i18n/locale';
 import { DonateForm } from '@/features/donations/components/donate-form';
 import { JoinMembership } from '@/features/membership/components/join-membership';
 import { BookPuja } from '@/features/pujas/components/book-puja';
+import { formatEventWhen } from '@/lib/format-event';
 import {
   campaignService,
   eventService,
@@ -20,17 +21,6 @@ import {
   templeService,
   websiteService,
 } from '@/lib/services';
-
-function formatEventWhen(startsAt: Date, endsAt: Date | null, allDay: boolean): string {
-  const dateOpts = { day: 'numeric', month: 'short', year: 'numeric' } as const;
-  const start = startsAt.toLocaleDateString('en-IN', dateOpts);
-  if (endsAt && endsAt.toDateString() !== startsAt.toDateString()) {
-    return `${start} – ${endsAt.toLocaleDateString('en-IN', dateOpts)}`;
-  }
-  if (allDay) return start;
-  const time = startsAt.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
-  return `${start} · ${time}`;
-}
 
 interface TenantPageProps {
   params: Promise<{ domain: string }>;
@@ -264,6 +254,11 @@ export default async function TenantHomePage({ params }: TenantPageProps) {
               </li>
             ))}
           </ul>
+          <div className="mt-4 text-center">
+            <Link href="/events" className="text-sm font-medium text-primary hover:underline">
+              {t.home.viewAllEvents} →
+            </Link>
+          </div>
         </Section>
       ) : null}
 

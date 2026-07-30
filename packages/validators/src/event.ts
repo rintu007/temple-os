@@ -57,3 +57,11 @@ export const eventListQuerySchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).default(25),
 });
 export type EventListQuery = z.infer<typeof eventListQuerySchema>;
+
+/** Public tenant site: no search — devotees browse by scope + page only. */
+export const publicEventListQuerySchema = z.object({
+  scope: z.enum(['upcoming', 'past']).default('upcoming'),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(50).default(12),
+});
+export type PublicEventListQuery = z.infer<typeof publicEventListQuerySchema>;

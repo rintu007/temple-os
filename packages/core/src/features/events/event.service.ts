@@ -1,5 +1,10 @@
 import type { Db } from '@templeos/db';
-import { eventListQuerySchema, eventSchema, type EventInput } from '@templeos/validators';
+import {
+  eventListQuerySchema,
+  eventSchema,
+  publicEventListQuerySchema,
+  type EventInput,
+} from '@templeos/validators';
 import {
   authorize,
   domainError,
@@ -10,7 +15,7 @@ import {
   type TenantContext,
 } from '../../shared';
 import { createEventRepository, type EventWriteValues } from './event.repository';
-import type { EventPage, EventSummary, PublicEvent } from './event.types';
+import type { EventPage, EventSummary, PublicEvent, PublicEventPage } from './event.types';
 
 function firstIssue(error: { issues: Array<{ message: string }> }) {
   return domainError('VALIDATION', error.issues[0]?.message ?? 'Invalid input');
@@ -61,6 +66,26 @@ export function createEventService({ db }: { db: Db }) {
     endsAt: e.endsAt,
     allDay: e.allDay,
     isPublished: e.isPublished,
+  });
+
+  const toPublic = (e: {
+    id: string;
+    kind: 'event' | 'festival';
+    title: string;
+    description: string | null;
+    location: string | null;
+    startsAt: Date;
+    endsAt: Date | null;
+    allDay: boolean;
+  }): PublicEvent => ({
+    id: e.id,
+    kind: e.kind,
+    title: e.title,
+    description: e.description,
+    location: e.location,
+    startsAt: e.startsAt,
+    endsAt: e.endsAt,
+    allDay: e.allDay,
   });
 
   return {
@@ -123,16 +148,21 @@ export function createEventService({ db }: { db: Db }) {
     /** Public tenant site: published upcoming events and festivals. */
     async listPublicUpcoming(organizationId: string, limit = 10): Promise<PublicEvent[]> {
       const rows = await repo.publicUpcoming(organizationId, limit);
-      return rows.map((e) => ({
-        id: e.id,
-        kind: e.kind,
-        title: e.title,
-        description: e.description,
-        location: e.location,
-        startsAt: e.startsAt,
-        endsAt: e.endsAt,
-        allDay: e.allDay,
-      }));
+      return rows.map(toPublic);
+    },
+
+    /** Public tenant site: the full calendar page, paginated by upcoming/past. */
+    async listPublic(organizationId: string, rawQuery: unknown): Promise<Result<PublicEventPage>> {
+      const parsed = publicEventListQuerySchema.safeParse(rawQuery ?? {});
+      if (!parsed.success) return err(firstIssue(parsed.error));
+
+      const { items, total } = await repo.publicList(organizationId, parsed.data);
+      return ok({
+        items: items.map(toPublic),
+        total,
+        page: parsed.data.page,
+        pageSize: parsed.data.pageSize,
+      });
     },
   };
 }
