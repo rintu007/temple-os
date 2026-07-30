@@ -52,6 +52,9 @@ export async function requireTenantContext(requiredModule?: ModuleKey): Promise<
   const user = await requireUser();
   const membership = await getActiveMembership(user.id);
   if (!membership) redirect('/onboarding');
+  // Platform-admin action (packages/core/src/features/platform), not a billing
+  // lapse — deliberately does not touch the org's public donor-facing site.
+  if (membership.organizationStatus === 'suspended') redirect('/suspended');
   // null for the 5 system roles — authorize() falls back to its static map.
   // Only a custom role costs an extra query, and only once per request.
   const permissions = await roleService().resolvePermissions(

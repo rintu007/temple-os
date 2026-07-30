@@ -89,4 +89,78 @@ describe.skipIf(!hasDb)('platform: cross-tenant ops view (live db)', () => {
     expect(org?.mrrUsd).toBe(0);
     expect(result.value.totalOrganizations).toBeGreaterThan(0);
   });
+
+  it('gets one org detail, denying a non-platform-admin', async () => {
+    const denied = await platform$.getOrgDetail(owner.userId, orgId);
+    expect(denied.ok).toBe(false);
+    if (!denied.ok) expect(denied.error.code).toBe('FORBIDDEN');
+
+    const detail = await platform$.getOrgDetail(staffer.userId, orgId);
+    expect(detail.ok).toBe(true);
+    if (detail.ok) expect(detail.value.name).toBe('Platform Org');
+  });
+
+  it('rejects an all-empty override', async () => {
+    const result = await platform$.applySubscriptionOverride(staffer.userId, orgId, {});
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('VALIDATION');
+  });
+
+  it('denies an override from a non-platform-admin', async () => {
+    const result = await platform$.applySubscriptionOverride(owner.userId, orgId, { plan: 'pro' });
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error.code).toBe('FORBIDDEN');
+  });
+
+  it('comps a plan and marks the subscription active', async () => {
+    const applied = await platform$.applySubscriptionOverride(staffer.userId, orgId, {
+      plan: 'pro',
+      status: 'active',
+    });
+    expect(applied.ok).toBe(true);
+
+    const detail = await platform$.getOrgDetail(staffer.userId, orgId);
+    expect(detail.ok).toBe(true);
+    if (detail.ok) {
+      expect(detail.value.plan).toBe('pro');
+      expect(detail.value.subscriptionStatus).toBe('active');
+      expect(detail.value.mrrUsd).toBe(79);
+    }
+  });
+
+  it('extends the trial forward from the override date, not from scratch', async () => {
+    await admin
+      .update(platformSubscriptions)
+      .set({ plan: 'trial', status: 'trialing', trialEndsAt: new Date(Date.now() + 5 * 86_400_000) })
+      .where(eq(platformSubscriptions.organizationId, orgId));
+
+    const applied = await platform$.applySubscriptionOverride(staffer.userId, orgId, {
+      extendTrialDays: 14,
+    });
+    expect(applied.ok).toBe(true);
+
+    const detail = await platform$.getOrgDetail(staffer.userId, orgId);
+    expect(detail.ok).toBe(true);
+    if (detail.ok && detail.value.trialEndsAt) {
+      const daysLeft = (detail.value.trialEndsAt.getTime() - Date.now()) / 86_400_000;
+      expect(daysLeft).toBeGreaterThan(18); // ~5 remaining + 14 extended
+      expect(daysLeft).toBeLessThan(20);
+    }
+  });
+
+  it('suspends and reactivates an org, denying a non-platform-admin', async () => {
+    const denied = await platform$.setOrganizationStatus(owner.userId, orgId, 'suspended');
+    expect(denied.ok).toBe(false);
+    if (!denied.ok) expect(denied.error.code).toBe('FORBIDDEN');
+
+    const suspended = await platform$.setOrganizationStatus(staffer.userId, orgId, 'suspended');
+    expect(suspended.ok).toBe(true);
+    let detail = await platform$.getOrgDetail(staffer.userId, orgId);
+    expect(detail.ok && detail.value.orgStatus).toBe('suspended');
+
+    const reactivated = await platform$.setOrganizationStatus(staffer.userId, orgId, 'active');
+    expect(reactivated.ok).toBe(true);
+    detail = await platform$.getOrgDetail(staffer.userId, orgId);
+    expect(detail.ok && detail.value.orgStatus).toBe('active');
+  });
 });

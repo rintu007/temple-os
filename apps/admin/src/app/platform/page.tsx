@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { Alert, Badge, PageHeader, StatCard, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@templeos/ui';
 import { PLAN_CATALOG } from '@templeos/validators';
 import { requirePlatformAdmin } from '@/lib/session';
@@ -31,7 +32,7 @@ export default async function PlatformPage() {
     <div className="space-y-6">
       <PageHeader
         title="Platform"
-        description="Every temple on TempleOS — plan, subscription status, and MRR. Read-only for now."
+        description="Every temple on TempleOS — plan, subscription status, and MRR. Click an org to manage its subscription."
       />
 
       <div className="grid gap-4 sm:grid-cols-4">
@@ -56,7 +57,14 @@ export default async function PlatformPage() {
           {organizations.map((org) => (
             <TableRow key={org.id}>
               <TableCell>
-                <div className="font-medium">{org.name}</div>
+                <Link href={`/platform/orgs/${org.id}`} className="font-medium hover:underline">
+                  {org.name}
+                </Link>
+                {org.orgStatus === 'suspended' ? (
+                  <Badge variant="destructive" className="ml-2">
+                    Suspended
+                  </Badge>
+                ) : null}
                 <div className="text-xs text-muted-foreground">{org.slug}</div>
               </TableCell>
               <TableCell>{org.country}</TableCell>

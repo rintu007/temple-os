@@ -1,4 +1,5 @@
-export type PlatformPlan = 'trial' | 'starter' | 'growth' | 'pro';
+export const PLATFORM_PLANS = ['trial', 'starter', 'growth', 'pro'] as const;
+export type PlatformPlan = (typeof PLATFORM_PLANS)[number];
 
 export interface PlanCatalogEntry {
   key: PlatformPlan;
