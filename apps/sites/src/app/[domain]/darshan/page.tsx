@@ -16,8 +16,10 @@ export async function generateMetadata({ params }: DarshanPageProps): Promise<Me
   return { title: `Darshan · ${site.name}`, robots: { index: false } };
 }
 
+const DATE_LOCALES: Record<string, string> = { bn: 'bn-BD', hi: 'hi-IN' };
+
 function formatDate(iso: string, locale: string): string {
-  return new Date(`${iso}T12:00:00`).toLocaleDateString(locale === 'bn' ? 'bn-BD' : 'en-IN', {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString(DATE_LOCALES[locale] ?? 'en-IN', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',

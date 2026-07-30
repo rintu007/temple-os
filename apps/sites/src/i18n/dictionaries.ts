@@ -5,9 +5,9 @@
  * client components receive `locale` as a prop and call getDict themselves.
  */
 
-export type Locale = 'en' | 'bn';
-export const LOCALES: readonly Locale[] = ['en', 'bn'];
-export const LOCALE_LABELS: Record<Locale, string> = { en: 'EN', bn: 'বাং' };
+export type Locale = 'en' | 'bn' | 'hi';
+export const LOCALES: readonly Locale[] = ['en', 'bn', 'hi'];
+export const LOCALE_LABELS: Record<Locale, string> = { en: 'EN', bn: 'বাং', hi: 'हिं' };
 
 export interface Dict {
   nav: {
@@ -557,7 +557,190 @@ const bn: Dict = {
   },
 };
 
-const DICTIONARIES: Record<Locale, Dict> = { en, bn };
+const hi: Dict = {
+  nav: {
+    home: 'होम',
+    about: 'हमारे बारे में',
+    gallery: 'गैलरी',
+    blog: 'ब्लॉग',
+    events: 'कार्यक्रम',
+    contact: 'संपर्क',
+    donate: 'दान करें',
+    volunteer: 'स्वयंसेवा',
+    facilities: 'हॉल',
+    darshan: 'दर्शन',
+    portal: 'मेरा दान',
+  },
+  footer: { poweredBy: 'द्वारा संचालित' },
+  darshan: {
+    eyebrow: 'अपनी यात्रा की योजना बनाएं',
+    title: 'दर्शन बुकिंग',
+    intro: 'दर्शन के लिए एक निःशुल्क समय-निर्धारित टोकन आरक्षित करें। गेट पर दिखाएं।',
+    none: 'अभी बुकिंग के लिए कोई दर्शन स्लॉट उपलब्ध नहीं है। कृपया जल्द ही फिर देखें।',
+    remaining: (n) => `${n} स्थान शेष`,
+    full: 'पूर्ण रूप से बुक',
+    book: 'टोकन बुक करें',
+    booking: 'बुक हो रहा है…',
+    thanks: (token, name) => `बुक हो गया! ${name} के लिए टोकन #${token}। कृपया इसे गेट पर दिखाएं।`,
+    yourName: 'आपका नाम',
+    phone: 'फ़ोन',
+    email: 'ईमेल (वैकल्पिक)',
+    partySize: 'व्यक्तियों की संख्या',
+    note: 'टिप्पणी (वैकल्पिक)',
+  },
+  facilities: {
+    eyebrow: 'स्थान बुक करें',
+    title: 'हॉल व सुविधाएं',
+    intro: 'विवाह, समारोह और सभाओं के लिए हॉल आरक्षित करें।',
+    none: 'अभी बुकिंग के लिए कोई सुविधा उपलब्ध नहीं है। कृपया जल्द ही फिर देखें।',
+    capacity: (n) => `${n} तक अतिथि`,
+    request: 'इस तारीख़ के लिए अनुरोध करें',
+    requesting: 'भेजा जा रहा है…',
+    thanks: (facility) =>
+      `धन्यवाद! ${facility} के लिए आपका अनुरोध प्राप्त हो गया है। मंदिर उपलब्धता की पुष्टि करेगा।`,
+    yourName: 'आपका नाम',
+    phone: 'फ़ोन',
+    email: 'ईमेल (वैकल्पिक)',
+    date: 'पसंदीदा तारीख़',
+    purpose: 'उद्देश्य (जैसे विवाह)',
+    note: 'टिप्पणी (वैकल्पिक)',
+  },
+  volunteer: {
+    eyebrow: 'जुड़ें',
+    title: 'हमारे साथ स्वयंसेवा करें',
+    intro: 'मंदिर में सहयोग करें — नीचे किसी सेवा के लिए नाम दर्ज करें।',
+    none: 'अभी कोई स्वयंसेवा अवसर उपलब्ध नहीं है। कृपया जल्द ही फिर देखें।',
+    slotsFull: 'सभी स्थान भर गए',
+    signUp: 'नाम दर्ज करें',
+    signingUp: 'दर्ज हो रहा है…',
+    thanks: (name) => `धन्यवाद, ${name}! मंदिर शीघ्र ही आपसे संपर्क करेगा।`,
+    yourName: 'आपका नाम',
+    phone: 'फ़ोन',
+    email: 'ईमेल (वैकल्पिक)',
+    note: 'टिप्पणी (वैकल्पिक)',
+  },
+  hero: {
+    welcomeTo: 'आपका स्वागत है',
+    tagline: 'नित्य पूजा-अर्चना, उत्सव और सामुदायिक सेवा — मंदिर आइए या ऑनलाइन सहयोग करें।',
+    makeDonation: 'दान करें',
+    bookPuja: 'पूजा बुक करें',
+  },
+  home: {
+    campaignsEyebrow: 'निधि संग्रह',
+    campaignsTitle: 'हमारे अभियान',
+    raisedOf: (raised, goal) => `${goal} में से ${raised} एकत्रित`,
+    noticesEyebrow: 'सूचना पटल',
+    notices: 'घोषणाएं',
+    sitePreparing:
+      'हमारी वेबसाइट तैयार की जा रही है। शीघ्र ही यहां आपको हमारी दैनिक समय-सारिणी, कार्यक्रम, उत्सव और ऑनलाइन दान की सुविधा मिलेगी।',
+    dailySchedule: 'दैनिक समय-सारिणी',
+    calendarEyebrow: 'पंचांग',
+    upcomingEvents: 'आगामी कार्यक्रम व उत्सव',
+    festival: 'उत्सव',
+    viewAllEvents: 'पूरा पंचांग देखें',
+    servicesEyebrow: 'सेवाएं',
+    bookPuja: 'पूजा बुक करें',
+    communityEyebrow: 'समुदाय',
+    becomeMember: 'सदस्य बनें',
+    supportEyebrow: 'सहयोग करें',
+    makeDonation: 'दान करें',
+    donationsComingSoon: (name) =>
+      `${name} के लिए ऑनलाइन दान शीघ्र ही शुरू होगा। तब तक दान हेतु कृपया मंदिर कार्यालय से संपर्क करें।`,
+  },
+  about: {
+    eyebrow: 'हमारे बारे में',
+    comingSoon: 'हमारे मंदिर के बारे में अधिक जानकारी शीघ्र ही आएगी।',
+    getInTouch: 'संपर्क करें',
+    ourTemple: 'हमारा मंदिर',
+    ourHistory: 'हमारा इतिहास',
+  },
+  gallery: {
+    eyebrow: 'गैलरी',
+    comingSoon: 'तस्वीरें शीघ्र ही आएंगी। तब तक देखें हमारी',
+    seeSchedule: 'दैनिक समय-सारिणी और कार्यक्रम',
+  },
+  blog: {
+    eyebrow: 'समाचार व अपडेट',
+    title: 'मंदिर की ओर से',
+    comingSoon: 'अभी तक कोई पोस्ट नहीं है। कृपया जल्द ही फिर देखें।',
+    readMore: 'और पढ़ें',
+    by: (name) => `${name} द्वारा`,
+    back: '← सभी पोस्ट',
+  },
+  events: {
+    eyebrow: 'पंचांग',
+    title: 'कार्यक्रम व उत्सव',
+    none: 'पंचांग में अभी कुछ भी नहीं है। कृपया जल्द ही फिर देखें।',
+    upcoming: 'आगामी',
+    past: 'बीते हुए',
+    festival: 'उत्सव',
+    prev: 'पिछला',
+    next: 'अगला',
+    pageOf: (page, pages) => `पृष्ठ ${page} / ${pages}`,
+  },
+  contact: {
+    eyebrow: 'संपर्क',
+    address: 'पता',
+    phone: 'फ़ोन',
+    email: 'ईमेल',
+    followUs: 'हमें फॉलो करें',
+    sendMessage: 'संदेश भेजें',
+    formIntro: 'फॉर्म के माध्यम से हमें संदेश भेजें — हम शीघ्र ही उत्तर देंगे।',
+    replyHint: 'मंदिर आपको उत्तर दे सके, इसके लिए ईमेल या फ़ोन नंबर साझा करें।',
+    message: 'संदेश',
+    send: 'संदेश भेजें',
+    sending: 'भेजा जा रहा है…',
+  },
+  forms: {
+    amount: (currency) => `राशि (${currency})`,
+    yourName: 'आपका नाम',
+    emailForReceipt: 'ईमेल (रसीद हेतु)',
+    phone: 'फ़ोन',
+    processing: 'चेकआउट खुल रहा है…',
+    poweredBy: (provider) => `${provider} द्वारा सुरक्षित चेकआउट।`,
+    donateFor: (amount) => `${amount} दान करें`,
+    choosePuja: 'पूजा चुनें',
+    preferredDate: 'पसंदीदा तारीख़ (वैकल्पिक)',
+    bookFor: (amount) => `${amount} में बुक करें`,
+    bookPuja: 'पूजा बुक करें',
+    choosePlan: 'योजना चुनें',
+    joinFor: (amount) => `${amount} में सदस्य बनें`,
+    join: 'सदस्य बनें',
+  },
+  donationComplete: {
+    thankYouTitle: 'आपके दान के लिए धन्यवाद',
+    thankYouBody: (name, receipt) =>
+      `${name} को आपका दान प्राप्त हो गया है। आपका रसीद नंबर ${receipt} है — यदि आपने पता दिया है तो एक प्रति ईमेल कर दी गई है।`,
+    cancelledTitle: 'भुगतान रद्द किया गया',
+    cancelledBody: 'आपने भुगतान रद्द कर दिया — कोई राशि नहीं काटी गई।',
+    failedTitle: 'भुगतान पूरा नहीं हुआ',
+    failedBody: 'भुगतान पूरा नहीं हो सका। कोई राशि दर्ज नहीं की गई है। कृपया पुनः प्रयास करें।',
+    tryAgain: 'पुनः प्रयास करें',
+    donateAgain: 'एक और दान करें',
+    viewInPortal: 'दाता पोर्टल में कभी भी अपने सभी दान व रसीदें देखें',
+  },
+  portal: {
+    eyebrow: 'दाता पोर्टल',
+    loginTitle: 'अपने दान देखें',
+    loginIntro:
+      'मंदिर में दर्ज ईमेल पता डालें — हम आपको साइन-इन लिंक भेजेंगे, किसी पासवर्ड की आवश्यकता नहीं।',
+    emailLabel: 'ईमेल पता',
+    sendLink: 'साइन-इन लिंक भेजें',
+    sending: 'भेजा जा रहा है…',
+    welcomeBack: (name) => `स्वागत है, ${name}`,
+    lifetimeGiving: 'कुल दान',
+    thisYear: 'इस वित्तीय वर्ष',
+    recentDonations: 'हाल के दान',
+    viewAllDonations: 'सभी दान देखें',
+    donationHistoryTitle: 'दान इतिहास',
+    viewReceipt: 'रसीद देखें',
+    noDonations: 'आपका अभी तक कोई दर्ज दान नहीं है।',
+    logout: 'साइन आउट',
+    backToDashboard: '← मेरा दान',
+  },
+};
+
+const DICTIONARIES: Record<Locale, Dict> = { en, bn, hi };
 
 export function getDict(locale: Locale): Dict {
   return DICTIONARIES[locale] ?? en;
