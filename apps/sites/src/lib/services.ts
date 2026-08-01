@@ -9,6 +9,7 @@ import {
   createMembershipService,
   createOrganizationService,
   createPaymentService,
+  createPlanService,
   createPostService,
   createPujaService,
   createTempleService,
@@ -24,6 +25,7 @@ import {
   type MembershipService,
   type OrganizationService,
   type PaymentService,
+  type PlanService,
   type PostService,
   type PujaService,
   type TempleService,
@@ -139,6 +141,14 @@ let _donorPortalService: DonorPortalService | undefined;
 export function donorPortalService(): DonorPortalService {
   _donorPortalService ??= createDonorPortalService({ db: getDb() });
   return _donorPortalService;
+}
+
+let _planService: PlanService | undefined;
+
+/** Public, unauthenticated catalog reads for the marketing/pricing pages. */
+export function planService(): PlanService {
+  _planService ??= createPlanService({ db: getDb() });
+  return _planService;
 }
 
 /** Per-request memoized host→tenant resolution (layout + page share one query). */

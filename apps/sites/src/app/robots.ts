@@ -1,6 +1,11 @@
 import type { MetadataRoute } from 'next';
 
-/** The marketing root domain is a placeholder page until Phase 2 — nothing to index yet. */
+const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? 'localhost';
+
+/** The marketing root domain (this app's `/` and `/pricing`) is public and indexable. */
 export default function robots(): MetadataRoute.Robots {
-  return { rules: { userAgent: '*', disallow: '/' } };
+  return {
+    rules: { userAgent: '*', allow: '/' },
+    sitemap: `https://${rootDomain}/sitemap.xml`,
+  };
 }
