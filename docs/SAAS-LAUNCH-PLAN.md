@@ -1,6 +1,6 @@
 # TempleOS — Package Management, Trial Gating & Public Launch Plan
 
-Status: **M77 shipped** (package management §2 + trial gating §3, combined — see §6). Remaining §5 decisions (seat-limit bundling, legal drafting scope, launch-gate sequencing) still open.
+Status: **M78 shipped** (M77: package management §2 + trial gating §3; M78: seat-limit enforcement — see §6). Remaining §5 decisions (legal drafting scope already approved but not started, launch-gate sequencing) still open.
 Owner: engineering (this doc replaces ad-hoc planning in chat; update it as milestones land, the same way commits are numbered `M<n>: ...`).
 
 **Decisions made (2026-08-01):** fully dynamic catalog (§2 Option 2, not the recommended Option 1) · trial = Growth-tier modules (§3 option B) · applies immediately to orgs already mid-trial, no grandfathering · legal page drafts: yes, proceed (§4, not yet started).
@@ -99,9 +99,9 @@ Organized by category. **Status**: ✅ done · 🟡 partial/coded-but-not-config
 
 ### Billing & packaging
 - 🟡 Stripe subscriptions (code complete, **not configured in production** — needs live keys + price IDs + webhook registered)
-- ⬜ Package management UI (§2)
-- ⬜ Trial module limiting (§3)
-- ⬜ Seat-limit enforcement
+- ✅ Package management UI (§2) — `/platform/plans`, fully dynamic catalog (M77)
+- ✅ Trial module limiting (§3) — trial seeded to Growth's modules (M77)
+- ✅ Seat-limit enforcement (M78) — `plan_catalog.seat_limit`, checked in `createInvitation`
 - ⬜ Failed-payment / trial-ending email notices (Stripe webhook already receives the events; nothing sends mail on them yet)
 - ⬜ Invoice/receipt history for the org's *own* subscription (distinct from devotee donation receipts, which already exist) — Stripe's customer portal covers this today, so may be low priority
 
@@ -153,7 +153,7 @@ These aren't things I should decide unilaterally:
 1. **Package management scope**: Option 1 (edit existing 4 plans) vs Option 2 (fully dynamic catalog)? *Recommend Option 1.*
 2. **What trial should include**: A (Starter), B (Growth), or C (one module)? *Recommend B.*
 3. **Existing mid-trial orgs**: when trial gating tightens, do currently-trialing orgs (a) get grandfathered at full access for the remainder of their original trial, or (b) immediately drop to the new limited set? (a) is kinder but means two code paths for a while; (b) is simpler and matches "this is what trial means now."
-4. **Seat limits**: bundle into the trial-gating milestone (§3.2), or its own separate milestone?
+4. ~~**Seat limits**: bundle into the trial-gating milestone (§3.2), or its own separate milestone?~~ **Resolved**: shipped as its own milestone, M78.
 5. **Legal pages**: want me to draft first-pass ToS/Privacy/Refund templates (clearly marked as drafts needing your/a lawyer's review), or is this being handled outside of engineering entirely?
 6. **Launch sequencing**: of the four checklist categories in §4, which is the actual gate for "we're calling this launched" — e.g. is a public marketing site + live Stripe + legal pages the minimum bar, with security/ops hardening allowed to trail behind, or does everything in §4 need to land first?
 
@@ -164,7 +164,7 @@ These aren't things I should decide unilaterally:
 Following the same `M<n>: <one-line summary>` convention as every prior module in this repo's commit log:
 
 - [x] **M77** — Fully dynamic, platform-editable plan catalog (§2, Option 2) *and* trial module limiting (§3) — shipped together, since a dynamic catalog makes trial-limiting just "seed the trial row with Growth's modules," not a separate code path. `/platform/plans` lets staff create/edit/delete tiers; `isTrialDefault`/`isFallbackDefault` flags replace every hardcoded `'trial'`/`'starter'` literal in provisioning, billing, and the override tool. Applied immediately to already-trialing orgs (no grandfathering, per §5.3's answer).
-- [ ] **M78** — Seat-limit enforcement (split out from M77 rather than bundled — see §5.4, still open on whether that's the right call)
+- [x] **M78** — Seat-limit enforcement. `plan_catalog.seat_limit` (null = unlimited; trial/starter = 2, growth/pro = unlimited, matching the plan copy). `createInvitation` counts active memberships + pending unexpired invitations against it and refuses over-limit invites with a clear conflict message; `/platform/plans` exposes the field per plan; the team page shows a live "X of Y seats used" indicator.
 - [ ] **M79** — Stripe live configuration + failed-payment/trial-ending email notices (per-plan Stripe Price ids are now set via `/platform/plans`, not env vars — one less blocker here)
 - [ ] **M80** — Public marketing site + pricing page
 - [ ] **M81** — Legal pages (ToS, Privacy, Refund policy) — drafting approved (§5.5), not yet started
