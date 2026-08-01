@@ -34,3 +34,13 @@ export interface PortalGivingSummary {
 }
 
 export type PortalReceipt = Receipt80G;
+
+/** A devotee's own printable annual (financial-year) donation statement. */
+export interface PortalStatement {
+  fyStartYear: number;
+  fyLabel: string;
+  currency: string;
+  items: PortalDonation[];
+  total: string;
+  count: number;
+}

@@ -6,6 +6,7 @@ import type {
   PortalGivingSummary,
   PortalReceipt,
   PortalSession,
+  PortalStatement,
 } from './donor-portal.types';
 
 /** Indian financial year runs April–March. Returns the FY start year for a date. */
@@ -19,6 +20,12 @@ function fyRange(fyStartYear: number): { from: Date; to: Date; label: string } {
     to: new Date(Date.UTC(fyStartYear + 1, 3, 1)),
     label: `${fyStartYear}–${fyStartYear + 1}`,
   };
+}
+
+/** Sums via integer cents — avoids float drift from naively adding decimal-string amounts. */
+function sumMinor(rows: { amount: string }[]): string {
+  const minor = rows.reduce((n, r) => n + Math.round(Number.parseFloat(r.amount || '0') * 100), 0);
+  return (minor / 100).toFixed(2);
 }
 
 export function createDonorPortalService({ db }: { db: Db }) {
@@ -94,6 +101,30 @@ export function createDonorPortalService({ db }: { db: Db }) {
         { page: safePage, pageSize },
       );
       return ok({ items, total });
+    },
+
+    /**
+     * A devotee's own annual statement — the same data as the staff-side
+     * devotee statement (donation.service.ts#getDevoteeStatement), but scoped
+     * by the portal session's devoteeId directly rather than an RBAC ctx,
+     * since a devotee isn't a staff member with permissions to check.
+     */
+    async getStatement(session: PortalSession, fyStartYear: number): Promise<Result<PortalStatement>> {
+      const fy = fyRange(fyStartYear);
+      const items = await repo.statementRows(
+        session.organizationId,
+        session.devoteeId,
+        fy.from,
+        fy.to,
+      );
+      return ok({
+        fyStartYear,
+        fyLabel: fy.label,
+        currency: items[0]?.currency ?? 'INR',
+        items,
+        total: sumMinor(items),
+        count: items.length,
+      });
     },
 
     /** The printable 80G receipt for one donation — only if it belongs to this devotee. */

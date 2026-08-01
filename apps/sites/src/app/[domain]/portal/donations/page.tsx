@@ -36,9 +36,14 @@ export default async function PortalDonationsPage({ params, searchParams }: Port
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-16">
-      <Link href="/portal" className="text-sm text-muted-foreground hover:text-foreground">
-        {t.portal.backToDashboard}
-      </Link>
+      <div className="flex items-center justify-between gap-4">
+        <Link href="/portal" className="text-sm text-muted-foreground hover:text-foreground">
+          {t.portal.backToDashboard}
+        </Link>
+        <Link href="/portal/statement" className="text-sm text-primary hover:underline">
+          {t.portal.annualStatement}
+        </Link>
+      </div>
       <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-semibold tracking-tight">
         {t.portal.donationHistoryTitle}
       </h1>

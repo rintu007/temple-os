@@ -184,6 +184,10 @@ export interface Dict {
     noDonations: string;
     logout: string;
     backToDashboard: string;
+    annualStatement: string;
+    statementTitle: string;
+    statementNoItems: string;
+    statementTotal: (count: number) => string;
   };
 }
 
@@ -370,6 +374,10 @@ const en: Dict = {
     noDonations: "You don't have any recorded donations yet.",
     logout: 'Sign out',
     backToDashboard: '← My donations',
+    annualStatement: 'Annual statement',
+    statementTitle: 'Annual Donation Statement',
+    statementNoItems: 'No donations were recorded for this financial year.',
+    statementTotal: (count) => `Total (${count} donation${count === 1 ? '' : 's'})`,
   },
 };
 
@@ -554,6 +562,10 @@ const bn: Dict = {
     noDonations: 'আপনার এখনো কোনো নথিভুক্ত দান নেই।',
     logout: 'সাইন আউট',
     backToDashboard: '← আমার দান',
+    annualStatement: 'বার্ষিক বিবরণী',
+    statementTitle: 'বার্ষিক দান বিবরণী',
+    statementNoItems: 'এই আর্থিক বছরে কোনো দান নথিভুক্ত হয়নি।',
+    statementTotal: (count) => `মোট (${count}টি দান)`,
   },
 };
 
@@ -737,6 +749,10 @@ const hi: Dict = {
     noDonations: 'आपका अभी तक कोई दर्ज दान नहीं है।',
     logout: 'साइन आउट',
     backToDashboard: '← मेरा दान',
+    annualStatement: 'वार्षिक विवरण',
+    statementTitle: 'वार्षिक दान विवरण',
+    statementNoItems: 'इस वित्तीय वर्ष में कोई दान दर्ज नहीं हुआ।',
+    statementTotal: (count) => `कुल (${count} दान)`,
   },
 };
 

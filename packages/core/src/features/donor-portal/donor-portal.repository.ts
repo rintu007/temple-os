@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { and, count, desc, eq, gt, gte, isNull, lt, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, gte, isNull, lt, sql } from 'drizzle-orm';
 import {
   devoteeLoginTokens,
   devoteeSessions,
@@ -218,6 +218,23 @@ export function createDonorPortalRepository(db: Db) {
         ]);
         return { items, total: totalRow?.value ?? 0 };
       });
+    },
+
+    /** Recorded donations for one devotee within a financial-year window — for the statement. */
+    async statementRows(organizationId: string, devoteeId: string, from: Date, to: Date) {
+      return withTenantContext(db, guc(organizationId), (tx) =>
+        baseDonationSelect(tx)
+          .where(
+            and(
+              eq(donations.organizationId, organizationId),
+              eq(donations.devoteeId, devoteeId),
+              eq(donations.status, 'recorded'),
+              gte(donations.donatedAt, from),
+              lt(donations.donatedAt, to),
+            ),
+          )
+          .orderBy(asc(donations.donatedAt)),
+      );
     },
 
     /** A donation's receipt data, only when it belongs to this devotee in this org. */

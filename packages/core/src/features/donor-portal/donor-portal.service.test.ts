@@ -162,6 +162,27 @@ describe.skipIf(!hasDb)('donor portal: magic-link login + scoped donation histor
     }
   });
 
+  it("the annual statement is scoped to this devotee's own FY donations", async () => {
+    const session = await portal$.getSession(orgId, sessionTokenA);
+    if (!session) throw new Error('session missing');
+
+    const statement = await portal$.getStatement(session, 2026);
+    expect(statement.ok).toBe(true);
+    if (statement.ok) {
+      expect(statement.value.fyLabel).toBe('2026–2027');
+      expect(statement.value.count).toBe(1);
+      expect(statement.value.total).toBe('1100.00');
+      expect(statement.value.items[0]?.id).toBe(donationAId);
+    }
+
+    const empty = await portal$.getStatement(session, 2020);
+    expect(empty.ok).toBe(true);
+    if (empty.ok) {
+      expect(empty.value.count).toBe(0);
+      expect(empty.value.total).toBe('0.00');
+    }
+  });
+
   it('cannot fetch another devotee\'s receipt even by guessing the donation id', async () => {
     const session = await portal$.getSession(orgId, sessionTokenA);
     if (!session) throw new Error('session missing');

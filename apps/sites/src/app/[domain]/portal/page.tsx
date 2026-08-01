@@ -44,11 +44,16 @@ export default async function PortalPage({ params }: PortalPageProps) {
             {t.portal.welcomeBack(session.devoteeName)}
           </h1>
         </div>
-        <form action={portalLogoutAction.bind(null, site.organizationId, sessionToken)}>
-          <button type="submit" className="text-sm text-muted-foreground hover:text-foreground">
-            {t.portal.logout}
-          </button>
-        </form>
+        <div className="flex items-center gap-4">
+          <Link href="/portal/statement" className="text-sm text-primary hover:underline">
+            {t.portal.annualStatement}
+          </Link>
+          <form action={portalLogoutAction.bind(null, site.organizationId, sessionToken)}>
+            <button type="submit" className="text-sm text-muted-foreground hover:text-foreground">
+              {t.portal.logout}
+            </button>
+          </form>
+        </div>
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
