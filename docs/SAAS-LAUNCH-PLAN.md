@@ -1,7 +1,9 @@
 # TempleOS — Package Management, Trial Gating & Public Launch Plan
 
-Status: **DRAFT — awaiting decisions marked ⚑ before implementation starts.**
+Status: **M77 shipped** (package management §2 + trial gating §3, combined — see §6). Remaining §5 decisions (seat-limit bundling, legal drafting scope, launch-gate sequencing) still open.
 Owner: engineering (this doc replaces ad-hoc planning in chat; update it as milestones land, the same way commits are numbered `M<n>: ...`).
+
+**Decisions made (2026-08-01):** fully dynamic catalog (§2 Option 2, not the recommended Option 1) · trial = Growth-tier modules (§3 option B) · applies immediately to orgs already mid-trial, no grandfathering · legal page drafts: yes, proceed (§4, not yet started).
 
 This doc answers three things asked together, because they're the same system:
 1. Platform-editable **package management** (today the plan catalog is a hardcoded constant).
@@ -161,9 +163,9 @@ These aren't things I should decide unilaterally:
 
 Following the same `M<n>: <one-line summary>` convention as every prior module in this repo's commit log:
 
-- [ ] **M77** — Plan catalog moves to a platform-editable DB table (§2.2)
-- [ ] **M78** — Trial module limiting + (optionally) seat-limit enforcement (§3.2)
-- [ ] **M79** — Stripe live configuration + failed-payment/trial-ending email notices
+- [x] **M77** — Fully dynamic, platform-editable plan catalog (§2, Option 2) *and* trial module limiting (§3) — shipped together, since a dynamic catalog makes trial-limiting just "seed the trial row with Growth's modules," not a separate code path. `/platform/plans` lets staff create/edit/delete tiers; `isTrialDefault`/`isFallbackDefault` flags replace every hardcoded `'trial'`/`'starter'` literal in provisioning, billing, and the override tool. Applied immediately to already-trialing orgs (no grandfathering, per §5.3's answer).
+- [ ] **M78** — Seat-limit enforcement (split out from M77 rather than bundled — see §5.4, still open on whether that's the right call)
+- [ ] **M79** — Stripe live configuration + failed-payment/trial-ending email notices (per-plan Stripe Price ids are now set via `/platform/plans`, not env vars — one less blocker here)
 - [ ] **M80** — Public marketing site + pricing page
-- [ ] **M81** — Legal pages (ToS, Privacy, Refund policy)
+- [ ] **M81** — Legal pages (ToS, Privacy, Refund policy) — drafting approved (§5.5), not yet started
 - [ ] **M82+** — Security review, rate limiting, backup-restore drill, monitoring/alerting, support channel — sequenced once §5.6 is answered
