@@ -1,10 +1,14 @@
 import { cache } from 'react';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { User } from '@templeos/auth';
 import type { MembershipSummary, TenantContext } from '@templeos/core';
 import type { ModuleKey } from '@templeos/validators';
 import { createClient } from './supabase/server';
 import { billingService, organizationService, platformService, roleService } from './services';
+
+/** Which of a multi-org user's memberships is active — read here, written by switchOrganizationAction. */
+export const ACTIVE_ORG_COOKIE = 'templeos_active_org';
 
 /** Verified session user (validated against Supabase, deduped per request). */
 export const getSessionUser = cache(async (): Promise<User | null> => {
@@ -22,13 +26,20 @@ export async function requireUser(): Promise<User> {
 }
 
 /**
- * The user's active organization membership. Single-org for now; the org
- * switcher (multi-membership) arrives with the JWT claims hook.
+ * The user's active organization membership. Most users belong to one org
+ * (falls back to the oldest); a user in several picks via the ACTIVE_ORG_COOKIE
+ * (set by switchOrganizationAction) — self-healing if that org is no longer
+ * one of theirs (removed, or the row just isn't 'active' anymore).
  */
 export const getActiveMembership = cache(
   async (userId: string): Promise<MembershipSummary | null> => {
     const memberships = await organizationService().listUserMemberships(userId);
-    return memberships[0] ?? null;
+    if (memberships.length === 0) return null;
+    if (memberships.length === 1) return memberships[0]!;
+
+    const cookieStore = await cookies();
+    const activeOrgId = cookieStore.get(ACTIVE_ORG_COOKIE)?.value;
+    return memberships.find((m) => m.organizationId === activeOrgId) ?? memberships[0]!;
   },
 );
 

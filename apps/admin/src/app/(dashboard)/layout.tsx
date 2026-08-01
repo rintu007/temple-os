@@ -51,9 +51,10 @@ import { Badge, Button, cn } from '@templeos/ui';
 import { NavLink } from '@/components/nav-link';
 import { signOutAction } from '@/features/auth/actions';
 import { NotificationBell } from '@/features/notifications/components/notification-bell';
+import { OrgSwitcher } from '@/features/organizations/components/org-switcher';
 import { CommandPalette } from '@/features/search/components/command-palette';
 import { moduleForHref } from '@/lib/module-routes';
-import { notificationService } from '@/lib/services';
+import { notificationService, organizationService } from '@/lib/services';
 import { checkIsPlatformAdmin, requireTenantContext } from '@/lib/session';
 
 interface NavItem {
@@ -136,9 +137,10 @@ const NAV_GROUPS: NavGroup[] = [
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, membership, ctx, entitledModules } = await requireTenantContext();
-  const [feedResult, isPlatformAdmin] = await Promise.all([
+  const [feedResult, isPlatformAdmin, memberships] = await Promise.all([
     notificationService().getFeed(ctx),
     checkIsPlatformAdmin(user.id),
+    organizationService().listUserMemberships(user.id),
   ]);
   const feed = feedResult.ok ? feedResult.value : { items: [], unreadCount: 0 };
 
@@ -236,7 +238,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
                 Temple<span className="text-primary">OS</span>
               </Link>
               <span className="hidden text-border lg:inline">·</span>
-              <span className="truncate text-sm font-medium">{membership.organizationName}</span>
+              {memberships.length > 1 ? (
+                <OrgSwitcher
+                  memberships={memberships}
+                  activeOrgId={membership.organizationId}
+                />
+              ) : (
+                <span className="truncate text-sm font-medium">{membership.organizationName}</span>
+              )}
               <Badge variant="primary" className="hidden capitalize sm:inline-flex">
                 {membership.roleName}
               </Badge>
