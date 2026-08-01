@@ -1,6 +1,6 @@
 # TempleOS — Package Management, Trial Gating & Public Launch Plan
 
-Status: **M78 shipped** (M77: package management §2 + trial gating §3; M78: seat-limit enforcement — see §6). Remaining §5 decisions (legal drafting scope already approved but not started, launch-gate sequencing) still open.
+Status: **M80 shipped** (M77: package management §2 + trial gating §3; M78: seat-limit enforcement; M80: public marketing + pricing site — see §6). M79 (live Stripe) needs your actual Stripe credentials and can't proceed without them. Remaining §5 decisions (legal drafting scope already approved but not started, launch-gate sequencing) still open.
 Owner: engineering (this doc replaces ad-hoc planning in chat; update it as milestones land, the same way commits are numbered `M<n>: ...`).
 
 **Decisions made (2026-08-01):** fully dynamic catalog (§2 Option 2, not the recommended Option 1) · trial = Growth-tier modules (§3 option B) · applies immediately to orgs already mid-trial, no grandfathering · legal page drafts: yes, proceed (§4, not yet started).
@@ -120,10 +120,10 @@ Organized by category. **Status**: ✅ done · 🟡 partial/coded-but-not-config
 **I can draft first-pass Terms/Privacy/Refund text as a starting point, clearly marked as a template requiring your (or a lawyer's) review before it's legally relied on — I won't publish anything as a finished legal document.**
 
 ### Public marketing site
-- ⬜ Replace the two-line placeholder at the root domain (`apps/sites/src/app/page.tsx`) with an actual marketing page: value prop, feature highlights, pricing (reads the same catalog as §2 once it's DB-backed), signup CTA
-- ⬜ `/pricing` page
-- ⬜ Link from marketing site to `/signup` on the admin app (currently no path from the root domain to account creation at all)
-- ⬜ Basic SEO (meta tags, OG image, sitemap) for the marketing site specifically — tenant sites already have this per-org
+- ✅ Replaced the two-line placeholder at the root domain with a real marketing page: hero, feature highlights, pricing teaser (reads the live catalog), signup CTA (M80)
+- ✅ `/pricing` page — full plan comparison, reads `plan_catalog` live via a shared `PricingGrid` component, revalidates every 5 min so admin-side edits show up without a redeploy (M80)
+- ✅ Link from marketing site to `/signup` (and `/login`) on the admin app — header/footer nav added (M80)
+- 🟡 Basic SEO — `robots.ts` now allows indexing, `sitemap.ts` covers `/` and `/pricing`; no OG image yet. **Not yet live-testable**: the root domain (`templeos.com`) isn't attached to the `templeos-sites` Vercel project yet (still in the "interim demo mode" from `docs/DEPLOY.md` — `templeos-sites.vercel.app` currently serves the demo org, not this marketing site, since Vercel's edge routing keys off the real Host and a bare `.vercel.app` alias can't have a wildcard/second hostname without the domain purchase). Verified instead via local dev server (`NEXT_PUBLIC_ROOT_DOMAIN=localhost`) — both pages render correctly with live plan data.
 
 ### Security & reliability
 - ✅ RLS-enforced multi-tenancy, dual-layer (app + Postgres), leakage-tested throughout
@@ -166,6 +166,6 @@ Following the same `M<n>: <one-line summary>` convention as every prior module i
 - [x] **M77** — Fully dynamic, platform-editable plan catalog (§2, Option 2) *and* trial module limiting (§3) — shipped together, since a dynamic catalog makes trial-limiting just "seed the trial row with Growth's modules," not a separate code path. `/platform/plans` lets staff create/edit/delete tiers; `isTrialDefault`/`isFallbackDefault` flags replace every hardcoded `'trial'`/`'starter'` literal in provisioning, billing, and the override tool. Applied immediately to already-trialing orgs (no grandfathering, per §5.3's answer).
 - [x] **M78** — Seat-limit enforcement. `plan_catalog.seat_limit` (null = unlimited; trial/starter = 2, growth/pro = unlimited, matching the plan copy). `createInvitation` counts active memberships + pending unexpired invitations against it and refuses over-limit invites with a clear conflict message; `/platform/plans` exposes the field per plan; the team page shows a live "X of Y seats used" indicator.
 - [ ] **M79** — Stripe live configuration + failed-payment/trial-ending email notices (per-plan Stripe Price ids are now set via `/platform/plans`, not env vars — one less blocker here)
-- [ ] **M80** — Public marketing site + pricing page
+- [x] **M80** — Public marketing site + pricing page. Root `apps/sites` homepage rebuilt (hero, feature highlights, pricing teaser, signup CTA); new `/pricing` page and shared `PricingGrid` component both read `plan_catalog` live (5-min ISR revalidation, not frozen at build time); root layout gained a header/footer; `robots.ts`/`sitemap.ts` now support indexing. Full end-to-end verification on the real `templeos.com` host is blocked on attaching the custom domain (still "interim demo mode" — see the note in §4); verified via local dev server instead.
 - [ ] **M81** — Legal pages (ToS, Privacy, Refund policy) — drafting approved (§5.5), not yet started
 - [ ] **M82+** — Security review, rate limiting, backup-restore drill, monitoring/alerting, support channel — sequenced once §5.6 is answered
