@@ -1,9 +1,9 @@
 # TempleOS — Package Management, Trial Gating & Public Launch Plan
 
-Status: **M80 shipped** (M77: package management §2 + trial gating §3; M78: seat-limit enforcement; M80: public marketing + pricing site — see §6). M79 (live Stripe) needs your actual Stripe credentials and can't proceed without them. Remaining §5 decisions (legal drafting scope already approved but not started, launch-gate sequencing) still open.
+Status: **M81 shipped** (M77: package management §2 + trial gating §3; M78: seat-limit enforcement; M80: public marketing + pricing site; M81: draft legal pages — see §6). M79 (live Stripe) needs your actual Stripe credentials and can't proceed without them. Remaining §5 decision: launch-gate sequencing (§5.6) still open.
 Owner: engineering (this doc replaces ad-hoc planning in chat; update it as milestones land, the same way commits are numbered `M<n>: ...`).
 
-**Decisions made (2026-08-01):** fully dynamic catalog (§2 Option 2, not the recommended Option 1) · trial = Growth-tier modules (§3 option B) · applies immediately to orgs already mid-trial, no grandfathering · legal page drafts: yes, proceed (§4, not yet started).
+**Decisions made (2026-08-01):** fully dynamic catalog (§2 Option 2, not the recommended Option 1) · trial = Growth-tier modules (§3 option B) · applies immediately to orgs already mid-trial, no grandfathering · legal page drafts: yes, proceed (§4, drafted in M81 — still needs your/a lawyer's review before the draft banners come off).
 
 This doc answers three things asked together, because they're the same system:
 1. Platform-editable **package management** (today the plan catalog is a hardcoded constant).
@@ -111,13 +111,11 @@ Organized by category. **Status**: ✅ done · 🟡 partial/coded-but-not-config
 - ⬜ Payment failure/retry visibility for temple staff (does a failed devotee payment surface anywhere for staff to notice and follow up?) — worth a quick audit, not scoped in detail here
 
 ### Legal & compliance
-- ⬜ Terms of Service
-- ⬜ Privacy Policy (India + Bangladesh + wherever else orgs sign up from — data residency/PII handling claims need to be true, not boilerplate)
-- ⬜ Refund/cancellation policy for TempleOS subscriptions
+- 🟡 Terms of Service — drafted at `/terms` (M81), visible "draft — pending legal review" banner, noindex until reviewed. Bracketed placeholders (legal entity name, governing law, support email) still need filling in.
+- 🟡 Privacy Policy — drafted at `/privacy` (M81), same draft status. Correctly frames the temple-as-controller / TempleOS-as-processor split for devotee data; lists real subprocessors (Supabase, Vercel, Stripe, Razorpay, SSLCommerz, Resend, Meta WhatsApp). Jurisdiction-specific rights language (India DPDP Act, GDPR, etc.) still needs counsel input once target markets are confirmed.
+- 🟡 Refund/cancellation policy — drafted at `/refund-policy` (M81), same draft status. Describes actual system behavior (immediate, non-prorated plan changes) rather than promising anything uncoded; the refund-window business decision is explicitly flagged as unresolved.
 - ⬜ Cookie/consent notice if EU/UK signups are in scope
-- ⬜ Data processing agreement template (temples are themselves data controllers for their devotees' PII — TempleOS is a processor)
-
-**I can draft first-pass Terms/Privacy/Refund text as a starting point, clearly marked as a template requiring your (or a lawyer's) review before it's legally relied on — I won't publish anything as a finished legal document.**
+- ⬜ Data processing agreement template (temples are themselves data controllers for their devotees' PII — TempleOS is a processor) — not in the M81 scope the user approved; still open.
 
 ### Public marketing site
 - ✅ Replaced the two-line placeholder at the root domain with a real marketing page: hero, feature highlights, pricing teaser (reads the live catalog), signup CTA (M80)
@@ -154,7 +152,7 @@ These aren't things I should decide unilaterally:
 2. **What trial should include**: A (Starter), B (Growth), or C (one module)? *Recommend B.*
 3. **Existing mid-trial orgs**: when trial gating tightens, do currently-trialing orgs (a) get grandfathered at full access for the remainder of their original trial, or (b) immediately drop to the new limited set? (a) is kinder but means two code paths for a while; (b) is simpler and matches "this is what trial means now."
 4. ~~**Seat limits**: bundle into the trial-gating milestone (§3.2), or its own separate milestone?~~ **Resolved**: shipped as its own milestone, M78.
-5. **Legal pages**: want me to draft first-pass ToS/Privacy/Refund templates (clearly marked as drafts needing your/a lawyer's review), or is this being handled outside of engineering entirely?
+5. ~~**Legal pages**: want me to draft first-pass ToS/Privacy/Refund templates?~~ **Resolved**: drafted in M81.
 6. **Launch sequencing**: of the four checklist categories in §4, which is the actual gate for "we're calling this launched" — e.g. is a public marketing site + live Stripe + legal pages the minimum bar, with security/ops hardening allowed to trail behind, or does everything in §4 need to land first?
 
 ---
@@ -167,5 +165,5 @@ Following the same `M<n>: <one-line summary>` convention as every prior module i
 - [x] **M78** — Seat-limit enforcement. `plan_catalog.seat_limit` (null = unlimited; trial/starter = 2, growth/pro = unlimited, matching the plan copy). `createInvitation` counts active memberships + pending unexpired invitations against it and refuses over-limit invites with a clear conflict message; `/platform/plans` exposes the field per plan; the team page shows a live "X of Y seats used" indicator.
 - [ ] **M79** — Stripe live configuration + failed-payment/trial-ending email notices (per-plan Stripe Price ids are now set via `/platform/plans`, not env vars — one less blocker here)
 - [x] **M80** — Public marketing site + pricing page. Root `apps/sites` homepage rebuilt (hero, feature highlights, pricing teaser, signup CTA); new `/pricing` page and shared `PricingGrid` component both read `plan_catalog` live (5-min ISR revalidation, not frozen at build time); root layout gained a header/footer; `robots.ts`/`sitemap.ts` now support indexing. Full end-to-end verification on the real `templeos.com` host is blocked on attaching the custom domain (still "interim demo mode" — see the note in §4); verified via local dev server instead.
-- [ ] **M81** — Legal pages (ToS, Privacy, Refund policy) — drafting approved (§5.5), not yet started
+- [x] **M81** — Legal pages (ToS, Privacy, Refund policy) drafted at `/terms`, `/privacy`, `/refund-policy`. Every page carries a visible draft banner and is noindex until reviewed; bracketed placeholders mark facts only the business/a lawyer can supply. Linked from the marketing footer and the admin signup page. **Still needs**: your (or a lawyer's) actual review before the draft banners come off — this milestone produced a starting point, not a finished legal document.
 - [ ] **M82+** — Security review, rate limiting, backup-restore drill, monitoring/alerting, support channel — sequenced once §5.6 is answered
