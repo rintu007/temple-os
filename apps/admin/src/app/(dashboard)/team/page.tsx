@@ -10,7 +10,8 @@ import { memberService, roleService } from '@/lib/services';
 export const metadata: Metadata = { title: 'Team' };
 
 export default async function TeamPage() {
-  const { ctx, user } = await requireTenantContext();
+  const { ctx, user, membership } = await requireTenantContext();
+  const isOwner = membership.roleKey === 'owner';
   const [members, invites, roles] = await Promise.all([
     memberService().listMembers(ctx),
     memberService().listInvitations(ctx),
@@ -67,6 +68,8 @@ export default async function TeamPage() {
                     membershipId={m.membershipId}
                     currentRoleKey={m.roleKey}
                     roles={invitableRoles}
+                    memberLabel={m.fullName ?? m.email}
+                    canTransferOwnership={isOwner}
                   />
                 ) : (
                   <span className="rounded-full border border-border px-3 py-1 text-xs font-medium capitalize">

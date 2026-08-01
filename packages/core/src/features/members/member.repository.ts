@@ -288,6 +288,75 @@ export function createMemberRepository(db: Db) {
       });
     },
 
+    /**
+     * Hands ownership to another active member and demotes the acting owner
+     * to admin in the same transaction — the org is never ownerless, even
+     * for an instant. Returns 'not_found' | 'self' | 'already_owner' | 'ok'.
+     */
+    async transferOwnership(ctx: TenantContext, membershipId: string) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [target] = await tx
+          .select({
+            id: memberships.id,
+            userId: memberships.userId,
+            roleKey: roles.key,
+            email: users.email,
+          })
+          .from(memberships)
+          .innerJoin(roles, eq(memberships.roleId, roles.id))
+          .innerJoin(users, eq(memberships.userId, users.id))
+          .where(
+            and(
+              eq(memberships.id, membershipId),
+              eq(memberships.organizationId, ctx.organizationId),
+              eq(memberships.status, 'active'),
+            ),
+          )
+          .limit(1);
+        if (!target) return { kind: 'not_found' as const };
+        if (target.userId === ctx.userId) return { kind: 'self' as const };
+        if (target.roleKey === 'owner') return { kind: 'already_owner' as const };
+
+        const [ownerRole] = await tx
+          .select({ id: roles.id })
+          .from(roles)
+          .where(and(eq(roles.organizationId, ctx.organizationId), eq(roles.key, 'owner')))
+          .limit(1);
+        const [adminRole] = await tx
+          .select({ id: roles.id })
+          .from(roles)
+          .where(and(eq(roles.organizationId, ctx.organizationId), eq(roles.key, 'admin')))
+          .limit(1);
+        if (!ownerRole || !adminRole) return { kind: 'not_found' as const };
+
+        await tx
+          .update(memberships)
+          .set({ roleId: ownerRole.id })
+          .where(eq(memberships.id, membershipId));
+        await tx
+          .update(memberships)
+          .set({ roleId: adminRole.id })
+          .where(
+            and(
+              eq(memberships.organizationId, ctx.organizationId),
+              eq(memberships.userId, ctx.userId),
+            ),
+          );
+
+        await tx.insert(auditLogs).values({
+          organizationId: ctx.organizationId,
+          actorUserId: ctx.userId,
+          action: 'member.ownership_transferred',
+          entityType: 'membership',
+          entityId: membershipId,
+          before: { ownerUserId: ctx.userId },
+          after: { ownerUserId: target.userId, email: target.email },
+        });
+
+        return { kind: 'ok' as const };
+      });
+    },
+
     async revokeInvitation(ctx: TenantContext, invitationId: string) {
       return withTenantContext(db, guc(ctx), async (tx) => {
         const [revoked] = await tx

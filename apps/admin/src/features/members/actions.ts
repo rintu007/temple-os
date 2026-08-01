@@ -83,6 +83,18 @@ export async function removeMemberAction(
   return { message: 'Removed.' };
 }
 
+export async function transferOwnershipAction(
+  membershipId: string,
+  _prev: FormState,
+  _formData: FormData,
+): Promise<FormState> {
+  const { ctx } = await requireTenantContext();
+  const result = await memberService().transferOwnership(ctx, membershipId);
+  revalidatePath('/team');
+  if (!result.ok) return { error: result.error.message };
+  return { message: 'Ownership transferred. You are now an admin.' };
+}
+
 export async function updateMemberRoleAction(
   membershipId: string,
   _prev: FormState,

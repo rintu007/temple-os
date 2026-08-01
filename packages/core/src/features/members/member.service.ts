@@ -5,6 +5,7 @@ import {
   conflict,
   domainError,
   err,
+  forbidden,
   notFound,
   ok,
   type Result,
@@ -136,6 +137,31 @@ export function createMemberService({ db }: { db: Db }) {
       }
       if (result.kind === 'last_owner') {
         return err(conflict('An organization must have at least one owner — promote someone else first.'));
+      }
+      return ok(null);
+    },
+
+    /**
+     * Owner-only hand-off: promotes another active member to owner and
+     * demotes the caller to admin. Gated on ctx.roleKey directly rather than
+     * a permission, because 'organization:manage' alone doesn't distinguish
+     * owner from admin (both have it) — and an admin must never be able to
+     * grant themselves ownership through this action.
+     */
+    async transferOwnership(ctx: TenantContext, membershipId: string): Promise<Result<null>> {
+      const auth = authorize(ctx, 'organization:manage');
+      if (!auth.ok) return auth;
+      if (ctx.roleKey !== 'owner') {
+        return err(forbidden('Only the current owner can transfer ownership'));
+      }
+
+      const result = await repo.transferOwnership(ctx, membershipId);
+      if (result.kind === 'not_found') return err(notFound('Member'));
+      if (result.kind === 'self') {
+        return err(domainError('VALIDATION', 'You are already the owner.'));
+      }
+      if (result.kind === 'already_owner') {
+        return err(domainError('VALIDATION', 'This member is already an owner.'));
       }
       return ok(null);
     },

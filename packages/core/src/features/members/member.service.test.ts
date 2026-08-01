@@ -33,6 +33,7 @@ describe.skipIf(!hasDb)('members: invitations, acceptance, RBAC, isolation (live
   };
   const outsider = { userId: randomUUID(), email: `out-${run}@test.invalid`, fullName: 'Out' };
   const secondOwner = { userId: randomUUID(), email: `owner2-${run}@test.invalid` };
+  const newOwner = { userId: randomUUID(), email: `newowner-${run}@test.invalid` };
   let orgId = '';
   let otherOrgId = '';
   let inviteToken = '';
@@ -56,9 +57,15 @@ describe.skipIf(!hasDb)('members: invitations, acceptance, RBAC, isolation (live
       await admin.delete(platformSubscriptions).where(inArray(platformSubscriptions.organizationId, orgIds));
       await admin.delete(organizations).where(inArray(organizations.id, orgIds));
     }
-    await admin
-      .delete(users)
-      .where(inArray(users.id, [owner.userId, invitee.userId, outsider.userId, secondOwner.userId]));
+    await admin.delete(users).where(
+      inArray(users.id, [
+        owner.userId,
+        invitee.userId,
+        outsider.userId,
+        secondOwner.userId,
+        newOwner.userId,
+      ]),
+    );
     await db.$client.end();
     await admin.$client.end();
   });
@@ -318,6 +325,71 @@ describe.skipIf(!hasDb)('members: invitations, acceptance, RBAC, isolation (live
     const notFound = await service.removeMember(ctx(), randomUUID());
     expect(notFound.ok).toBe(false);
     if (!notFound.ok) expect(notFound.error.code).toBe('NOT_FOUND');
+  });
+
+  it('transfers ownership: promotes the target, demotes the acting owner to admin', async () => {
+    const [staffRole] = await admin
+      .select({ id: roles.id })
+      .from(roles)
+      .where(and(eq(roles.organizationId, orgId), eq(roles.key, 'staff')));
+    expect(staffRole).toBeDefined();
+
+    await admin.insert(users).values({ id: newOwner.userId, email: newOwner.email });
+    const [newMembership] = await admin
+      .insert(memberships)
+      .values({
+        organizationId: orgId,
+        userId: newOwner.userId,
+        roleId: staffRole!.id,
+        status: 'active',
+        templeIds: null,
+      })
+      .returning();
+
+    const [ownMembership] = await admin
+      .select({ id: memberships.id })
+      .from(memberships)
+      .where(and(eq(memberships.organizationId, orgId), eq(memberships.userId, owner.userId)));
+    const [secondOwnerMembership] = await admin
+      .select({ id: memberships.id })
+      .from(memberships)
+      .where(and(eq(memberships.organizationId, orgId), eq(memberships.userId, secondOwner.userId)));
+
+    // Not the owner (organization:manage alone isn't enough — 'admin' has it too).
+    const denied = await service.transferOwnership(ctx('admin'), newMembership!.id);
+    expect(denied.ok).toBe(false);
+    if (!denied.ok) expect(denied.error.code).toBe('FORBIDDEN');
+
+    // Transferring to yourself, or to an unknown membership, is rejected.
+    const self = await service.transferOwnership(ctx(), ownMembership!.id);
+    expect(self.ok).toBe(false);
+    if (!self.ok) expect(self.error.code).toBe('VALIDATION');
+
+    const missing = await service.transferOwnership(ctx(), randomUUID());
+    expect(missing.ok).toBe(false);
+    if (!missing.ok) expect(missing.error.code).toBe('NOT_FOUND');
+
+    // secondOwner (seeded earlier, still an owner) — transferring to an existing owner is a no-op error.
+    const already = await service.transferOwnership(ctx(), secondOwnerMembership!.id);
+    expect(already.ok).toBe(false);
+    if (!already.ok) expect(already.error.code).toBe('VALIDATION');
+
+    const transferred = await service.transferOwnership(ctx(), newMembership!.id);
+    expect(transferred.ok).toBe(true);
+
+    const [newOwnerRow] = await admin
+      .select({ roleKey: roles.key })
+      .from(memberships)
+      .innerJoin(roles, eq(memberships.roleId, roles.id))
+      .where(eq(memberships.id, newMembership!.id));
+    expect(newOwnerRow?.roleKey).toBe('owner');
+
+    const [demotedOwnerRow] = await admin
+      .select({ roleKey: roles.key })
+      .from(memberships)
+      .innerJoin(roles, eq(memberships.roleId, roles.id))
+      .where(eq(memberships.id, ownMembership!.id));
+    expect(demotedOwnerRow?.roleKey).toBe('admin');
   });
 
   it('other tenant sees no members or invitations of this org', async () => {
