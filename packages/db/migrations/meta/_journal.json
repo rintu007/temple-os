@@ -372,6 +372,13 @@
       "when": 1785568180310,
       "tag": "0052_cold_gertrude_yorkes",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1785571068263,
+      "tag": "0053_add_plan_seat_limit",
+      "breakpoints": true
     }
   ]
 }

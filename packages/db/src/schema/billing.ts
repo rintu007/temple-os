@@ -31,6 +31,8 @@ export const planCatalog = pgTable('plan_catalog', {
   /** Gateable module keys this plan unlocks — see packages/validators/src/billing.ts#ModuleKey. */
   modules: jsonb().$type<string[]>().notNull().default([]),
   isPurchasable: boolean().notNull().default(false),
+  /** Max active + pending-invited staff seats a org on this plan may have; null = unlimited. */
+  seatLimit: integer(),
   /** Stripe Price id for a monthly subscription to this plan — set once the plan goes live in Stripe. */
   stripePriceId: text(),
   isTrialDefault: boolean().notNull().default(false),

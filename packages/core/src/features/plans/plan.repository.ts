@@ -15,6 +15,7 @@ function toEntry(row: {
   features: string[];
   modules: string[];
   isPurchasable: boolean;
+  seatLimit: number | null;
   stripePriceId: string | null;
   isTrialDefault: boolean;
   isFallbackDefault: boolean;

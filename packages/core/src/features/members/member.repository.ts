@@ -1,11 +1,13 @@
 import { randomBytes } from 'node:crypto';
-import { and, asc, count, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gt, sql } from 'drizzle-orm';
 import {
   auditLogs,
   invitations,
   memberships,
   newId,
   organizations,
+  planCatalog,
+  platformSubscriptions,
   roles,
   users,
   withInviteToken,
@@ -75,7 +77,7 @@ export function createMemberRepository(db: Db) {
       );
     },
 
-    /** Returns 'already_member' | 'already_invited' | the created invitation. */
+    /** Returns 'already_member' | 'already_invited' | 'seat_limit_reached' | the created invitation. */
     async createInvitation(ctx: TenantContext, input: { email: string; roleKey: string }) {
       return withTenantContext(db, guc(ctx), async (tx) => {
         const [existingMember] = await tx
@@ -103,6 +105,42 @@ export function createMemberRepository(db: Db) {
           )
           .limit(1);
         if (pending) return { kind: 'already_invited' as const };
+
+        const [sub] = await tx
+          .select({ plan: platformSubscriptions.plan })
+          .from(platformSubscriptions)
+          .where(eq(platformSubscriptions.organizationId, ctx.organizationId))
+          .limit(1);
+        if (sub) {
+          const [plan] = await tx
+            .select({ seatLimit: planCatalog.seatLimit })
+            .from(planCatalog)
+            .where(eq(planCatalog.key, sub.plan))
+            .limit(1);
+          if (plan?.seatLimit != null) {
+            const [activeRow] = await tx
+              .select({ value: count() })
+              .from(memberships)
+              .where(
+                and(
+                  eq(memberships.organizationId, ctx.organizationId),
+                  eq(memberships.status, 'active'),
+                ),
+              );
+            const [pendingRow] = await tx
+              .select({ value: count() })
+              .from(invitations)
+              .where(
+                and(
+                  eq(invitations.organizationId, ctx.organizationId),
+                  eq(invitations.status, 'pending'),
+                  gt(invitations.expiresAt, new Date()),
+                ),
+              );
+            const seatsUsed = (activeRow?.value ?? 0) + (pendingRow?.value ?? 0);
+            if (seatsUsed >= plan.seatLimit) return { kind: 'seat_limit_reached' as const };
+          }
+        }
 
         const [role] = await tx
           .select({ id: roles.id, name: roles.name })

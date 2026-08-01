@@ -36,6 +36,8 @@ export interface PlanCatalogEntry {
   features: readonly string[];
   modules: readonly ModuleKey[];
   isPurchasable: boolean;
+  /** Max active + pending-invited staff seats an org on this plan may have; null = unlimited. */
+  seatLimit: number | null;
   stripePriceId: string | null;
   isTrialDefault: boolean;
   isFallbackDefault: boolean;
@@ -49,6 +51,7 @@ const planEntryFields = {
   features: z.array(z.string().trim().min(1).max(200)).max(20),
   modules: z.array(z.enum(MODULE_KEYS)),
   isPurchasable: z.boolean(),
+  seatLimit: z.coerce.number().int().min(1).nullable(),
   stripePriceId: z
     .string()
     .trim()

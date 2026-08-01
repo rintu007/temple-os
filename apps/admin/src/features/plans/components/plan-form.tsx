@@ -61,6 +61,17 @@ export function PlanForm({ action, plan, submitLabel }: PlanFormProps) {
             defaultValue={plan?.sortOrder ?? 0}
           />
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="seatLimit">Staff seat limit</Label>
+          <Input
+            id="seatLimit"
+            name="seatLimit"
+            type="number"
+            min={1}
+            placeholder="Leave blank for unlimited"
+            defaultValue={plan?.seatLimit ?? undefined}
+          />
+        </div>
       </div>
 
       <div className="space-y-2">

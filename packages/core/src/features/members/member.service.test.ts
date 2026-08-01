@@ -34,8 +34,10 @@ describe.skipIf(!hasDb)('members: invitations, acceptance, RBAC, isolation (live
   const outsider = { userId: randomUUID(), email: `out-${run}@test.invalid`, fullName: 'Out' };
   const secondOwner = { userId: randomUUID(), email: `owner2-${run}@test.invalid` };
   const newOwner = { userId: randomUUID(), email: `newowner-${run}@test.invalid` };
+  const seatOwner = { userId: randomUUID(), email: `seatowner-${run}@test.invalid`, fullName: 'Seat Owner' };
   let orgId = '';
   let otherOrgId = '';
+  let seatOrgId = '';
   let inviteToken = '';
   let inviteeMembershipId = '';
 
@@ -47,7 +49,7 @@ describe.skipIf(!hasDb)('members: invitations, acceptance, RBAC, isolation (live
   });
 
   afterAll(async () => {
-    const orgIds = [orgId, otherOrgId].filter(Boolean);
+    const orgIds = [orgId, otherOrgId, seatOrgId].filter(Boolean);
     if (orgIds.length > 0) {
       await admin.delete(auditLogs).where(inArray(auditLogs.organizationId, orgIds));
       await admin.delete(invitations).where(inArray(invitations.organizationId, orgIds));
@@ -64,6 +66,7 @@ describe.skipIf(!hasDb)('members: invitations, acceptance, RBAC, isolation (live
         outsider.userId,
         secondOwner.userId,
         newOwner.userId,
+        seatOwner.userId,
       ]),
     );
     await db.$client.end();
@@ -77,7 +80,16 @@ describe.skipIf(!hasDb)('members: invitations, acceptance, RBAC, isolation (live
       owner,
     );
     expect(a.ok).toBe(true);
-    if (a.ok) orgId = a.value.id;
+    if (a.ok) {
+      orgId = a.value.id;
+      // This suite exercises RBAC across many invitations, unrelated to seat
+      // limits (which get their own dedicated test below) — put it on a plan
+      // with unlimited seats so the invite-heavy flow below isn't blocked.
+      await admin
+        .update(platformSubscriptions)
+        .set({ plan: 'growth' })
+        .where(eq(platformSubscriptions.organizationId, orgId));
+    }
 
     const b = await orgService.provisionOrganization(
       systemContext('member test'),
@@ -407,5 +419,41 @@ describe.skipIf(!hasDb)('members: invitations, acceptance, RBAC, isolation (live
     }
     const invitationsList = await service.listInvitations(outsiderCtx);
     if (invitationsList.ok) expect(invitationsList.value).toHaveLength(0);
+  });
+
+  it('enforces the plan seat limit (trial defaults to 2 seats: owner + 1 invite)', async () => {
+    const provisioned = await orgService.provisionOrganization(
+      systemContext('member test'),
+      { name: 'Seat Org', slug: `${run}-seat`, country: 'IN' },
+      seatOwner,
+    );
+    expect(provisioned.ok).toBe(true);
+    if (!provisioned.ok) return;
+    seatOrgId = provisioned.value.id;
+
+    const seatCtx: TenantContext = {
+      organizationId: seatOrgId,
+      userId: seatOwner.userId,
+      roleKey: 'owner',
+      templeIds: null,
+    };
+
+    // Owner alone already fills 1 of 2 trial seats; this invite fills the 2nd.
+    const first = await service.createInvitation(seatCtx, {
+      email: `seat1-${run}@test.invalid`,
+      roleKey: 'staff',
+    });
+    expect(first.ok).toBe(true);
+
+    // A 3rd distinct email is refused — the org is at its seat limit.
+    const second = await service.createInvitation(seatCtx, {
+      email: `seat2-${run}@test.invalid`,
+      roleKey: 'staff',
+    });
+    expect(second.ok).toBe(false);
+    if (!second.ok) {
+      expect(second.error.code).toBe('CONFLICT');
+      expect(second.error.message).toMatch(/seat limit/i);
+    }
   });
 });

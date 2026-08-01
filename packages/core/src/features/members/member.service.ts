@@ -51,6 +51,11 @@ export function createMemberService({ db }: { db: Db }) {
       if (result.kind === 'already_invited') {
         return err(conflict('There is already a pending invitation for this email'));
       }
+      if (result.kind === 'seat_limit_reached') {
+        return err(
+          conflict('Your plan has reached its staff seat limit — upgrade to invite more people'),
+        );
+      }
       if (result.kind === 'role_not_found') {
         return err(notFound('Role'));
       }

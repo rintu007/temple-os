@@ -8,11 +8,14 @@ import { requirePlatformAdmin } from '@/lib/session';
 
 function planFields(formData: FormData) {
   const priceUsdRaw = formData.get('priceUsd');
+  const seatLimitRaw = formData.get('seatLimit');
   const stripePriceIdRaw = formData.get('stripePriceId');
   return {
     name: formData.get('name'),
     priceUsd:
       typeof priceUsdRaw === 'string' && priceUsdRaw.trim() !== '' ? priceUsdRaw : null,
+    seatLimit:
+      typeof seatLimitRaw === 'string' && seatLimitRaw.trim() !== '' ? seatLimitRaw : null,
     description: formData.get('description'),
     features: String(formData.get('features') ?? '')
       .split('\n')

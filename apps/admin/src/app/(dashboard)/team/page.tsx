@@ -5,23 +5,28 @@ import { resendInvitationAction, revokeInvitationAction } from '@/features/membe
 import { InviteForm } from '@/features/members/components/invite-form';
 import { MemberActions } from '@/features/members/components/member-actions';
 import { requireTenantContext } from '@/lib/session';
-import { memberService, roleService } from '@/lib/services';
+import { billingService, memberService, planService, roleService } from '@/lib/services';
 
 export const metadata: Metadata = { title: 'Team' };
 
 export default async function TeamPage() {
   const { ctx, user, membership } = await requireTenantContext();
   const isOwner = membership.roleKey === 'owner';
-  const [members, invites, roles] = await Promise.all([
+  const [members, invites, roles, status] = await Promise.all([
     memberService().listMembers(ctx),
     memberService().listInvitations(ctx),
     roleService().listRoles(ctx),
+    billingService().getStatus(ctx),
   ]);
 
   if (!members.ok) {
     return <Alert tone="error">{members.error.message}</Alert>;
   }
   const invitableRoles = roles.ok ? roles.value.filter((r) => r.key !== 'owner') : [];
+
+  const plan = status.ok && status.value ? await planService().getPlan(status.value.plan) : null;
+  const seatLimit = plan?.seatLimit ?? null;
+  const seatsUsed = members.value.length + (invites.ok ? invites.value.length : 0);
 
   return (
     <div className="space-y-8">
@@ -41,7 +46,15 @@ export default async function TeamPage() {
       </div>
 
       <section className="rounded-xl border border-border bg-card shadow-card p-6">
-        <h2 className="mb-4 text-sm font-medium text-muted-foreground">Invite a team member</h2>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h2 className="text-sm font-medium text-muted-foreground">Invite a team member</h2>
+          {seatLimit !== null ? (
+            <span className="text-xs text-muted-foreground">
+              {seatsUsed} of {seatLimit} seats used
+              {seatsUsed >= seatLimit ? ' — upgrade to invite more' : ''}
+            </span>
+          ) : null}
+        </div>
         <InviteForm roles={invitableRoles} />
       </section>
 

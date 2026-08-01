@@ -59,6 +59,12 @@ describe.skipIf(!hasDb)('plans: platform-editable catalog (live db)', () => {
       expect.arrayContaining(['worship', 'community', 'finance-basic']),
     );
     expect(trial?.modules).not.toContain('accounting');
+
+    // Seat limits: trial/starter cap staff seats, growth/pro are unlimited.
+    expect(trial?.seatLimit).toBe(2);
+    expect(plans.find((p) => p.key === 'starter')?.seatLimit).toBe(2);
+    expect(plans.find((p) => p.key === 'growth')?.seatLimit).toBeNull();
+    expect(plans.find((p) => p.key === 'pro')?.seatLimit).toBeNull();
   });
 
   it('sets up an org and a separate platform-admin user', async () => {
@@ -84,6 +90,7 @@ describe.skipIf(!hasDb)('plans: platform-editable catalog (live db)', () => {
       features: [],
       modules: [],
       isPurchasable: false,
+      seatLimit: null,
       stripePriceId: null,
       isTrialDefault: false,
       isFallbackDefault: false,
@@ -102,6 +109,7 @@ describe.skipIf(!hasDb)('plans: platform-editable catalog (live db)', () => {
       features: ['One nice thing'],
       modules: ['worship'],
       isPurchasable: true,
+      seatLimit: 3,
       stripePriceId: null,
       isTrialDefault: false,
       isFallbackDefault: false,
@@ -111,6 +119,7 @@ describe.skipIf(!hasDb)('plans: platform-editable catalog (live db)', () => {
     if (created.ok) {
       expect(created.value.name).toBe('Custom');
       expect(created.value.modules).toEqual(['worship']);
+      expect(created.value.seatLimit).toBe(3);
     }
 
     const dup = await plan$.createPlan(staffer.userId, {
@@ -121,6 +130,7 @@ describe.skipIf(!hasDb)('plans: platform-editable catalog (live db)', () => {
       features: [],
       modules: [],
       isPurchasable: false,
+      seatLimit: null,
       stripePriceId: null,
       isTrialDefault: false,
       isFallbackDefault: false,
@@ -138,6 +148,7 @@ describe.skipIf(!hasDb)('plans: platform-editable catalog (live db)', () => {
       features: ['One nice thing', 'Two nice things'],
       modules: ['worship', 'community'],
       isPurchasable: true,
+      seatLimit: null,
       stripePriceId: null,
       isTrialDefault: true,
       isFallbackDefault: false,
@@ -148,6 +159,7 @@ describe.skipIf(!hasDb)('plans: platform-editable catalog (live db)', () => {
       expect(updated.value.priceUsd).toBe(15);
       expect(updated.value.modules).toEqual(['worship', 'community']);
       expect(updated.value.isTrialDefault).toBe(true);
+      expect(updated.value.seatLimit).toBeNull();
     }
 
     const oldTrial = await plan$.getPlan('trial');
@@ -161,6 +173,7 @@ describe.skipIf(!hasDb)('plans: platform-editable catalog (live db)', () => {
       features: [...oldTrial!.features],
       modules: [...oldTrial!.modules],
       isPurchasable: oldTrial!.isPurchasable,
+      seatLimit: oldTrial!.seatLimit,
       stripePriceId: oldTrial!.stripePriceId,
       isTrialDefault: true,
       isFallbackDefault: oldTrial!.isFallbackDefault,
