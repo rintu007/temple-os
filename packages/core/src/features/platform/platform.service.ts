@@ -1,10 +1,7 @@
 import type { Db } from '@templeos/db';
-import {
-  PLAN_CATALOG,
-  platformOverrideSchema,
-  type OrganizationAdminStatus,
-} from '@templeos/validators';
+import { platformOverrideSchema, type OrganizationAdminStatus } from '@templeos/validators';
 import { domainError, err, forbidden, notFound, ok, type Result } from '../../shared';
+import { createPlanRepository } from '../plans/plan.repository';
 import { createPlatformRepository } from './platform.repository';
 import type { PlatformOrgSummary, PlatformOverview } from './platform.types';
 
@@ -21,13 +18,13 @@ interface OrgBillingRow {
   currentPeriodEnd: Date | null;
 }
 
-function toSummary(row: OrgBillingRow): PlatformOrgSummary {
+function toSummary(row: OrgBillingRow, priceByPlan: ReadonlyMap<string, number | null>): PlatformOrgSummary {
   const isTrialExpired =
     row.subscriptionStatus === 'trialing' &&
     row.trialEndsAt !== null &&
     row.trialEndsAt.getTime() < Date.now();
   const mrrUsd =
-    row.subscriptionStatus === 'active' && row.plan ? (PLAN_CATALOG[row.plan].priceUsd ?? 0) : 0;
+    row.subscriptionStatus === 'active' && row.plan ? (priceByPlan.get(row.plan) ?? 0) : 0;
 
   return {
     id: row.id,
@@ -47,6 +44,7 @@ function toSummary(row: OrgBillingRow): PlatformOrgSummary {
 
 export function createPlatformService({ db }: { db: Db }) {
   const repo = createPlatformRepository(db);
+  const planRepo = createPlanRepository(db);
 
   return {
     isPlatformAdmin(userId: string): Promise<boolean> {
@@ -59,8 +57,12 @@ export function createPlatformService({ db }: { db: Db }) {
         return err(forbidden('Platform admin access required'));
       }
 
-      const rows = await repo.listOrganizationsWithBilling(userId);
-      const organizationSummaries = rows.map(toSummary);
+      const [rows, plans] = await Promise.all([
+        repo.listOrganizationsWithBilling(userId),
+        planRepo.list(),
+      ]);
+      const priceByPlan = new Map(plans.map((p) => [p.key, p.priceUsd]));
+      const organizationSummaries = rows.map((row) => toSummary(row, priceByPlan));
 
       return ok({
         organizations: organizationSummaries,
@@ -79,9 +81,13 @@ export function createPlatformService({ db }: { db: Db }) {
       if (!(await repo.isPlatformAdmin(userId))) {
         return err(forbidden('Platform admin access required'));
       }
-      const row = await repo.getOrganizationWithBilling(userId, organizationId);
+      const [row, plans] = await Promise.all([
+        repo.getOrganizationWithBilling(userId, organizationId),
+        planRepo.list(),
+      ]);
       if (!row) return err(notFound('Organization'));
-      return ok(toSummary(row));
+      const priceByPlan = new Map(plans.map((p) => [p.key, p.priceUsd]));
+      return ok(toSummary(row, priceByPlan));
     },
 
     /**
@@ -103,6 +109,9 @@ export function createPlatformService({ db }: { db: Db }) {
       }
       if (!parsed.data.plan && !parsed.data.status && !parsed.data.extendTrialDays) {
         return err(domainError('VALIDATION', 'Choose at least one change to apply'));
+      }
+      if (parsed.data.plan && !(await planRepo.getByKey(parsed.data.plan))) {
+        return err(domainError('VALIDATION', 'Unknown plan'));
       }
       await repo.applyOverride(organizationId, actorUserId, parsed.data);
       return ok(null);

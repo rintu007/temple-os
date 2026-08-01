@@ -14,6 +14,7 @@ import {
 import { TRIAL_LENGTH_DAYS } from '@templeos/validators';
 import { systemContext, type TenantContext } from '../../shared';
 import { createOrganizationService } from '../organizations/organization.service';
+import { createPlanService } from '../plans/plan.service';
 import { createBillingService } from './billing.service';
 
 const hasDb = Boolean(process.env.DATABASE_URL && process.env.DATABASE_URL_ADMIN);
@@ -23,6 +24,7 @@ describe.skipIf(!hasDb)('billing: trial provisioning + access control (live db)'
   const admin = createDb(process.env.DATABASE_URL_ADMIN);
   const orgService = createOrganizationService({ db, rootDomain: 'test.invalid' });
   const billing$ = createBillingService({ db });
+  const plan$ = createPlanService({ db });
 
   const run = `bill${Date.now().toString(36)}`;
   const owner = { userId: randomUUID(), email: `own-${run}@test.invalid`, fullName: 'Owner' };
@@ -78,7 +80,8 @@ describe.skipIf(!hasDb)('billing: trial provisioning + access control (live db)'
   });
 
   it('rejects checkout/portal creation when Stripe billing is not configured', async () => {
-    if (billing$.isConfigured()) return; // this env has billing configured — nothing to assert
+    const proPlan = await plan$.getPlan('pro');
+    if (proPlan && billing$.isConfigured(proPlan)) return; // this env has billing configured — nothing to assert
     const checkout = await billing$.createUpgradeCheckout(ownerCtx, 'pro', 'https://admin.test.invalid');
     expect(checkout.ok).toBe(false);
 
@@ -86,9 +89,15 @@ describe.skipIf(!hasDb)('billing: trial provisioning + access control (live db)'
     expect(portal.ok).toBe(false);
   });
 
-  it('grants every module during an unexpired trial', async () => {
+  it('grants a limited (Growth-tier) module set during an unexpired trial — not every module', async () => {
     const modules = await billing$.getEntitledModules(ownerCtx);
-    expect(modules).toBe('all');
+    expect(modules).not.toBe('all');
+    if (modules !== 'all') {
+      expect(modules.has('worship')).toBe(true);
+      expect(modules.has('community')).toBe(true);
+      expect(modules.has('finance-basic')).toBe(true);
+      expect(modules.has('accounting')).toBe(false);
+    }
   });
 
   it('falls back to Starter (no gated modules) once the trial has expired', async () => {

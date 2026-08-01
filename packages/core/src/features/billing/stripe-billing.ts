@@ -85,15 +85,3 @@ export function stripeBillingFromEnv(): StripeBillingClient | null {
     webhookSecret: process.env.STRIPE_BILLING_WEBHOOK_SECRET ?? null,
   });
 }
-
-const PLAN_PRICE_ENV: Partial<Record<PlatformPlan, string>> = {
-  growth: 'STRIPE_PRICE_GROWTH_MONTHLY',
-  pro: 'STRIPE_PRICE_PRO_MONTHLY',
-};
-
-/** The Stripe Price id for a purchasable plan — configured once per plan in the Stripe dashboard. */
-export function priceIdForPlan(plan: PlatformPlan): string | null {
-  const envVar = PLAN_PRICE_ENV[plan];
-  if (!envVar) return null;
-  return process.env[envVar] ?? null;
-}

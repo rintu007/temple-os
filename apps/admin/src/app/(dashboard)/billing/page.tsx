@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { CheckCircle2 } from 'lucide-react';
-import { PLAN_CATALOG, PURCHASABLE_PLANS, type PlatformPlan } from '@templeos/validators';
 import { Alert, Badge, Button, cn } from '@templeos/ui';
-import { billingService } from '@/lib/services';
+import { billingService, planService } from '@/lib/services';
 import { requireTenantContext } from '@/lib/session';
 import { manageBillingAction, upgradeAction } from '@/features/billing/actions';
 
@@ -14,14 +13,20 @@ function daysLeft(date: Date): number {
 
 export default async function BillingPage() {
   const { ctx } = await requireTenantContext();
-  const result = await billingService().getStatus(ctx);
+  const [result, plans] = await Promise.all([
+    billingService().getStatus(ctx),
+    planService().listPlans(),
+  ]);
 
   if (!result.ok) {
     return <Alert tone="error">{result.error.message}</Alert>;
   }
   const status = result.value;
-  const currentPlan: PlatformPlan = status?.plan ?? 'trial';
+  const planByKey = new Map(plans.map((p) => [p.key, p]));
+  const currentPlanKey = status?.plan ?? null;
+  const currentPlanEntry = currentPlanKey ? planByKey.get(currentPlanKey) : undefined;
   const onActivePaidPlan = status?.status === 'active';
+  const displayPlans = plans.filter((p) => !p.isTrialDefault);
 
   return (
     <div className="space-y-6">
@@ -38,14 +43,14 @@ export default async function BillingPage() {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm text-muted-foreground">Current plan</div>
-              <div className="mt-1 text-xl font-semibold">{PLAN_CATALOG[currentPlan].name}</div>
+              <div className="mt-1 text-xl font-semibold">{currentPlanEntry?.name ?? currentPlanKey}</div>
             </div>
             <Badge variant={onActivePaidPlan ? 'success' : status.isTrialExpired ? 'destructive' : 'default'}>
               {status.isTrialExpired ? 'Trial expired' : status.status}
             </Badge>
           </div>
 
-          {status.plan === 'trial' && status.trialEndsAt ? (
+          {currentPlanEntry?.isTrialDefault && status.trialEndsAt ? (
             <p className="mt-3 text-sm text-muted-foreground">
               {status.isTrialExpired
                 ? "Your trial has ended — you're on Starter until you upgrade."
@@ -76,15 +81,14 @@ export default async function BillingPage() {
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-3">
-        {(['starter', 'growth', 'pro'] as const).map((planKey) => {
-          const plan = PLAN_CATALOG[planKey];
-          const isCurrent = onActivePaidPlan && currentPlan === planKey;
-          const purchasable = (PURCHASABLE_PLANS as readonly string[]).includes(planKey);
-          const configured = purchasable && billingService().isConfigured(planKey);
+        {displayPlans.map((plan) => {
+          const isCurrent = onActivePaidPlan && currentPlanKey === plan.key;
+          const configured = plan.isPurchasable && billingService().isConfigured(plan);
+          const comparingFromPaid = !!currentPlanEntry && !currentPlanEntry.isTrialDefault && currentPlanEntry.priceUsd !== null;
 
           return (
             <div
-              key={planKey}
+              key={plan.key}
               className={cn(
                 'rounded-xl border bg-card p-6 shadow-card',
                 isCurrent ? 'border-primary ring-1 ring-primary' : 'border-border',
@@ -107,11 +111,11 @@ export default async function BillingPage() {
                   </li>
                 ))}
               </ul>
-              {purchasable && !isCurrent ? (
-                <form action={upgradeAction.bind(null, planKey)} className="mt-5">
+              {plan.isPurchasable && !isCurrent ? (
+                <form action={upgradeAction.bind(null, plan.key)} className="mt-5">
                   <Button type="submit" className="w-full" disabled={!configured}>
-                    {status && status.plan !== 'trial' && PLAN_CATALOG[status.plan].priceUsd !== null
-                      ? plan.priceUsd! > (PLAN_CATALOG[currentPlan].priceUsd ?? 0)
+                    {comparingFromPaid
+                      ? (plan.priceUsd ?? 0) > (currentPlanEntry?.priceUsd ?? 0)
                         ? `Upgrade to ${plan.name}`
                         : `Switch to ${plan.name}`
                       : `Choose ${plan.name}`}

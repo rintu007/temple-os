@@ -2,6 +2,7 @@ import { and, desc, eq, isNull } from 'drizzle-orm';
 import {
   auditLogs,
   organizations,
+  planCatalog,
   platformAdmins,
   platformSubscriptions,
   withTenantContext,
@@ -87,7 +88,16 @@ export function createPlatformRepository(db: Db) {
           ? new Date(baseTrialEnd.getTime() + input.extendTrialDays * 86_400_000)
           : undefined;
 
-        const plan = input.plan ?? before?.plan ?? 'trial';
+        let plan = input.plan ?? before?.plan;
+        if (!plan) {
+          const [trialPlan] = await tx
+            .select({ key: planCatalog.key })
+            .from(planCatalog)
+            .where(eq(planCatalog.isTrialDefault, true))
+            .limit(1);
+          if (!trialPlan) throw new Error('No plan is marked as the trial default');
+          plan = trialPlan.key;
+        }
         const status = input.status ?? before?.status ?? 'trialing';
 
         await tx

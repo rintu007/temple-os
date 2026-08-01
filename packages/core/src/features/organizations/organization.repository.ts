@@ -5,6 +5,7 @@ import {
   memberships,
   newId,
   organizations,
+  planCatalog,
   platformSubscriptions,
   roles,
   users,
@@ -83,9 +84,19 @@ export function createOrganizationRepository(db: Db) {
             verifiedAt: new Date(),
           });
 
+          // Looked up rather than hardcoded 'trial' — the catalog is
+          // platform-editable, so whichever plan is currently flagged as the
+          // trial default is the one new orgs land on (see packages/core/src/features/plans).
+          const [trialPlan] = await tx
+            .select({ key: planCatalog.key })
+            .from(planCatalog)
+            .where(eq(planCatalog.isTrialDefault, true))
+            .limit(1);
+          if (!trialPlan) throw new Error('No plan is marked as the trial default');
+
           await tx.insert(platformSubscriptions).values({
             organizationId: orgId,
-            plan: 'trial',
+            plan: trialPlan.key,
             status: 'trialing',
             trialEndsAt: new Date(Date.now() + TRIAL_LENGTH_DAYS * 24 * 60 * 60 * 1000),
           });

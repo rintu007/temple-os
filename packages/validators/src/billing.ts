@@ -1,14 +1,12 @@
-export const PLATFORM_PLANS = ['trial', 'starter', 'growth', 'pro'] as const;
-export type PlatformPlan = (typeof PLATFORM_PLANS)[number];
+import { z } from 'zod';
 
-export interface PlanCatalogEntry {
-  key: PlatformPlan;
-  name: string;
-  /** USD per month; null for tiers that are never purchased directly (trial, free Starter). */
-  priceUsd: number | null;
-  description: string;
-  features: readonly string[];
-}
+/**
+ * A plan's key is a free-form slug now, not a fixed union — the catalog
+ * (packages/db/src/schema/billing.ts#planCatalog) is platform-editable, so
+ * TypeScript can't know every valid key at compile time. Validity against
+ * the live catalog is checked at the service layer (a DB lookup), not here.
+ */
+export type PlatformPlan = string;
 
 /**
  * Gateable feature bundles — every module not listed here (dashboard, insights,
@@ -17,7 +15,8 @@ export interface PlanCatalogEntry {
  * temple's public site and its ability to receive donations must never
  * depend on TempleOS's own subscription status.
  */
-export type ModuleKey = 'worship' | 'community' | 'finance-basic' | 'accounting';
+export const MODULE_KEYS = ['worship', 'community', 'finance-basic', 'accounting'] as const;
+export type ModuleKey = (typeof MODULE_KEYS)[number];
 
 export const MODULE_NAMES: Record<ModuleKey, string> = {
   worship: 'Worship (puja booking, sevas, prasadam, darshan, facilities)',
@@ -26,59 +25,53 @@ export const MODULE_NAMES: Record<ModuleKey, string> = {
   accounting: 'Full accounting (accounts, payroll, budgets, statements, inventory, 80G tax)',
 };
 
-/** TempleOS bills every org in USD regardless of the org's own donor-facing currency. */
-export const PLAN_CATALOG: Record<PlatformPlan, PlanCatalogEntry> = {
-  trial: {
-    key: 'trial',
-    name: 'Trial',
-    priceUsd: null,
-    description: '14-day full-feature trial — no card required.',
-    features: ['Every module unlocked', 'Up to 2 staff accounts'],
-  },
-  starter: {
-    key: 'starter',
-    name: 'Starter',
-    priceUsd: 0,
-    description: 'Core temple operations, free forever — what a trial falls back to.',
-    features: ['Devotees, donations, events, public website', 'Up to 2 staff accounts'],
-  },
-  growth: {
-    key: 'growth',
-    name: 'Growth',
-    priceUsd: 29,
-    description: 'Starter plus worship bookings, community tools, and fundraising.',
-    features: [
-      'Everything in Starter',
-      'Puja booking, sevas, prasadam, darshan, facilities',
-      'Membership, volunteers, officers, communications',
-      'Campaigns, pledges, hundi, in-kind, recurring donations',
-      'Unlimited staff accounts',
-    ],
-  },
-  pro: {
-    key: 'pro',
-    name: 'Pro',
-    priceUsd: 79,
-    description: 'Everything TempleOS offers, including full fund accounting.',
-    features: [
-      'Everything in Growth',
-      'Accounts, payroll, budgets, statements, reconciliation',
-      'Inventory, assets, vendors, loans, investments, grants',
-      '80G/tax receipts, annual report, custom roles',
-      'Priority support',
-    ],
-  },
-};
-
-/** Paid tiers a Stripe Checkout session can actually be started for. */
-export const PURCHASABLE_PLANS: readonly PlatformPlan[] = ['growth', 'pro'];
-
-/** Which gateable modules each plan includes. Starter has none — core only. */
-export const PLAN_MODULES: Record<PlatformPlan, readonly ModuleKey[]> = {
-  trial: ['worship', 'community', 'finance-basic', 'accounting'],
-  starter: [],
-  growth: ['worship', 'community', 'finance-basic'],
-  pro: ['worship', 'community', 'finance-basic', 'accounting'],
-};
-
 export const TRIAL_LENGTH_DAYS = 14;
+
+/** A platform-admin-editable plan — mirrors packages/db/src/schema/billing.ts#planCatalog. */
+export interface PlanCatalogEntry {
+  key: string;
+  name: string;
+  priceUsd: number | null;
+  description: string;
+  features: readonly string[];
+  modules: readonly ModuleKey[];
+  isPurchasable: boolean;
+  stripePriceId: string | null;
+  isTrialDefault: boolean;
+  isFallbackDefault: boolean;
+  sortOrder: number;
+}
+
+const planEntryFields = {
+  name: z.string().trim().min(1, 'Enter a plan name').max(60),
+  priceUsd: z.coerce.number().int().min(0).nullable(),
+  description: z.string().trim().min(1, 'Enter a description').max(300),
+  features: z.array(z.string().trim().min(1).max(200)).max(20),
+  modules: z.array(z.enum(MODULE_KEYS)),
+  isPurchasable: z.boolean(),
+  stripePriceId: z
+    .string()
+    .trim()
+    .max(120)
+    .nullable()
+    .transform((v) => v || null),
+  isTrialDefault: z.boolean(),
+  isFallbackDefault: z.boolean(),
+  sortOrder: z.coerce.number().int(),
+};
+
+export const createPlanCatalogEntrySchema = z.object({
+  key: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9-]+$/, 'Use lowercase letters, numbers, and hyphens only')
+    .min(2, 'Key must be at least 2 characters')
+    .max(40),
+  ...planEntryFields,
+});
+export type CreatePlanCatalogEntryInput = z.infer<typeof createPlanCatalogEntrySchema>;
+
+/** Key is immutable after creation — it's referenced by platform_subscriptions.plan. */
+export const updatePlanCatalogEntrySchema = z.object(planEntryFields);
+export type UpdatePlanCatalogEntryInput = z.infer<typeof updatePlanCatalogEntrySchema>;

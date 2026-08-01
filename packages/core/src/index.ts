@@ -4,6 +4,7 @@ export * from './features/billing';
 export * from './features/blog';
 export * from './features/communications';
 export * from './features/organizations';
+export * from './features/plans';
 export * from './features/platform';
 export * from './features/profile';
 export * from './features/temples';

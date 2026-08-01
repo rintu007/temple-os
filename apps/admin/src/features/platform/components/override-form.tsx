@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import { PLAN_CATALOG, PLATFORM_PLANS, PLATFORM_SUBSCRIPTION_STATUSES } from '@templeos/validators';
+import { PLATFORM_SUBSCRIPTION_STATUSES, type PlanCatalogEntry } from '@templeos/validators';
 import { Alert, Button, Input, Label, Select } from '@templeos/ui';
 import { initialFormState } from '@/lib/form-state';
 import { applyOverrideAction } from '../actions';
@@ -13,7 +13,13 @@ const STATUS_LABELS: Record<string, string> = {
   canceled: 'Canceled',
 };
 
-export function OverrideForm({ organizationId }: { organizationId: string }) {
+export function OverrideForm({
+  organizationId,
+  plans,
+}: {
+  organizationId: string;
+  plans: PlanCatalogEntry[];
+}) {
   const action = applyOverrideAction.bind(null, organizationId);
   const [state, formAction, pending] = useActionState(action, initialFormState);
 
@@ -26,9 +32,9 @@ export function OverrideForm({ organizationId }: { organizationId: string }) {
         <Label htmlFor="plan">Set plan</Label>
         <Select id="plan" name="plan" defaultValue="">
           <option value="">No change</option>
-          {PLATFORM_PLANS.map((p) => (
-            <option key={p} value={p}>
-              {PLAN_CATALOG[p].name}
+          {plans.map((p) => (
+            <option key={p.key} value={p.key}>
+              {p.name}
             </option>
           ))}
         </Select>

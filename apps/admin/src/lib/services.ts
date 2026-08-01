@@ -31,6 +31,7 @@ import {
   createOrganizationService,
   createOverviewService,
   createPlatformService,
+  createPlanService,
   createPledgeService,
   createPostService,
   createProfileService,
@@ -81,6 +82,7 @@ import {
   type OrganizationService,
   type OverviewService,
   type PlatformService,
+  type PlanService,
   type PledgeService,
   type PostService,
   type ProfileService,
@@ -442,6 +444,13 @@ let _postService: PostService | undefined;
 export function postService(): PostService {
   _postService ??= createPostService({ db: getDb() });
   return _postService;
+}
+
+let _planService: PlanService | undefined;
+
+export function planService(): PlanService {
+  _planService ??= createPlanService({ db: getDb() });
+  return _planService;
 }
 
 let _profileService: ProfileService | undefined;

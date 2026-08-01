@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Alert, Badge, PageHeader, StatCard, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@templeos/ui';
-import { PLAN_CATALOG } from '@templeos/validators';
 import { requirePlatformAdmin } from '@/lib/session';
-import { platformService } from '@/lib/services';
+import { planService, platformService } from '@/lib/services';
 
 export const metadata: Metadata = { title: 'Platform' };
 
@@ -20,19 +19,31 @@ function statusBadge(
 
 export default async function PlatformPage() {
   const { user } = await requirePlatformAdmin();
-  const result = await platformService().getOverview(user.id);
+  const [result, plans] = await Promise.all([
+    platformService().getOverview(user.id),
+    planService().listPlans(),
+  ]);
 
   if (!result.ok) {
     return <Alert tone="error">{result.error.message}</Alert>;
   }
   const { organizations, totalOrganizations, totalMrrUsd, activeSubscriptions, trialing } =
     result.value;
+  const planNames = new Map(plans.map((p) => [p.key, p.name]));
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Platform"
         description="Every temple on TempleOS — plan, subscription status, and MRR. Click an org to manage its subscription."
+        actions={
+          <Link
+            href="/platform/plans"
+            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+          >
+            Manage plans
+          </Link>
+        }
       />
 
       <div className="grid gap-4 sm:grid-cols-4">
@@ -68,7 +79,7 @@ export default async function PlatformPage() {
                 <div className="text-xs text-muted-foreground">{org.slug}</div>
               </TableCell>
               <TableCell>{org.country}</TableCell>
-              <TableCell>{org.plan ? PLAN_CATALOG[org.plan].name : '—'}</TableCell>
+              <TableCell>{org.plan ? (planNames.get(org.plan) ?? org.plan) : '—'}</TableCell>
               <TableCell>{statusBadge(org.subscriptionStatus, org.isTrialExpired)}</TableCell>
               <TableCell className="text-sm text-muted-foreground">
                 {org.subscriptionStatus === 'trialing' && org.trialEndsAt

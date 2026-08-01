@@ -1,13 +1,9 @@
 import type { Db } from '@templeos/db';
-import {
-  PLAN_MODULES,
-  PURCHASABLE_PLANS,
-  type ModuleKey,
-  type PlatformPlan,
-} from '@templeos/validators';
+import type { ModuleKey, PlanCatalogEntry, PlatformPlan } from '@templeos/validators';
 import { authorize, domainError, err, ok, type Result, type TenantContext } from '../../shared';
+import { createPlanRepository } from '../plans/plan.repository';
 import { createBillingRepository } from './billing.repository';
-import { priceIdForPlan, stripeBillingFromEnv, type StripeBillingClient } from './stripe-billing';
+import { stripeBillingFromEnv, type StripeBillingClient } from './stripe-billing';
 import type { BillingStatus, PlatformSubscriptionStatus } from './billing.types';
 
 function toStatus(row: {
@@ -35,16 +31,14 @@ function mapStripeStatus(stripeStatus: string): PlatformSubscriptionStatus {
   return 'canceled';
 }
 
-function isPurchasablePlan(plan: string): plan is (typeof PURCHASABLE_PLANS)[number] {
-  return (PURCHASABLE_PLANS as readonly string[]).includes(plan);
-}
-
 export function createBillingService({ db }: { db: Db }) {
   const repo = createBillingRepository(db);
+  const planRepo = createPlanRepository(db);
 
   return {
-    isConfigured(plan: PlatformPlan = 'pro'): boolean {
-      return stripeBillingFromEnv() !== null && priceIdForPlan(plan) !== null;
+    /** Takes an already-fetched plan (from planService().listPlans()) to avoid a redundant DB round trip per card. */
+    isConfigured(plan: PlanCatalogEntry): boolean {
+      return stripeBillingFromEnv() !== null && plan.stripePriceId !== null;
     },
 
     async getStatus(ctx: TenantContext): Promise<Result<BillingStatus | null>> {
@@ -56,13 +50,14 @@ export function createBillingService({ db }: { db: Db }) {
 
     /**
      * Which gateable modules (packages/validators/src/billing.ts#ModuleKey)
-     * this org can use right now. 'all' covers: no subscription row at all
-     * (orgs provisioned before platform billing existed — fail-open rather
-     * than lock out existing customers), and an active, non-expired trial.
-     * Everything else resolves to its plan's module list, falling back to
-     * Starter (no gated modules, core operations only) once a trial expires
-     * or a subscription lapses — never to zero access, since the temple's
-     * own site and donation intake must keep working regardless of billing.
+     * this org can use right now. 'all' covers only orgs with no subscription
+     * row at all (provisioned before platform billing existed — fail-open
+     * rather than lock out existing customers). Every other case resolves to
+     * a real plan's own module list: the org's own plan while active or
+     * mid-trial (unexpired), or the catalog's fallback-default plan once a
+     * trial expires or a subscription lapses — never to zero access from a
+     * missing catalog row, since the temple's own site and donation intake
+     * must keep working regardless of billing.
      */
     async getEntitledModules(ctx: TenantContext): Promise<'all' | ReadonlySet<ModuleKey>> {
       const row = await repo.getSubscription(ctx);
@@ -70,12 +65,15 @@ export function createBillingService({ db }: { db: Db }) {
 
       const isTrialExpired =
         row.status === 'trialing' && row.trialEndsAt !== null && row.trialEndsAt.getTime() < Date.now();
-      if (row.status === 'trialing' && !isTrialExpired) return 'all';
-      if (row.status === 'active') return new Set(PLAN_MODULES[row.plan]);
-      return new Set(PLAN_MODULES.starter);
+      const usesOwnPlan = row.status === 'active' || (row.status === 'trialing' && !isTrialExpired);
+
+      const plan = usesOwnPlan
+        ? await planRepo.getByKey(row.plan)
+        : await planRepo.getFallbackDefault();
+      return new Set(plan?.modules ?? []);
     },
 
-    /** Starts (or resumes) Stripe Checkout for a paid plan (Growth or Pro). */
+    /** Starts (or resumes) Stripe Checkout for a purchasable plan. */
     async createUpgradeCheckout(
       ctx: TenantContext,
       plan: PlatformPlan,
@@ -83,13 +81,14 @@ export function createBillingService({ db }: { db: Db }) {
     ): Promise<Result<{ gatewayUrl: string }>> {
       const guard = authorize(ctx, 'organization:manage');
       if (!guard.ok) return guard;
-      if (!isPurchasablePlan(plan)) {
+
+      const planRow = await planRepo.getByKey(plan);
+      if (!planRow?.isPurchasable) {
         return err(domainError('VALIDATION', 'That plan cannot be purchased directly'));
       }
 
       const stripe = stripeBillingFromEnv();
-      const priceId = priceIdForPlan(plan);
-      if (!stripe || !priceId) {
+      if (!stripe || !planRow.stripePriceId) {
         return err(domainError('VALIDATION', 'Billing is not configured yet'));
       }
 
@@ -99,7 +98,7 @@ export function createBillingService({ db }: { db: Db }) {
       const session = await stripe.createSubscriptionCheckoutSession({
         organizationId: ctx.organizationId,
         plan,
-        priceId,
+        priceId: planRow.stripePriceId,
         existingCustomerId: existing?.stripeCustomerId ?? null,
         successUrl: `${base}/billing?checkout=success`,
         cancelUrl: `${base}/billing?checkout=cancelled`,
@@ -151,8 +150,12 @@ export function createBillingService({ db }: { db: Db }) {
         const plan = session.metadata?.plan;
         const customerId = typeof session.customer === 'string' ? session.customer : null;
         const subscriptionId = typeof session.subscription === 'string' ? session.subscription : null;
-        if (!organizationId || !customerId || !plan || !isPurchasablePlan(plan)) {
+        if (!organizationId || !customerId || !plan) {
           return { outcome: 'ignored' as const, reason: 'missing organizationId, plan, or customer' };
+        }
+        const planRow = await planRepo.getByKey(plan);
+        if (!planRow?.isPurchasable) {
+          return { outcome: 'ignored' as const, reason: 'plan is not purchasable' };
         }
         const applied = await repo.syncFromStripe(organizationId, {
           plan,
@@ -179,8 +182,9 @@ export function createBillingService({ db }: { db: Db }) {
             ? 'canceled'
             : mapStripeStatus(subscription.status ?? 'canceled');
         const plan = subscription.metadata?.plan;
+        const planRow = plan ? await planRepo.getByKey(plan) : null;
         const applied = await repo.syncFromStripe(organizationId, {
-          ...(plan && isPurchasablePlan(plan) ? { plan } : {}),
+          ...(planRow?.isPurchasable ? { plan: planRow.key } : {}),
           status,
           currentPeriodEnd: subscription.current_period_end
             ? new Date(subscription.current_period_end * 1000)

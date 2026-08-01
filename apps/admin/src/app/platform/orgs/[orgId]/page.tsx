@@ -1,12 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { PLAN_CATALOG } from '@templeos/validators';
 import { Alert, Button, PageHeader } from '@templeos/ui';
 import { OverrideForm } from '@/features/platform/components/override-form';
 import { setOrgStatusAction } from '@/features/platform/actions';
 import { requirePlatformAdmin } from '@/lib/session';
-import { platformService } from '@/lib/services';
+import { planService, platformService } from '@/lib/services';
 
 interface OrgDetailPageProps {
   params: Promise<{ orgId: string }>;
@@ -21,13 +20,17 @@ function formatDate(d: Date | null): string {
 export default async function OrgDetailPage({ params }: OrgDetailPageProps) {
   const { orgId } = await params;
   const { user } = await requirePlatformAdmin();
-  const result = await platformService().getOrgDetail(user.id, orgId);
+  const [result, plans] = await Promise.all([
+    platformService().getOrgDetail(user.id, orgId),
+    planService().listPlans(),
+  ]);
   if (!result.ok) {
     if (result.error.code === 'NOT_FOUND') notFound();
     return <Alert tone="error">{result.error.message}</Alert>;
   }
   const org = result.value;
   const suspended = org.orgStatus === 'suspended';
+  const planName = org.plan ? (plans.find((p) => p.key === org.plan)?.name ?? org.plan) : null;
 
   return (
     <div className="space-y-6">
@@ -62,7 +65,7 @@ export default async function OrgDetailPage({ params }: OrgDetailPageProps) {
           <dl className="mt-3 space-y-2 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Plan</dt>
-              <dd>{org.plan ? PLAN_CATALOG[org.plan].name : 'No subscription row (legacy — unrestricted)'}</dd>
+              <dd>{planName ?? 'No subscription row (legacy — unrestricted)'}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Status</dt>
@@ -85,7 +88,7 @@ export default async function OrgDetailPage({ params }: OrgDetailPageProps) {
 
         <div className="rounded-xl border border-border bg-card p-6 shadow-card">
           <h2 className="mb-4 text-sm font-medium text-muted-foreground">Override subscription</h2>
-          <OverrideForm organizationId={org.id} />
+          <OverrideForm organizationId={org.id} plans={plans} />
         </div>
       </div>
     </div>
