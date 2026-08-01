@@ -29,8 +29,11 @@ export async function middleware(request: NextRequest) {
   // Webhook receivers are called by external services (Stripe, etc.), never
   // a signed-in browser session — they authenticate via signature, not cookies.
   const isWebhook = path.startsWith('/api/webhooks/');
+  // Same reasoning for scheduled jobs (Vercel Cron) — no browser session either;
+  // they authenticate via CRON_SECRET, checked inside the route itself.
+  const isCron = path.startsWith('/api/cron/');
 
-  if (!user && !isAuthPage && !isAuthFlow && !isInvitePage && !isWebhook) {
+  if (!user && !isAuthPage && !isAuthFlow && !isInvitePage && !isWebhook && !isCron) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.search = path !== '/' ? `?next=${encodeURIComponent(path)}` : '';
