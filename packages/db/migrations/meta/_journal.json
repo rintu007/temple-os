@@ -379,6 +379,13 @@
       "when": 1785571068263,
       "tag": "0053_add_plan_seat_limit",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1785592111826,
+      "tag": "0054_add_trial_reminder_sent_at",
+      "breakpoints": true
     }
   ]
 }

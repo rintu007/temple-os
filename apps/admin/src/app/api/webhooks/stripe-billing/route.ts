@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { renderPaymentFailedEmail, sendEmail } from '@templeos/email';
 import { billingService } from '@/lib/services';
 
 /**
@@ -26,6 +27,25 @@ export async function POST(request: Request) {
       // 200 so Stripe does not retry events we deliberately don't handle.
       return NextResponse.json({ received: true, reason: result.reason });
     case 'confirmed':
+      if (result.becamePastDue) {
+        await notifyPastDue(result.organizationId);
+      }
       return NextResponse.json({ received: true });
   }
+}
+
+/**
+ * Best-effort: a notification email is a side effect of an already-applied
+ * billing state change and must never make the webhook response fail, so
+ * failures here are swallowed (sendEmail itself never throws — see
+ * packages/email/src/client.ts).
+ */
+async function notifyPastDue(organizationId: string) {
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+  const { organizationName, owners } = await billingService().getBillingNoticeContext(organizationId);
+  const { subject, html } = renderPaymentFailedEmail({
+    organizationName,
+    billingUrl: `${appUrl}/billing`,
+  });
+  await Promise.all(owners.map((owner) => sendEmail({ to: owner.email, subject, html })));
 }

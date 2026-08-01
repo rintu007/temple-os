@@ -4,3 +4,5 @@ export { renderDonationReceiptEmail, type DonationReceiptParams } from './donati
 export { renderInvitationEmail, type InvitationEmailParams } from './invitation';
 export { renderBroadcastEmail, type BroadcastEmailParams } from './broadcast';
 export { renderDevoteeLoginEmail, type DevoteeLoginEmailParams } from './devotee-login';
+export { renderPaymentFailedEmail, type PaymentFailedEmailParams } from './payment-failed';
+export { renderTrialEndingEmail, type TrialEndingEmailParams } from './trial-ending';

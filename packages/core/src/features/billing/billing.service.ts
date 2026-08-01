@@ -129,6 +129,21 @@ export function createBillingService({ db }: { db: Db }) {
       return ok(session);
     },
 
+    /** Owner contact(s) to notify for a billing event on this org — used by the webhook route and the trial-reminder cron. */
+    async getBillingNoticeContext(organizationId: string) {
+      return repo.getBillingNoticeContext(organizationId);
+    },
+
+    /** Trialing orgs whose trial ends within `daysAhead` days and haven't been reminded yet — used by the trial-reminder cron route. */
+    async listTrialsEndingSoon(daysAhead: number) {
+      return repo.listTrialsEndingSoon(daysAhead);
+    },
+
+    /** Marks a trial as reminded so the cron never emails the same org twice for the same trial. */
+    async markTrialReminderSent(organizationId: string) {
+      return repo.markTrialReminderSent(organizationId);
+    },
+
     async handleStripeEvent(rawBody: string, signature: string, client?: StripeBillingClient) {
       const stripe = client ?? stripeBillingFromEnv();
       if (!stripe || !stripe.webhookSecret) return { outcome: 'not_configured' as const };
@@ -157,14 +172,14 @@ export function createBillingService({ db }: { db: Db }) {
         if (!planRow?.isPurchasable) {
           return { outcome: 'ignored' as const, reason: 'plan is not purchasable' };
         }
-        const applied = await repo.syncFromStripe(organizationId, {
+        const { applied } = await repo.syncFromStripe(organizationId, {
           plan,
           status: 'active',
           stripeCustomerId: customerId,
           stripeSubscriptionId: subscriptionId,
         });
         return applied
-          ? { outcome: 'confirmed' as const }
+          ? { outcome: 'confirmed' as const, organizationId, becamePastDue: false }
           : { outcome: 'ignored' as const, reason: 'organization not found' };
       }
 
@@ -183,7 +198,7 @@ export function createBillingService({ db }: { db: Db }) {
             : mapStripeStatus(subscription.status ?? 'canceled');
         const plan = subscription.metadata?.plan;
         const planRow = plan ? await planRepo.getByKey(plan) : null;
-        const applied = await repo.syncFromStripe(organizationId, {
+        const { applied, becamePastDue } = await repo.syncFromStripe(organizationId, {
           ...(planRow?.isPurchasable ? { plan: planRow.key } : {}),
           status,
           currentPeriodEnd: subscription.current_period_end
@@ -191,7 +206,7 @@ export function createBillingService({ db }: { db: Db }) {
             : null,
         });
         return applied
-          ? { outcome: 'confirmed' as const }
+          ? { outcome: 'confirmed' as const, organizationId, becamePastDue }
           : { outcome: 'ignored' as const, reason: 'organization not found' };
       }
 

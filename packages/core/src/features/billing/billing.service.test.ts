@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHmac, randomUUID } from 'node:crypto';
 import { eq, inArray } from 'drizzle-orm';
 import { afterAll, describe, expect, it } from 'vitest';
 import {
@@ -16,8 +16,15 @@ import { systemContext, type TenantContext } from '../../shared';
 import { createOrganizationService } from '../organizations/organization.service';
 import { createPlanService } from '../plans/plan.service';
 import { createBillingService } from './billing.service';
+import { createStripeBillingClient } from './stripe-billing';
 
 const hasDb = Boolean(process.env.DATABASE_URL && process.env.DATABASE_URL_ADMIN);
+
+/** Mirrors Stripe's own header format so constructWebhookEvent can be exercised without a live key. */
+function signedHeader(payload: string, secret: string, timestamp = Math.floor(Date.now() / 1000)) {
+  const signature = createHmac('sha256', secret).update(`${timestamp}.${payload}`).digest('hex');
+  return `t=${timestamp},v1=${signature}`;
+}
 
 describe.skipIf(!hasDb)('billing: trial provisioning + access control (live db)', () => {
   const db = createDb();
@@ -163,6 +170,76 @@ describe.skipIf(!hasDb)('billing: trial provisioning + access control (live db)'
       plan: 'trial',
       status: 'trialing',
     });
+  });
+
+  it('getBillingNoticeContext returns the organization name and its active owner(s)', async () => {
+    const context = await billing$.getBillingNoticeContext(orgId);
+    expect(context.organizationName).toBe('Billing Org');
+    expect(context.owners).toEqual(
+      expect.arrayContaining([expect.objectContaining({ email: owner.email })]),
+    );
+  });
+
+  it('flags a payment-failed notice only on the transition into past_due, not on repeated webhook deliveries', async () => {
+    const secret = 'whsec_billing_notice_test';
+    const client = createStripeBillingClient({ secretKey: 'sk_test_dummy', webhookSecret: secret });
+
+    const payload1 = JSON.stringify({
+      id: 'evt_past_due_1',
+      type: 'customer.subscription.updated',
+      data: { object: { status: 'past_due', metadata: { organizationId: orgId } } },
+    });
+    const first = await billing$.handleStripeEvent(payload1, signedHeader(payload1, secret), client);
+    expect(first.outcome).toBe('confirmed');
+    if (first.outcome === 'confirmed') expect(first.becamePastDue).toBe(true);
+
+    // Stripe retries/re-sends the same status on the still-past-due subscription — must not re-flag.
+    const payload2 = JSON.stringify({
+      id: 'evt_past_due_2',
+      type: 'customer.subscription.updated',
+      data: { object: { status: 'past_due', metadata: { organizationId: orgId } } },
+    });
+    const second = await billing$.handleStripeEvent(payload2, signedHeader(payload2, secret), client);
+    expect(second.outcome).toBe('confirmed');
+    if (second.outcome === 'confirmed') expect(second.becamePastDue).toBe(false);
+
+    // Restore to trialing so later tests (and the shared DB) aren't left with a stray past_due org.
+    await admin
+      .update(platformSubscriptions)
+      .set({ status: 'trialing' })
+      .where(eq(platformSubscriptions.organizationId, orgId));
+  });
+
+  it('lists trials ending within the reminder window and stops once reminded', async () => {
+    const soon = new Date(Date.now() + 2 * 24 * 3_600_000); // 2 days out
+    await admin
+      .update(platformSubscriptions)
+      .set({ status: 'trialing', trialEndsAt: soon, trialReminderSentAt: null })
+      .where(eq(platformSubscriptions.organizationId, orgId));
+
+    const before = await billing$.listTrialsEndingSoon(3);
+    const match = before.find((t) => t.organizationId === orgId);
+    expect(match?.ownerEmail).toBe(owner.email);
+    expect(match?.organizationName).toBe('Billing Org');
+
+    await billing$.markTrialReminderSent(orgId);
+
+    const after = await billing$.listTrialsEndingSoon(3);
+    expect(after.some((t) => t.organizationId === orgId)).toBe(false);
+  });
+
+  it('excludes trials ending outside the reminder window', async () => {
+    await admin
+      .update(platformSubscriptions)
+      .set({
+        status: 'trialing',
+        trialEndsAt: new Date(Date.now() + 10 * 24 * 3_600_000),
+        trialReminderSentAt: null,
+      })
+      .where(eq(platformSubscriptions.organizationId, orgId));
+
+    const results = await billing$.listTrialsEndingSoon(3);
+    expect(results.some((t) => t.organizationId === orgId)).toBe(false);
   });
 });
 

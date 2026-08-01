@@ -60,5 +60,7 @@ export const platformSubscriptions = pgTable('platform_subscriptions', {
   trialEndsAt: timestamp({ withTimezone: true }),
   /** End of the current paid billing period — null while on trial. */
   currentPeriodEnd: timestamp({ withTimezone: true }),
+  /** Set once a "trial ending soon" email has been sent, so the reminder cron never repeats itself for the same trial. */
+  trialReminderSentAt: timestamp({ withTimezone: true }),
   ...timestamps,
 });
