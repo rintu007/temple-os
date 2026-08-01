@@ -7,10 +7,16 @@ import {
   signUpSchema,
   updatePasswordSchema,
 } from '@templeos/validators';
+import { checkRateLimit, clientIp } from '@/lib/rate-limit';
 import { createClient } from '@/lib/supabase/server';
 import type { FormState } from '@/lib/form-state';
 
+const TOO_MANY_ATTEMPTS = 'Too many attempts. Please try again in a few minutes.';
+
 export async function signUpAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const rate = await checkRateLimit('auth:signup', await clientIp(), 5, 3_600);
+  if (!rate.allowed) return { error: TOO_MANY_ATTEMPTS };
+
   const parsed = signUpSchema.safeParse({
     fullName: formData.get('fullName'),
     email: formData.get('email'),
@@ -49,6 +55,9 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
 }
 
 export async function signInAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const rate = await checkRateLimit('auth:signin', await clientIp(), 10, 300);
+  if (!rate.allowed) return { error: TOO_MANY_ATTEMPTS };
+
   const parsed = signInSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
@@ -87,6 +96,9 @@ export async function requestPasswordResetAction(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
+  const rate = await checkRateLimit('auth:reset', await clientIp(), 5, 3_600);
+  if (!rate.allowed) return { error: TOO_MANY_ATTEMPTS };
+
   const parsed = requestPasswordResetSchema.safeParse({ email: formData.get('email') });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Invalid input' };

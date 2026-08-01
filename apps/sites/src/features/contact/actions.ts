@@ -1,6 +1,7 @@
 'use server';
 
 import { renderContactMessageEmail, sendEmail } from '@templeos/email';
+import { checkRateLimit, clientIp } from '@/lib/rate-limit';
 import { websiteService } from '@/lib/services';
 
 export interface ContactFormState {
@@ -24,6 +25,9 @@ export async function submitContactAction(
     phone: field('phone'),
     message: field('message'),
   };
+
+  const rate = await checkRateLimit('contact:submit', await clientIp(), 10, 3_600);
+  if (!rate.allowed) return { error: 'Too many messages sent. Please try again later.' };
 
   const result = await websiteService().submitContactMessage(organizationId, input);
   if (!result.ok) return { error: result.error.message };

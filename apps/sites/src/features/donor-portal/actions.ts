@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { renderDevoteeLoginEmail, sendEmail } from '@templeos/email';
 import { clearPortalSessionCookie } from '@/lib/portal-session';
+import { checkRateLimit, clientIp } from '@/lib/rate-limit';
 import { donorPortalService } from '@/lib/services';
 
 export interface PortalLoginFormState {
@@ -27,6 +28,15 @@ export async function requestPortalLoginAction(
 ): Promise<PortalLoginFormState> {
   const email = String(formData.get('email') ?? '').trim();
   if (!email) return { error: 'Enter your email address' };
+
+  // Two independent budgets: per-IP guards against one attacker hammering the
+  // endpoint; per-email guards against a specific devotee's inbox being
+  // bombed with login links from many different IPs.
+  const ipRate = await checkRateLimit('portal:login-ip', await clientIp(), 20, 3_600);
+  const emailRate = await checkRateLimit('portal:login-email', email.toLowerCase(), 5, 3_600);
+  if (!ipRate.allowed || !emailRate.allowed) {
+    return { error: 'Too many requests. Please try again later.' };
+  }
 
   const result = await donorPortalService().requestLogin(organizationId, email);
   if (!result.ok) return { error: result.error.message };

@@ -1,6 +1,7 @@
 'use server';
 
 import { renderDonationReceiptEmail, sendEmail } from '@templeos/email';
+import { checkRateLimit, clientIp } from '@/lib/rate-limit';
 import { membershipService } from '@/lib/services';
 
 export interface CreateJoinOrderResult {
@@ -17,6 +18,9 @@ export async function createJoinOrder(
   organizationCurrency: 'INR' | 'BDT' | 'USD' | 'GBP' | 'CAD' | 'AUD',
   input: { planId: string; memberName: string; email: string; phone: string },
 ): Promise<CreateJoinOrderResult> {
+  const rate = await checkRateLimit('checkout:membership', await clientIp(), 20, 3_600);
+  if (!rate.allowed) return { ok: false, error: 'Too many requests. Please try again later.' };
+
   const result = await membershipService().createJoinOrder(
     organizationId,
     organizationCurrency,

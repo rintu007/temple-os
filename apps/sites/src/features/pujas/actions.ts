@@ -1,6 +1,7 @@
 'use server';
 
 import { renderDonationReceiptEmail, sendEmail } from '@templeos/email';
+import { checkRateLimit, clientIp } from '@/lib/rate-limit';
 import { pujaService } from '@/lib/services';
 
 export interface CreateBookingOrderResult {
@@ -24,6 +25,9 @@ export async function createBookingOrder(
     note: string;
   },
 ): Promise<CreateBookingOrderResult> {
+  const rate = await checkRateLimit('checkout:puja', await clientIp(), 20, 3_600);
+  if (!rate.allowed) return { ok: false, error: 'Too many requests. Please try again later.' };
+
   const result = await pujaService().createBookingOrder(organizationId, organizationCurrency, input);
   if (!result.ok) return { ok: false, error: result.error.message };
   return {
