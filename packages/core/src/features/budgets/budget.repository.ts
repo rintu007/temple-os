@@ -11,7 +11,7 @@ import {
   withTenantContext,
   type Db,
 } from '@templeos/db';
-import type { BudgetKind, SetBudgetInput } from '@templeos/validators';
+import type { SetBudgetInput } from '@templeos/validators';
 import type { TenantContext } from '../../shared';
 
 /** FY start year → [from, to) timestamps, April–March. */

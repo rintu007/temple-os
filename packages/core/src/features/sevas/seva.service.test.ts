@@ -88,11 +88,12 @@ describe.skipIf(!hasDb)('sevas: recurring sponsorships (live db)', () => {
     expect(list.ok).toBe(true);
     if (!list.ok) return;
     const s = list.value.find((x) => x.id === sevaId);
+    expect(s).toBeDefined();
     expect(s?.frequency).toBe('monthly');
     expect(s?.collected).toBe('0.00');
     // A monthly seva started 2026-01-05 recurs on the 5th; next is today-or-later.
     expect(s?.nextOccurrence).toMatch(/^\d{4}-\d{2}-05$/);
-    expect(s?.nextOccurrence! >= new Date().toISOString().slice(0, 10)).toBe(true);
+    expect(s!.nextOccurrence >= new Date().toISOString().slice(0, 10)).toBe(true);
 
     const stats = await seva$.getStats(ctx);
     expect(stats.ok && stats.value.perCycleValue).toBe('1100.00');

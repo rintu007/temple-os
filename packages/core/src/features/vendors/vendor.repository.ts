@@ -8,7 +8,6 @@ import {
   vendors,
   withTenantContext,
   type Db,
-  type Tx,
 } from '@templeos/db';
 import type { CreateBillInput, RecordBillPaymentInput, VendorInput } from '@templeos/validators';
 import {
