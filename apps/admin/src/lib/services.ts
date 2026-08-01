@@ -33,6 +33,7 @@ import {
   createPlatformService,
   createPledgeService,
   createPostService,
+  createProfileService,
   createPrasadamService,
   createPujaService,
   createRecurringDonationService,
@@ -82,6 +83,7 @@ import {
   type PlatformService,
   type PledgeService,
   type PostService,
+  type ProfileService,
   type PrasadamService,
   type PujaService,
   type RecurringDonationService,
@@ -440,6 +442,13 @@ let _postService: PostService | undefined;
 export function postService(): PostService {
   _postService ??= createPostService({ db: getDb() });
   return _postService;
+}
+
+let _profileService: ProfileService | undefined;
+
+export function profileService(): ProfileService {
+  _profileService ??= createProfileService({ db: getDb() });
+  return _profileService;
 }
 
 let _roleService: RoleService | undefined;

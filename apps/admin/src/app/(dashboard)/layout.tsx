@@ -207,7 +207,10 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               Platform
             </Link>
           ) : null}
-          <div className="flex items-center gap-2.5 rounded-lg px-2 py-1.5">
+          <Link
+            href="/profile"
+            className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/50"
+          >
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
               <UserRound className="size-4" aria-hidden />
             </span>
@@ -215,7 +218,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
               <div className="truncate text-sm font-medium">{user.email}</div>
               <div className="text-xs text-muted-foreground capitalize">{membership.roleName}</div>
             </div>
-          </div>
+          </Link>
           <form action={signOutAction} className="mt-2">
             <Button variant="outline" size="sm" type="submit" className="w-full">
               Sign out
