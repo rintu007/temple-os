@@ -8,6 +8,8 @@ interface SignupPageProps {
   searchParams: Promise<{ next?: string }>;
 }
 
+const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? 'localhost:3001';
+
 export default async function SignupPage({ searchParams }: SignupPageProps) {
   const { next } = await searchParams;
   return (
@@ -25,6 +27,17 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
         >
           Sign in
         </Link>
+      </p>
+      <p className="mt-4 text-center text-xs text-muted-foreground">
+        By creating an account, you agree to our{' '}
+        <a href={`https://${rootDomain}/terms`} className="hover:text-foreground hover:underline">
+          Terms of Service
+        </a>{' '}
+        and{' '}
+        <a href={`https://${rootDomain}/privacy`} className="hover:text-foreground hover:underline">
+          Privacy Policy
+        </a>
+        .
       </p>
     </div>
   );

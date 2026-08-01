@@ -73,6 +73,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 Start free trial
               </a>
             </nav>
+            <nav className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+              <Link href="/terms" className="hover:text-foreground">
+                Terms of Service
+              </Link>
+              <Link href="/privacy" className="hover:text-foreground">
+                Privacy Policy
+              </Link>
+              <Link href="/refund-policy" className="hover:text-foreground">
+                Refund Policy
+              </Link>
+            </nav>
             <div className="text-xs text-muted-foreground">
               &copy; {new Date().getFullYear()} TempleOS
             </div>
