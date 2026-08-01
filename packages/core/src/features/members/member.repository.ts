@@ -258,6 +258,36 @@ export function createMemberRepository(db: Db) {
       });
     },
 
+    /** Issues a fresh token + expiry for a still-pending invitation. Null if not found/pending. */
+    async resendInvitation(ctx: TenantContext, invitationId: string) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const token = randomBytes(24).toString('base64url');
+        const [invitation] = await tx
+          .update(invitations)
+          .set({ token, expiresAt: new Date(Date.now() + INVITE_TTL_MS) })
+          .where(and(eq(invitations.id, invitationId), eq(invitations.status, 'pending')))
+          .returning();
+        if (!invitation) return null;
+
+        const [role] = await tx
+          .select({ key: roles.key, name: roles.name })
+          .from(roles)
+          .where(eq(roles.id, invitation.roleId))
+          .limit(1);
+
+        await tx.insert(auditLogs).values({
+          organizationId: ctx.organizationId,
+          actorUserId: ctx.userId,
+          action: 'invitation.resent',
+          entityType: 'invitation',
+          entityId: invitationId,
+          after: { email: invitation.email },
+        });
+
+        return { ...invitation, roleKey: role?.key ?? '', roleName: role?.name ?? 'Member' };
+      });
+    },
+
     async revokeInvitation(ctx: TenantContext, invitationId: string) {
       return withTenantContext(db, guc(ctx), async (tx) => {
         const [revoked] = await tx

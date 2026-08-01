@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Alert, Button } from '@templeos/ui';
-import { revokeInvitationAction } from '@/features/members/actions';
+import { resendInvitationAction, revokeInvitationAction } from '@/features/members/actions';
 import { InviteForm } from '@/features/members/components/invite-form';
 import { MemberActions } from '@/features/members/components/member-actions';
 import { requireTenantContext } from '@/lib/session';
@@ -103,11 +103,18 @@ export default async function TeamPage() {
                     </span>
                   </div>
                 </div>
-                <form action={revokeInvitationAction.bind(null, inv.id)}>
-                  <Button variant="ghost" size="sm" type="submit">
-                    Revoke
-                  </Button>
-                </form>
+                <div className="flex shrink-0 items-center gap-1">
+                  <form action={resendInvitationAction.bind(null, inv.id)}>
+                    <Button variant="outline" size="sm" type="submit">
+                      Resend
+                    </Button>
+                  </form>
+                  <form action={revokeInvitationAction.bind(null, inv.id)}>
+                    <Button variant="ghost" size="sm" type="submit">
+                      Revoke
+                    </Button>
+                  </form>
+                </div>
               </li>
             ))}
           </ul>

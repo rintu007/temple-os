@@ -54,6 +54,23 @@ export async function revokeInvitationAction(invitationId: string): Promise<void
   revalidatePath('/team');
 }
 
+export async function resendInvitationAction(invitationId: string): Promise<void> {
+  const { ctx, user, membership } = await requireTenantContext();
+  const result = await memberService().resendInvitation(ctx, invitationId);
+  if (result.ok) {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+    const invitedByName = user.user_metadata?.full_name;
+    const { subject, html } = renderInvitationEmail({
+      organizationName: membership.organizationName,
+      roleName: result.value.roleName,
+      inviteUrl: `${appUrl}/invite/${result.value.token}`,
+      invitedByName: typeof invitedByName === 'string' ? invitedByName : user.email,
+    });
+    await sendEmail({ to: result.value.email, subject, html });
+  }
+  revalidatePath('/team');
+}
+
 export async function removeMemberAction(
   membershipId: string,
   _prev: FormState,

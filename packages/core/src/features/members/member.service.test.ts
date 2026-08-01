@@ -164,6 +164,40 @@ describe.skipIf(!hasDb)('members: invitations, acceptance, RBAC, isolation (live
     if (!accept.ok) expect(accept.error.code).toBe('CONFLICT');
   });
 
+  it('resending an invitation rotates its token so the old link stops working', async () => {
+    const created = await service.createInvitation(ctx(), {
+      email: `resend-${run}@test.invalid`,
+      roleKey: 'viewer',
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+    const oldToken = created.value.token;
+
+    const denied = await service.resendInvitation(ctx('staff'), created.value.id);
+    expect(denied.ok).toBe(false);
+    if (!denied.ok) expect(denied.error.code).toBe('FORBIDDEN');
+
+    const resent = await service.resendInvitation(ctx(), created.value.id);
+    expect(resent.ok).toBe(true);
+    if (resent.ok) {
+      expect(resent.value.token).not.toBe(oldToken);
+      expect(resent.value.email).toBe(created.value.email);
+    }
+
+    const acceptOld = await service.acceptInvitation(oldToken, {
+      userId: randomUUID(),
+      email: `resend-${run}@test.invalid`,
+    });
+    expect(acceptOld.ok).toBe(false);
+    if (!acceptOld.ok) expect(acceptOld.error.code).toBe('NOT_FOUND');
+
+    const missing = await service.resendInvitation(ctx(), randomUUID());
+    expect(missing.ok).toBe(false);
+    if (!missing.ok) expect(missing.error.code).toBe('NOT_FOUND');
+
+    await service.revokeInvitation(ctx(), created.value.id);
+  });
+
   it('a non-manager cannot change roles or remove members', async () => {
     const denied1 = await service.updateMemberRole(ctx('staff'), inviteeMembershipId, 'manager');
     expect(denied1.ok).toBe(false);

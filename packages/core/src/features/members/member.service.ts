@@ -65,6 +65,24 @@ export function createMemberService({ db }: { db: Db }) {
       });
     },
 
+    /** Rotates the token and extends the expiry — lets a lost/expired invite be re-sent without revoking and recreating it. */
+    async resendInvitation(ctx: TenantContext, invitationId: string): Promise<Result<InvitationSummary>> {
+      const auth = authorize(ctx, 'organization:manage');
+      if (!auth.ok) return auth;
+
+      const inv = await repo.resendInvitation(ctx, invitationId);
+      if (!inv) return err(notFound('Invitation'));
+      return ok({
+        id: inv.id,
+        email: inv.email,
+        roleKey: inv.roleKey,
+        roleName: inv.roleName,
+        token: inv.token,
+        status: inv.status,
+        expiresAt: inv.expiresAt,
+      });
+    },
+
     async revokeInvitation(ctx: TenantContext, invitationId: string): Promise<Result<null>> {
       const auth = authorize(ctx, 'organization:manage');
       if (!auth.ok) return auth;
