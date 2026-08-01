@@ -73,6 +73,55 @@ export function createMemberService({ db }: { db: Db }) {
       return ok(null);
     },
 
+    /**
+     * Disables the membership (soft — memberships.status: 'invited'|'active'
+     * |'disabled', so history/audit references stay intact). Self-service is
+     * deliberately disallowed: ask another owner/admin to remove you, which
+     * sidesteps every self-lockout edge case rather than trying to detect them.
+     */
+    async removeMember(ctx: TenantContext, membershipId: string): Promise<Result<null>> {
+      const auth = authorize(ctx, 'organization:manage');
+      if (!auth.ok) return auth;
+
+      const result = await repo.removeMember(ctx, membershipId);
+      if (result.kind === 'not_found') return err(notFound('Member'));
+      if (result.kind === 'self') {
+        return err(
+          domainError('VALIDATION', "You can't remove your own access — ask another owner or admin."),
+        );
+      }
+      if (result.kind === 'last_owner') {
+        return err(conflict('An organization must have at least one owner — promote someone else first.'));
+      }
+      return ok(null);
+    },
+
+    /** Ownership transfer isn't available through this action — see the 'owner' guard below. */
+    async updateMemberRole(
+      ctx: TenantContext,
+      membershipId: string,
+      roleKey: string,
+    ): Promise<Result<null>> {
+      const auth = authorize(ctx, 'organization:manage');
+      if (!auth.ok) return auth;
+      if (roleKey === 'owner') {
+        return err(domainError('VALIDATION', 'Ownership transfer is not available here.'));
+      }
+
+      const result = await repo.updateMemberRole(ctx, membershipId, roleKey);
+      if (result.kind === 'not_found') return err(notFound('Member'));
+      if (result.kind === 'role_not_found') return err(notFound('Role'));
+      if (result.kind === 'self') {
+        return err(
+          domainError('VALIDATION', "You can't change your own role — ask another owner or admin."),
+        );
+      }
+      if (result.kind === 'last_owner') {
+        return err(conflict('An organization must have at least one owner — promote someone else first.'));
+      }
+      return ok(null);
+    },
+
     /** Public-ish: what the /invite/[token] page shows. Null = token unknown. */
     async previewInvitation(token: string): Promise<InvitationPreview | null> {
       const invitation = await repo.findByToken(token);

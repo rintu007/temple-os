@@ -54,6 +54,35 @@ export async function revokeInvitationAction(invitationId: string): Promise<void
   revalidatePath('/team');
 }
 
+export async function removeMemberAction(
+  membershipId: string,
+  _prev: FormState,
+  _formData: FormData,
+): Promise<FormState> {
+  const { ctx } = await requireTenantContext();
+  const result = await memberService().removeMember(ctx, membershipId);
+  revalidatePath('/team');
+  if (!result.ok) return { error: result.error.message };
+  return { message: 'Removed.' };
+}
+
+export async function updateMemberRoleAction(
+  membershipId: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { ctx } = await requireTenantContext();
+  const roleKey = formData.get('roleKey');
+  const result = await memberService().updateMemberRole(
+    ctx,
+    membershipId,
+    typeof roleKey === 'string' ? roleKey : '',
+  );
+  revalidatePath('/team');
+  if (!result.ok) return { error: result.error.message };
+  return { message: 'Role updated.' };
+}
+
 export async function acceptInvitationAction(
   token: string,
   _prev: FormState,

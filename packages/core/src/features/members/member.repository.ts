@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { and, asc, desc, eq, sql } from 'drizzle-orm';
+import { and, asc, count, desc, eq, sql } from 'drizzle-orm';
 import {
   auditLogs,
   invitations,
@@ -44,7 +44,9 @@ export function createMemberRepository(db: Db) {
           .from(memberships)
           .innerJoin(users, eq(memberships.userId, users.id))
           .innerJoin(roles, eq(memberships.roleId, roles.id))
-          .where(eq(memberships.organizationId, ctx.organizationId))
+          .where(
+            and(eq(memberships.organizationId, ctx.organizationId), eq(memberships.status, 'active')),
+          )
           .orderBy(asc(memberships.createdAt)),
       );
     },
@@ -137,6 +139,122 @@ export function createMemberRepository(db: Db) {
           kind: 'ok' as const,
           invitation: { ...invitation, roleKey: input.roleKey, roleName: role.name },
         };
+      });
+    },
+
+    /** Returns 'not_found' | 'self' | 'last_owner' | the disabled membership. */
+    async removeMember(ctx: TenantContext, membershipId: string) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [target] = await tx
+          .select({
+            id: memberships.id,
+            userId: memberships.userId,
+            roleKey: roles.key,
+            email: users.email,
+          })
+          .from(memberships)
+          .innerJoin(roles, eq(memberships.roleId, roles.id))
+          .innerJoin(users, eq(memberships.userId, users.id))
+          .where(
+            and(
+              eq(memberships.id, membershipId),
+              eq(memberships.organizationId, ctx.organizationId),
+              eq(memberships.status, 'active'),
+            ),
+          )
+          .limit(1);
+        if (!target) return { kind: 'not_found' as const };
+        if (target.userId === ctx.userId) return { kind: 'self' as const };
+
+        if (target.roleKey === 'owner') {
+          const [row] = await tx
+            .select({ value: count() })
+            .from(memberships)
+            .innerJoin(roles, eq(memberships.roleId, roles.id))
+            .where(
+              and(
+                eq(memberships.organizationId, ctx.organizationId),
+                eq(memberships.status, 'active'),
+                eq(roles.key, 'owner'),
+              ),
+            );
+          if ((row?.value ?? 0) <= 1) return { kind: 'last_owner' as const };
+        }
+
+        await tx
+          .update(memberships)
+          .set({ status: 'disabled' })
+          .where(eq(memberships.id, membershipId));
+
+        await tx.insert(auditLogs).values({
+          organizationId: ctx.organizationId,
+          actorUserId: ctx.userId,
+          action: 'member.removed',
+          entityType: 'membership',
+          entityId: membershipId,
+          before: { email: target.email, role: target.roleKey },
+        });
+
+        return { kind: 'ok' as const };
+      });
+    },
+
+    /** Returns 'not_found' | 'self' | 'last_owner' | 'role_not_found' | 'ok'. */
+    async updateMemberRole(ctx: TenantContext, membershipId: string, roleKey: string) {
+      return withTenantContext(db, guc(ctx), async (tx) => {
+        const [target] = await tx
+          .select({ id: memberships.id, userId: memberships.userId, currentRoleKey: roles.key })
+          .from(memberships)
+          .innerJoin(roles, eq(memberships.roleId, roles.id))
+          .where(
+            and(
+              eq(memberships.id, membershipId),
+              eq(memberships.organizationId, ctx.organizationId),
+              eq(memberships.status, 'active'),
+            ),
+          )
+          .limit(1);
+        if (!target) return { kind: 'not_found' as const };
+        if (target.userId === ctx.userId) return { kind: 'self' as const };
+
+        if (target.currentRoleKey === 'owner') {
+          const [row] = await tx
+            .select({ value: count() })
+            .from(memberships)
+            .innerJoin(roles, eq(memberships.roleId, roles.id))
+            .where(
+              and(
+                eq(memberships.organizationId, ctx.organizationId),
+                eq(memberships.status, 'active'),
+                eq(roles.key, 'owner'),
+              ),
+            );
+          if ((row?.value ?? 0) <= 1) return { kind: 'last_owner' as const };
+        }
+
+        const [newRole] = await tx
+          .select({ id: roles.id })
+          .from(roles)
+          .where(and(eq(roles.organizationId, ctx.organizationId), eq(roles.key, roleKey)))
+          .limit(1);
+        if (!newRole) return { kind: 'role_not_found' as const };
+
+        await tx
+          .update(memberships)
+          .set({ roleId: newRole.id })
+          .where(eq(memberships.id, membershipId));
+
+        await tx.insert(auditLogs).values({
+          organizationId: ctx.organizationId,
+          actorUserId: ctx.userId,
+          action: 'member.role_changed',
+          entityType: 'membership',
+          entityId: membershipId,
+          before: { role: target.currentRoleKey },
+          after: { role: roleKey },
+        });
+
+        return { kind: 'ok' as const };
       });
     },
 

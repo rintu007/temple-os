@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Alert, Button } from '@templeos/ui';
 import { revokeInvitationAction } from '@/features/members/actions';
 import { InviteForm } from '@/features/members/components/invite-form';
+import { MemberActions } from '@/features/members/components/member-actions';
 import { requireTenantContext } from '@/lib/session';
 import { memberService, roleService } from '@/lib/services';
 
@@ -48,22 +49,33 @@ export default async function TeamPage() {
           Members ({members.value.length})
         </h2>
         <ul className="divide-y divide-border rounded-xl border border-border bg-card shadow-card">
-          {members.value.map((m) => (
-            <li key={m.membershipId} className="flex items-center justify-between gap-4 p-4">
-              <div>
-                <div className="font-medium">
-                  {m.fullName ?? m.email}
-                  {m.userId === user.id ? (
-                    <span className="ml-2 text-xs text-muted-foreground">(you)</span>
-                  ) : null}
+          {members.value.map((m) => {
+            const canManage = m.userId !== user.id && m.roleKey !== 'owner';
+            return (
+              <li key={m.membershipId} className="flex items-center justify-between gap-4 p-4">
+                <div>
+                  <div className="font-medium">
+                    {m.fullName ?? m.email}
+                    {m.userId === user.id ? (
+                      <span className="ml-2 text-xs text-muted-foreground">(you)</span>
+                    ) : null}
+                  </div>
+                  <div className="mt-0.5 text-sm text-muted-foreground">{m.email}</div>
                 </div>
-                <div className="mt-0.5 text-sm text-muted-foreground">{m.email}</div>
-              </div>
-              <span className="rounded-full border border-border px-3 py-1 text-xs font-medium capitalize">
-                {m.roleName}
-              </span>
-            </li>
-          ))}
+                {canManage ? (
+                  <MemberActions
+                    membershipId={m.membershipId}
+                    currentRoleKey={m.roleKey}
+                    roles={invitableRoles}
+                  />
+                ) : (
+                  <span className="rounded-full border border-border px-3 py-1 text-xs font-medium capitalize">
+                    {m.roleName}
+                  </span>
+                )}
+              </li>
+            );
+          })}
         </ul>
       </section>
 

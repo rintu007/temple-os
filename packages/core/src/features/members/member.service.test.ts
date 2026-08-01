@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { inArray } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { afterAll, describe, expect, it } from 'vitest';
 import {
   auditLogs,
@@ -32,9 +32,11 @@ describe.skipIf(!hasDb)('members: invitations, acceptance, RBAC, isolation (live
     fullName: 'New Staff',
   };
   const outsider = { userId: randomUUID(), email: `out-${run}@test.invalid`, fullName: 'Out' };
+  const secondOwner = { userId: randomUUID(), email: `owner2-${run}@test.invalid` };
   let orgId = '';
   let otherOrgId = '';
   let inviteToken = '';
+  let inviteeMembershipId = '';
 
   const ctx = (roleKey = 'owner'): TenantContext => ({
     organizationId: orgId,
@@ -56,7 +58,7 @@ describe.skipIf(!hasDb)('members: invitations, acceptance, RBAC, isolation (live
     }
     await admin
       .delete(users)
-      .where(inArray(users.id, [owner.userId, invitee.userId, outsider.userId]));
+      .where(inArray(users.id, [owner.userId, invitee.userId, outsider.userId, secondOwner.userId]));
     await db.$client.end();
     await admin.$client.end();
   });
@@ -132,6 +134,7 @@ describe.skipIf(!hasDb)('members: invitations, acceptance, RBAC, isolation (live
       const staff = membersList.value.find((m) => m.userId === invitee.userId);
       expect(staff?.roleKey).toBe('staff');
       expect(staff?.status).toBe('active');
+      if (staff) inviteeMembershipId = staff.membershipId;
     }
 
     const again = await service.acceptInvitation(inviteToken, invitee);
@@ -159,6 +162,128 @@ describe.skipIf(!hasDb)('members: invitations, acceptance, RBAC, isolation (live
     });
     expect(accept.ok).toBe(false);
     if (!accept.ok) expect(accept.error.code).toBe('CONFLICT');
+  });
+
+  it('a non-manager cannot change roles or remove members', async () => {
+    const denied1 = await service.updateMemberRole(ctx('staff'), inviteeMembershipId, 'manager');
+    expect(denied1.ok).toBe(false);
+    if (!denied1.ok) expect(denied1.error.code).toBe('FORBIDDEN');
+
+    const denied2 = await service.removeMember(ctx('staff'), inviteeMembershipId);
+    expect(denied2.ok).toBe(false);
+    if (!denied2.ok) expect(denied2.error.code).toBe('FORBIDDEN');
+  });
+
+  it('an owner can change another member’s role, but not their own, and not to owner', async () => {
+    const changed = await service.updateMemberRole(ctx(), inviteeMembershipId, 'manager');
+    expect(changed.ok).toBe(true);
+
+    const members = await service.listMembers(ctx());
+    if (members.ok) {
+      expect(members.value.find((m) => m.userId === invitee.userId)?.roleKey).toBe('manager');
+    }
+
+    const [ownerMembership] = members.ok
+      ? members.value.filter((m) => m.userId === owner.userId)
+      : [];
+    expect(ownerMembership).toBeDefined();
+
+    const self = await service.updateMemberRole(ctx(), ownerMembership!.membershipId, 'manager');
+    expect(self.ok).toBe(false);
+    if (!self.ok) expect(self.error.code).toBe('VALIDATION');
+
+    const toOwner = await service.updateMemberRole(ctx(), inviteeMembershipId, 'owner');
+    expect(toOwner.ok).toBe(false);
+    if (!toOwner.ok) expect(toOwner.error.code).toBe('VALIDATION');
+  });
+
+  it('an organization must always keep at least one owner', async () => {
+    const [ownerRole] = await admin
+      .select({ id: roles.id })
+      .from(roles)
+      .where(and(eq(roles.organizationId, orgId), eq(roles.key, 'owner')));
+    expect(ownerRole).toBeDefined();
+
+    // A second owner, seeded directly — updateMemberRole itself never grants 'owner'.
+    await admin.insert(users).values({ id: secondOwner.userId, email: secondOwner.email });
+    const [secondOwnerMembership] = await admin
+      .insert(memberships)
+      .values({
+        organizationId: orgId,
+        userId: secondOwner.userId,
+        roleId: ownerRole!.id,
+        status: 'active',
+        templeIds: null,
+      })
+      .returning();
+
+    const beforeDemote = await service.listMembers(ctx());
+    const originalOwnerMembershipId = beforeDemote.ok
+      ? beforeDemote.value.find((m) => m.userId === owner.userId)!.membershipId
+      : '';
+
+    // An actor who isn't either owner (so the 'self' guard never fires) demoting the
+    // ORIGINAL owner is fine while two owners exist...
+    const demoteFirst = await service.updateMemberRole(
+      { organizationId: orgId, userId: invitee.userId, roleKey: 'owner', templeIds: null },
+      originalOwnerMembershipId,
+      'manager',
+    );
+    expect(demoteFirst.ok).toBe(true);
+
+    // ...but demoting/removing the one remaining owner (the seeded second owner) must fail.
+    const lastOwnerDemote = await service.updateMemberRole(
+      { organizationId: orgId, userId: invitee.userId, roleKey: 'owner', templeIds: null },
+      secondOwnerMembership!.id,
+      'manager',
+    );
+    expect(lastOwnerDemote.ok).toBe(false);
+    if (!lastOwnerDemote.ok) expect(lastOwnerDemote.error.code).toBe('CONFLICT');
+
+    const lastOwnerRemove = await service.removeMember(
+      { organizationId: orgId, userId: invitee.userId, roleKey: 'owner', templeIds: null },
+      secondOwnerMembership!.id,
+    );
+    expect(lastOwnerRemove.ok).toBe(false);
+    if (!lastOwnerRemove.ok) expect(lastOwnerRemove.error.code).toBe('CONFLICT');
+
+    // Restore: put the original owner back in the owner role for later assertions/cleanup.
+    await admin
+      .update(memberships)
+      .set({ roleId: ownerRole!.id })
+      .where(and(eq(memberships.organizationId, orgId), eq(memberships.userId, owner.userId)));
+  });
+
+  it('removing a member disables their membership rather than deleting it', async () => {
+    const removed = await service.removeMember(ctx(), inviteeMembershipId);
+    expect(removed.ok).toBe(true);
+
+    const members = await service.listMembers(ctx());
+    if (members.ok) {
+      expect(members.value.some((m) => m.userId === invitee.userId)).toBe(false);
+    }
+
+    const [row] = await admin
+      .select({ status: memberships.status })
+      .from(memberships)
+      .where(eq(memberships.id, inviteeMembershipId));
+    expect(row?.status).toBe('disabled');
+  });
+
+  it('rejects acting on your own membership and on a membership that does not exist', async () => {
+    const members = await service.listMembers(ctx());
+    const ownMembershipId = members.ok
+      ? members.value.find((m) => m.userId === owner.userId)?.membershipId
+      : undefined;
+    expect(ownMembershipId).toBeDefined();
+
+    const selfRemove = await service.removeMember(ctx(), ownMembershipId!);
+    expect(selfRemove.ok).toBe(false);
+    if (!selfRemove.ok) expect(selfRemove.error.code).toBe('VALIDATION');
+
+    const notFound = await service.removeMember(ctx(), randomUUID());
+    expect(notFound.ok).toBe(false);
+    if (!notFound.ok) expect(notFound.error.code).toBe('NOT_FOUND');
   });
 
   it('other tenant sees no members or invitations of this org', async () => {
