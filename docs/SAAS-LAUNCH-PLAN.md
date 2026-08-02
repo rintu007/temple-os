@@ -133,7 +133,7 @@ Organized by category. **Status**: ✅ done · 🟡 partial/coded-but-not-config
 
 ### Operations & support
 - ⬜ Support channel (email/helpdesk) that actually reaches someone — referenced nowhere in-app currently
-- ⬜ Status page (even a static one) for incident communication
+- 🟡 Status page (M85 follow-up) — `/status` on the sites app reads live from `health_checks` and shows per-service up/down + last-checked time, linked from the marketing footer. Honest when data is missing ("Not yet monitored") rather than faking green. Since the health-check cron is currently unregistered (see M85), every row will read "Not yet monitored" until that's wired back in. Also currently only reachable via the real custom domain, same interim-demo-mode limitation as `/pricing` and `/terms` (confirmed: both 404 on the bare `templeos-sites.vercel.app` URL too, not a regression).
 - 🟡 Onboarding email sequence — a single welcome/getting-started email now fires on org creation (M83); a multi-day drip sequence (day 1/3/7 nudges) is still unbuilt
 - ✅ Admin-side changelog/announcement mechanism (M84) — a "What's new" bell in the dashboard topbar, fed by platform-admin-authored entries at `/platform/changelog`
 
