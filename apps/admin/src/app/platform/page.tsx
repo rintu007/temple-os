@@ -37,12 +37,20 @@ export default async function PlatformPage() {
         title="Platform"
         description="Every temple on TempleOS — plan, subscription status, and MRR. Click an org to manage its subscription."
         actions={
-          <Link
-            href="/platform/plans"
-            className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
-          >
-            Manage plans
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/platform/changelog"
+              className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+            >
+              Manage changelog
+            </Link>
+            <Link
+              href="/platform/plans"
+              className="inline-flex h-9.5 items-center rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-card transition-colors hover:bg-muted/60"
+            >
+              Manage plans
+            </Link>
+          </div>
         }
       />
 

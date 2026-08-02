@@ -44,3 +44,4 @@ export * from './in-kind';
 export * from './reconciliation';
 export * from './billing';
 export * from './platform';
+export * from './changelog';

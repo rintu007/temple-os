@@ -50,11 +50,12 @@ import type { ReactNode } from 'react';
 import { Badge, Button, cn } from '@templeos/ui';
 import { NavLink } from '@/components/nav-link';
 import { signOutAction } from '@/features/auth/actions';
+import { ChangelogBell } from '@/features/changelog/components/changelog-bell';
 import { NotificationBell } from '@/features/notifications/components/notification-bell';
 import { OrgSwitcher } from '@/features/organizations/components/org-switcher';
 import { CommandPalette } from '@/features/search/components/command-palette';
 import { moduleForHref } from '@/lib/module-routes';
-import { notificationService, organizationService } from '@/lib/services';
+import { changelogService, notificationService, organizationService } from '@/lib/services';
 import { checkIsPlatformAdmin, requireTenantContext } from '@/lib/session';
 
 interface NavItem {
@@ -137,10 +138,11 @@ const NAV_GROUPS: NavGroup[] = [
 
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, membership, ctx, entitledModules } = await requireTenantContext();
-  const [feedResult, isPlatformAdmin, memberships] = await Promise.all([
+  const [feedResult, isPlatformAdmin, memberships, changelogFeed] = await Promise.all([
     notificationService().getFeed(ctx),
     checkIsPlatformAdmin(user.id),
     organizationService().listUserMemberships(user.id),
+    changelogService().getFeed(user.id),
   ]);
   const feed = feedResult.ok ? feedResult.value : { items: [], unreadCount: 0 };
 
@@ -252,6 +254,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <CommandPalette />
+              <ChangelogBell feed={changelogFeed} />
               <NotificationBell feed={feed} />
               <div className="lg:hidden">
                 <form action={signOutAction}>

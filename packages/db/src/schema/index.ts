@@ -18,3 +18,4 @@ export * from './audit';
 export * from './billing';
 export * from './platform-admins';
 export * from './rate-limits';
+export * from './changelog';
