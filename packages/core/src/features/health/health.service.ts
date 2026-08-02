@@ -19,6 +19,11 @@ export function createHealthService({ db }: { db: Db }) {
     async getAlertRecipients(): Promise<AlertRecipient[]> {
       return repo.listAlertRecipients();
     },
+
+    /** Public status-page read — every known service's last-checked state. */
+    async listStatuses() {
+      return repo.listAll();
+    },
   };
 }
 

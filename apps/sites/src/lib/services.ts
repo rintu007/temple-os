@@ -6,6 +6,7 @@ import {
   createEventService,
   createFacilityService,
   createGalleryService,
+  createHealthService,
   createMembershipService,
   createOrganizationService,
   createPaymentService,
@@ -22,6 +23,7 @@ import {
   type EventService,
   type FacilityService,
   type GalleryService,
+  type HealthService,
   type MembershipService,
   type OrganizationService,
   type PaymentService,
@@ -149,6 +151,14 @@ let _planService: PlanService | undefined;
 export function planService(): PlanService {
   _planService ??= createPlanService({ db: getDb() });
   return _planService;
+}
+
+let _healthService: HealthService | undefined;
+
+/** Public status-page reads only. */
+export function healthService(): HealthService {
+  _healthService ??= createHealthService({ db: getDb() });
+  return _healthService;
 }
 
 /** Per-request memoized host→tenant resolution (layout + page share one query). */

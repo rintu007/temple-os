@@ -83,6 +83,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <Link href="/refund-policy" className="hover:text-foreground">
                 Refund Policy
               </Link>
+              <Link href="/status" className="hover:text-foreground">
+                System Status
+              </Link>
             </nav>
             <div className="text-xs text-muted-foreground">
               &copy; {new Date().getFullYear()} TempleOS

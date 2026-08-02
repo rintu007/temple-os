@@ -13,6 +13,17 @@ export function createHealthRepository(db: Db) {
       return (row?.status as ServiceStatus | undefined) ?? null;
     },
 
+    async listAll(): Promise<Array<{ service: string; status: ServiceStatus; updatedAt: Date }>> {
+      const rows = await db
+        .select({
+          service: healthChecks.service,
+          status: healthChecks.status,
+          updatedAt: healthChecks.updatedAt,
+        })
+        .from(healthChecks);
+      return rows.map((r) => ({ ...r, status: r.status as ServiceStatus }));
+    },
+
     async setStatus(service: string, status: ServiceStatus): Promise<void> {
       await db
         .insert(healthChecks)
