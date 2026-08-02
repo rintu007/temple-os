@@ -7,3 +7,4 @@ export { renderDevoteeLoginEmail, type DevoteeLoginEmailParams } from './devotee
 export { renderPaymentFailedEmail, type PaymentFailedEmailParams } from './payment-failed';
 export { renderTrialEndingEmail, type TrialEndingEmailParams } from './trial-ending';
 export { renderWelcomeEmail, type WelcomeEmailParams } from './welcome';
+export { renderServiceAlertEmail, type ServiceAlertEmailParams } from './service-alert';

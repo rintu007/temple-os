@@ -1,6 +1,7 @@
 export * from './shared';
 export * from './features/audit';
 export * from './features/changelog';
+export * from './features/health';
 export * from './features/billing';
 export * from './features/blog';
 export * from './features/communications';

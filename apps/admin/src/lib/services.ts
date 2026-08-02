@@ -3,6 +3,7 @@ import {
   createAssetService,
   createAuditService,
   createChangelogService,
+  createHealthService,
   createBillingService,
   createBudgetService,
   createCommunicationService,
@@ -55,6 +56,7 @@ import {
   type AssetService,
   type AuditService,
   type ChangelogService,
+  type HealthService,
   type BillingService,
   type BudgetService,
   type CommunicationService,
@@ -257,6 +259,13 @@ let _changelogService: ChangelogService | undefined;
 export function changelogService(): ChangelogService {
   _changelogService ??= createChangelogService({ db: getDb() });
   return _changelogService;
+}
+
+let _healthService: HealthService | undefined;
+
+export function healthService(): HealthService {
+  _healthService ??= createHealthService({ db: getDb() });
+  return _healthService;
 }
 
 let _billingService: BillingService | undefined;
