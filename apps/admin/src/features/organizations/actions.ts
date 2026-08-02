@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { systemContext } from '@templeos/core';
+import { renderWelcomeEmail, sendEmail } from '@templeos/email';
 import type { FormState } from '@/lib/form-state';
 import { organizationService } from '@/lib/services';
 import { ACTIVE_ORG_COOKIE, requireUser } from '@/lib/session';
@@ -31,6 +32,21 @@ export async function createOrganizationAction(
   if (!result.ok) {
     return { error: result.error.message };
   }
+
+  // Best-effort — the org is already provisioned regardless of email outcome.
+  if (user.email) {
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+    const { subject, html } = renderWelcomeEmail({
+      organizationName: result.value.name,
+      recipientName: typeof fullName === 'string' ? fullName : null,
+      dashboardUrl: appUrl,
+      devoteesUrl: `${appUrl}/devotees/new`,
+      teamUrl: `${appUrl}/team`,
+      websiteUrl: `${appUrl}/website`,
+    });
+    await sendEmail({ to: user.email, subject, html });
+  }
+
   redirect('/');
 }
 

@@ -6,3 +6,4 @@ export { renderBroadcastEmail, type BroadcastEmailParams } from './broadcast';
 export { renderDevoteeLoginEmail, type DevoteeLoginEmailParams } from './devotee-login';
 export { renderPaymentFailedEmail, type PaymentFailedEmailParams } from './payment-failed';
 export { renderTrialEndingEmail, type TrialEndingEmailParams } from './trial-ending';
+export { renderWelcomeEmail, type WelcomeEmailParams } from './welcome';
