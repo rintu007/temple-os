@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Alert, Badge, PageHeader, StatCard, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@templeos/ui';
+import { computePlatformAnalytics } from '@templeos/core';
 import { requirePlatformAdmin } from '@/lib/session';
 import { planService, platformService } from '@/lib/services';
+
+const formatPercent = (rate: number | null) => (rate === null ? '—' : `${Math.round(rate * 100)}%`);
 
 export const metadata: Metadata = { title: 'Platform' };
 
@@ -30,6 +33,7 @@ export default async function PlatformPage() {
   const { organizations, totalOrganizations, totalMrrUsd, activeSubscriptions, trialing } =
     result.value;
   const planNames = new Map(plans.map((p) => [p.key, p.name]));
+  const analytics = computePlatformAnalytics(organizations);
 
   return (
     <div className="space-y-6">
@@ -60,6 +64,33 @@ export default async function PlatformPage() {
         <StatCard label="On trial" value={trialing} />
         <StatCard label="MRR" value={`$${totalMrrUsd.toLocaleString('en-US')}`} />
       </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatCard label="Signups, last 30 days" value={analytics.signupsLast30Days} />
+        <StatCard
+          label="Trial → paid conversion"
+          value={formatPercent(analytics.conversionRate)}
+          hint="Of trials that have converted or lapsed"
+        />
+        <StatCard
+          label="Churn"
+          value={formatPercent(analytics.churnRate)}
+          hint="Of orgs that ever reached a paid status"
+        />
+      </div>
+
+      {analytics.byPlan.length > 0 ? (
+        <div className="rounded-xl border border-border bg-card p-5 shadow-card">
+          <div className="text-sm font-medium">Organizations by plan</div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {analytics.byPlan.map(({ plan, count }) => (
+              <Badge key={plan} variant="outline">
+                {plan === 'none' ? 'No subscription (legacy)' : (planNames.get(plan) ?? plan)}: {count}
+              </Badge>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <Table>
         <TableHeader>
