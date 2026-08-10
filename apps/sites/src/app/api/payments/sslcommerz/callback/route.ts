@@ -2,6 +2,15 @@ import { NextResponse } from 'next/server';
 import { renderDonationReceiptEmail, sendEmail } from '@templeos/email';
 import { organizationService, paymentService } from '@/lib/services';
 
+/** Best-effort — SSLCommerz has no separate webhook, so a failed/cancelled checkout can only be recorded from this return-leg POST, if it includes the transaction id at all. */
+async function tryRecordFailure(organizationId: string, request: Request, reason: string) {
+  const form = await request.formData().catch(() => null);
+  const tranId = form?.get('tran_id');
+  if (typeof tranId === 'string' && tranId) {
+    await paymentService().markFailed(organizationId, tranId, reason);
+  }
+}
+
 /**
  * SSLCommerz return leg. The gateway POSTs the browser back here after
  * checkout (success_url / fail_url / cancel_url all point at this route).
@@ -22,6 +31,7 @@ export async function POST(request: Request) {
 
   const outcome = url.searchParams.get('outcome');
   if (outcome === 'failed' || outcome === 'cancelled') {
+    await tryRecordFailure(site.organizationId, request, `SSLCommerz: ${outcome}`);
     return NextResponse.redirect(
       new URL(`/donation-complete?status=${outcome}`, url.origin),
       303,

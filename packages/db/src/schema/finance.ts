@@ -946,6 +946,8 @@ export const paymentOrders = pgTable(
     categoryName: text(),
     campaignId: uuid().references(() => campaigns.id),
     status: paymentOrderStatusEnum().notNull().default('created'),
+    /** Set when the gateway reports failure/cancellation — surfaced to staff so a failed devotee payment doesn't go unnoticed. */
+    failureReason: text(),
     donationId: uuid().references(() => donations.id),
     ...timestamps,
   },

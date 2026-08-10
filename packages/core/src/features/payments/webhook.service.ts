@@ -38,6 +38,7 @@ interface RazorpayWebhookEvent {
         id?: string;
         order_id?: string;
         notes?: Record<string, string> | string[];
+        error_description?: string;
       };
     };
   };
@@ -165,7 +166,7 @@ export function createWebhookService({ db }: { db: Db }) {
         return { outcome: 'ignored', reason: 'unparseable body' };
       }
 
-      if (event.event !== 'payment.captured') {
+      if (event.event !== 'payment.captured' && event.event !== 'payment.failed') {
         return { outcome: 'ignored', reason: `event ${event.event ?? 'unknown'}` };
       }
 
@@ -176,8 +177,18 @@ export function createWebhookService({ db }: { db: Db }) {
       const notes =
         entity?.notes && !Array.isArray(entity.notes) ? entity.notes : ({} as Record<string, string>);
       const organizationId = notes.organizationId;
-      if (!orderId || !paymentId) return { outcome: 'ignored', reason: 'missing order/payment id' };
+      if (!orderId) return { outcome: 'ignored', reason: 'missing order id' };
       if (!organizationId) return { outcome: 'ignored', reason: 'no organizationId in notes' };
+
+      if (event.event === 'payment.failed') {
+        await orderRepo.markFailed(
+          organizationId,
+          orderId,
+          entity?.error_description ?? 'Payment failed',
+        );
+        return { outcome: 'ignored', reason: 'payment.failed recorded' };
+      }
+      if (!paymentId) return { outcome: 'ignored', reason: 'missing payment id' };
 
       // Order notes tell us which checkout flow created the order; unknown or
       // stale notes fall back to probing the other stores (all idempotent).
@@ -210,7 +221,7 @@ export function createWebhookService({ db }: { db: Db }) {
       const event = stripe.constructWebhookEvent(rawBody, signature);
       if (!event) return { outcome: 'invalid_signature' };
 
-      if (event.type !== 'checkout.session.completed') {
+      if (event.type !== 'checkout.session.completed' && event.type !== 'checkout.session.expired') {
         return { outcome: 'ignored', reason: `event ${event.type}` };
       }
 
@@ -220,11 +231,18 @@ export function createWebhookService({ db }: { db: Db }) {
         payment_intent?: string | null;
         metadata?: Record<string, string> | null;
       };
+      const organizationId = session.metadata?.organizationId;
+      if (!organizationId) return { outcome: 'ignored', reason: 'no organizationId in metadata' };
+
+      // Stripe Checkout Sessions never fail in place — an unpaid session just
+      // expires (24h default) after the devotee abandons it mid-checkout.
+      if (event.type === 'checkout.session.expired') {
+        await orderRepo.markFailed(organizationId, session.id, 'Checkout session expired unpaid');
+        return { outcome: 'ignored', reason: 'checkout.session.expired recorded' };
+      }
       if (session.payment_status !== 'paid') {
         return { outcome: 'ignored', reason: `payment_status ${session.payment_status}` };
       }
-      const organizationId = session.metadata?.organizationId;
-      if (!organizationId) return { outcome: 'ignored', reason: 'no organizationId in metadata' };
 
       const paymentIntentId =
         typeof session.payment_intent === 'string' ? session.payment_intent : session.id;

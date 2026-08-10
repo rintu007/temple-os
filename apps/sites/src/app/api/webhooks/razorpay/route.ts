@@ -4,8 +4,11 @@ import { webhookService } from '@/lib/services';
 
 /**
  * Razorpay webhook receiver. Register in the Razorpay dashboard as
- * https://<sites-host>/api/webhooks/razorpay with the `payment.captured`
- * event and the RAZORPAY_WEBHOOK_SECRET value as the webhook secret.
+ * https://<sites-host>/api/webhooks/razorpay with the `payment.captured` AND
+ * `payment.failed` events, and the RAZORPAY_WEBHOOK_SECRET value as the
+ * webhook secret. `payment.failed` records the failure so it surfaces to
+ * staff (see apps/admin/src/app/(dashboard)/payments/failed) rather than
+ * leaving the order silently stuck at 'created'.
  *
  * Signature verification happens on the raw body — never parse before
  * verifying. Confirmation is idempotent with the client-side confirm flow,

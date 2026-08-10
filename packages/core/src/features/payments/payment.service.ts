@@ -4,7 +4,7 @@ import {
   confirmSslcommerzSchema,
   createDonationOrderSchema,
 } from '@templeos/validators';
-import { domainError, err, notFound, ok, type Result } from '../../shared';
+import { authorize, domainError, err, notFound, ok, type Result, type TenantContext } from '../../shared';
 import { createPaymentOrderRepository } from './order.repository';
 import { razorpayFromEnv } from './razorpay';
 import { sslcommerzFromEnv } from './sslcommerz';
@@ -298,6 +298,18 @@ export function createPaymentService({ db }: { db: Db }) {
         email: result.email,
         alreadyPaid: result.alreadyPaid,
       });
+    },
+
+    /** Called from the SSLCommerz return-leg when the gateway reports fail/cancel (no webhook exists for this provider). */
+    async markFailed(organizationId: string, providerOrderId: string, reason: string): Promise<void> {
+      await repo.markFailed(organizationId, providerOrderId, reason);
+    },
+
+    /** Staff-facing: failed + abandoned checkout attempts, so a devotee's failed payment doesn't go unnoticed. */
+    async listRecentFailures(ctx: TenantContext): Promise<Result<Awaited<ReturnType<typeof repo.listRecentFailures>>>> {
+      const guard = authorize(ctx, 'donations:read');
+      if (!guard.ok) return guard;
+      return ok(await repo.listRecentFailures(ctx.organizationId));
     },
   };
 }

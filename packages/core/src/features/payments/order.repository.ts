@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq, lt, or } from 'drizzle-orm';
 import {
   auditLogs,
   donations,
@@ -144,6 +144,53 @@ export function createPaymentOrderRepository(db: Db) {
         });
 
         return { kind: 'ok' as const, donation, email: order.email, alreadyPaid: false };
+      });
+    },
+
+    /**
+     * Records a gateway-reported failure/cancellation so it surfaces to
+     * staff instead of the order silently sitting at 'created' forever.
+     * Never overwrites an already-'paid' order — a failed/expired event
+     * arriving after a success (e.g. out-of-order webhook delivery) must not
+     * clobber a real payment.
+     */
+    async markFailed(organizationId: string, providerOrderId: string, reason: string): Promise<void> {
+      await withTenantContext(db, { organizationId }, async (tx) => {
+        await tx
+          .update(paymentOrders)
+          .set({ status: 'failed', failureReason: reason })
+          .where(
+            and(
+              eq(paymentOrders.organizationId, organizationId),
+              eq(paymentOrders.providerOrderId, providerOrderId),
+              eq(paymentOrders.status, 'created'),
+            ),
+          );
+      });
+    },
+
+    /**
+     * Failed orders, plus 'created' orders stale for over an hour (devotee
+     * abandoned checkout before any webhook/callback ever fired) — the
+     * admin-facing "did a payment attempt go unnoticed" view.
+     */
+    async listRecentFailures(organizationId: string) {
+      return withTenantContext(db, { organizationId }, async (tx) => {
+        const staleThreshold = new Date(Date.now() - 60 * 60 * 1000);
+        return tx
+          .select()
+          .from(paymentOrders)
+          .where(
+            and(
+              eq(paymentOrders.organizationId, organizationId),
+              or(
+                eq(paymentOrders.status, 'failed'),
+                and(eq(paymentOrders.status, 'created'), lt(paymentOrders.createdAt, staleThreshold)),
+              ),
+            ),
+          )
+          .orderBy(desc(paymentOrders.createdAt))
+          .limit(200);
       });
     },
   };

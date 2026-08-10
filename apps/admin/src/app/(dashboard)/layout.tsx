@@ -36,6 +36,7 @@ import {
   ShieldCheck,
   Sparkles,
   Ticket,
+  TriangleAlert,
   Truck,
   UserRoundCheck,
   UserRoundCog,
@@ -107,6 +108,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: 'Finance',
     items: [
       { href: '/donations', label: 'Donations', icon: HandCoins },
+      { href: '/payments/failed', label: 'Failed payments', icon: TriangleAlert },
       { href: '/in-kind', label: 'In-kind gifts', icon: Gift },
       { href: '/pledges', label: 'Pledges', icon: Handshake },
       { href: '/hundi', label: 'Hundi', icon: Coins },

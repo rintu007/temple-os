@@ -206,3 +206,119 @@ describe.skipIf(!hasDb || !hasRazorpay)('payments: order + confirm (live Razorpa
     expect(missing.ok).toBe(false);
   });
 });
+
+describe.skipIf(!hasDb)('payments: failed/abandoned visibility (live db)', () => {
+  const db = createDb();
+  const admin = createDb(process.env.DATABASE_URL_ADMIN);
+  const orgService = createOrganizationService({ db, rootDomain: 'test.invalid' });
+  const service = createPaymentService({ db });
+
+  const run = `payfail${Date.now().toString(36)}`;
+  const owner = { userId: randomUUID(), email: `own-${run}@test.invalid`, fullName: 'Owner' };
+  let orgId = '';
+  let ownerCtx: { organizationId: string; userId: string; roleKey: string; templeIds: null };
+
+  afterAll(async () => {
+    if (orgId) {
+      await admin.delete(auditLogs).where(inArray(auditLogs.organizationId, [orgId]));
+      await admin.delete(paymentOrders).where(inArray(paymentOrders.organizationId, [orgId]));
+      await admin.delete(memberships).where(inArray(memberships.organizationId, [orgId]));
+      await admin.delete(roles).where(inArray(roles.organizationId, [orgId]));
+      await admin.delete(domains).where(inArray(domains.organizationId, [orgId]));
+      await admin.delete(platformSubscriptions).where(inArray(platformSubscriptions.organizationId, [orgId]));
+      await admin.delete(organizations).where(inArray(organizations.id, [orgId]));
+    }
+    await admin.delete(users).where(inArray(users.id, [owner.userId]));
+    await db.$client.end();
+    await admin.$client.end();
+  });
+
+  it('sets up an org with an owner', async () => {
+    const provisioned = await orgService.provisionOrganization(
+      systemContext('payment failure test'),
+      { name: 'Payfail Org', slug: `${run}-main`, country: 'IN' },
+      owner,
+    );
+    expect(provisioned.ok).toBe(true);
+    if (!provisioned.ok) return;
+    orgId = provisioned.value.id;
+    ownerCtx = { organizationId: orgId, userId: owner.userId, roleKey: 'owner', templeIds: null };
+  });
+
+  it('markFailed records the reason and flips status, but never overwrites an already-paid order', async () => {
+    await admin.insert(paymentOrders).values({
+      organizationId: orgId,
+      provider: 'razorpay',
+      providerOrderId: `${run}-order-1`,
+      amount: '501.00',
+      currency: 'INR',
+      donorName: 'Failing Devotee',
+      status: 'created',
+    });
+    await service.markFailed(orgId, `${run}-order-1`, 'Card declined');
+
+    const [row] = await admin
+      .select()
+      .from(paymentOrders)
+      .where(inArray(paymentOrders.providerOrderId, [`${run}-order-1`]));
+    expect(row?.status).toBe('failed');
+    expect(row?.failureReason).toBe('Card declined');
+
+    // A late/out-of-order failure event must never clobber a real payment.
+    await admin
+      .update(paymentOrders)
+      .set({ status: 'paid' })
+      .where(inArray(paymentOrders.providerOrderId, [`${run}-order-1`]));
+    await service.markFailed(orgId, `${run}-order-1`, 'late duplicate failure webhook');
+    const [afterPaid] = await admin
+      .select()
+      .from(paymentOrders)
+      .where(inArray(paymentOrders.providerOrderId, [`${run}-order-1`]));
+    expect(afterPaid?.status).toBe('paid');
+  });
+
+  it('listRecentFailures surfaces failed orders and stale-abandoned ones, but not fresh in-progress ones', async () => {
+    const staleCreatedAt = new Date(Date.now() - 2 * 60 * 60 * 1000); // 2h ago
+    await admin.insert(paymentOrders).values([
+      {
+        organizationId: orgId,
+        provider: 'razorpay',
+        providerOrderId: `${run}-order-failed`,
+        amount: '50.00',
+        currency: 'INR',
+        donorName: 'Declined Devotee',
+        status: 'failed',
+        failureReason: 'Card declined',
+      },
+      {
+        organizationId: orgId,
+        provider: 'stripe',
+        providerOrderId: `${run}-order-abandoned`,
+        amount: '100.00',
+        currency: 'USD',
+        donorName: 'Abandoned Devotee',
+        status: 'created',
+        createdAt: staleCreatedAt,
+        updatedAt: staleCreatedAt,
+      },
+      {
+        organizationId: orgId,
+        provider: 'sslcommerz',
+        providerOrderId: `${run}-order-fresh`,
+        amount: '200.00',
+        currency: 'BDT',
+        donorName: 'Still Checking Out',
+        status: 'created',
+      },
+    ]);
+
+    const result = await service.listRecentFailures(ownerCtx);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ids = result.value.map((o) => o.providerOrderId);
+    expect(ids).toContain(`${run}-order-failed`);
+    expect(ids).toContain(`${run}-order-abandoned`);
+    expect(ids).not.toContain(`${run}-order-fresh`);
+    expect(ids).not.toContain(`${run}-order-1`); // left 'paid' by the previous test — must never appear here
+  });
+});

@@ -32,6 +32,7 @@ import {
   createOfficerService,
   createOrganizationService,
   createOverviewService,
+  createPaymentService,
   createPlatformService,
   createPlanService,
   createPledgeService,
@@ -85,6 +86,7 @@ import {
   type OfficerService,
   type OrganizationService,
   type OverviewService,
+  type PaymentService,
   type PlatformService,
   type PlanService,
   type PledgeService,
@@ -140,6 +142,13 @@ let _donationService: DonationService | undefined;
 export function donationService(): DonationService {
   _donationService ??= createDonationService({ db: getDb() });
   return _donationService;
+}
+
+let _paymentService: PaymentService | undefined;
+
+export function paymentService(): PaymentService {
+  _paymentService ??= createPaymentService({ db: getDb() });
+  return _paymentService;
 }
 
 let _campaignService: CampaignService | undefined;
