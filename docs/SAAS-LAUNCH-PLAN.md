@@ -140,7 +140,7 @@ Organized by category. **Status**: ✅ done · 🟡 partial/coded-but-not-config
 - ✅ Admin-side changelog/announcement mechanism (M84) — a "What's new" bell in the dashboard topbar, fed by platform-admin-authored entries at `/platform/changelog`
 
 ### Growth & analytics
-- ⬜ Product analytics (which modules get used, trial→paid conversion, churn) — `platform.service.ts#getOverview` gives MRR/org counts today, nothing behavioral
+- 🟡 Product analytics — `/platform` now shows signups (last 30 days), trial→paid conversion rate, churn rate, and an organizations-by-plan breakdown, computed by `computePlatformAnalytics()` purely from data the page already fetches (no new query, no new external service — same "avoid a new dependency" approach as rate limiting/uptime monitoring). Unit-tested (7 cases, no DB needed) covering the edge cases: nothing resolved yet, past_due counted as converted-but-not-churned, legacy orgs with a null subscription excluded. **Honest limitation, not fully closing this line**: this is a current-snapshot approximation (today's org statuses), not true signup-cohort-over-time analytics — no event log exists to compute e.g. "of orgs that signed up in March, what % converted by day 30." Which *modules get used* (feature-level behavioral analytics) is still entirely unbuilt.
 - ⬜ Referral/affiliate mechanics if relevant to the go-to-market plan
 - ⬜ Testimonials/case studies section on the marketing site once there are a few live paying temples to feature
 
