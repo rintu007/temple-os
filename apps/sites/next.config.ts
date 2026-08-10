@@ -17,6 +17,27 @@ const nextConfig: NextConfig = {
     '@templeos/ui',
     '@templeos/validators',
   ],
+  // Content-Security-Policy is deliberately NOT set here yet: this app
+  // dynamically loads Razorpay's checkout.js and opens its payment iframe
+  // (apps/sites/src/features/donations/razorpay-types.ts), and donation
+  // intake must never break — a CSP wrong in either direction (too loose
+  // does nothing, too strict silently kills checkout with no visible error
+  // besides a browser console warning) needs to be verified against a real
+  // Razorpay/Stripe/SSLCommerz checkout run before enforcing. Tracked as a
+  // follow-up in docs/SAAS-LAUNCH-PLAN.md.
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

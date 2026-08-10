@@ -135,6 +135,7 @@ ALTER TABLE public.users FORCE ROW LEVEL SECURITY;
 
 -- permissions catalog: global, read-only reference data
 ALTER TABLE public.permissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.permissions FORCE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS permissions_read_all ON public.permissions;
 CREATE POLICY permissions_read_all ON public.permissions FOR SELECT USING (true);
 

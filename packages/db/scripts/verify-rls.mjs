@@ -29,10 +29,20 @@ try {
     SELECT c.relname, c.relrowsecurity AS rls, c.relforcerowsecurity AS forced
     FROM pg_class c
     JOIN pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'public' AND c.relkind = 'r'
+    WHERE n.nspname = 'public' AND c.relkind = 'r' AND c.relname != '__drizzle_migrations'
     ORDER BY c.relname`;
   for (const t of tables) {
     console.log(`  ${t.relname.padEnd(20)} rls=${t.rls} forced=${t.forced}`);
+  }
+
+  // The runtime role has no RLS bypass (checked above), so a table with RLS
+  // left off or unforced is silently readable/writable by any request that
+  // reaches it — this is the failure mode the pre-launch security review
+  // flagged as the one real process gap: nothing previously asserted this,
+  // it just listed statuses for a human to eyeball.
+  console.log('\nEvery table must have RLS enabled AND forced:');
+  for (const t of tables) {
+    check(`${t.relname}: RLS enabled + forced`, t.rls === true && t.forced === true);
   }
 
   console.log('\nTenant isolation checks:');

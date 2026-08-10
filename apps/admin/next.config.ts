@@ -24,6 +24,22 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '8mb',
     },
   },
+  // No Content-Security-Policy yet: this app has no third-party checkout
+  // scripts, but a CSP shared with apps/sites would need to be verified
+  // against the live Razorpay checkout flow first — see apps/sites/next.config.ts.
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
