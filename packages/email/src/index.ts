@@ -8,3 +8,4 @@ export { renderPaymentFailedEmail, type PaymentFailedEmailParams } from './payme
 export { renderTrialEndingEmail, type TrialEndingEmailParams } from './trial-ending';
 export { renderWelcomeEmail, type WelcomeEmailParams } from './welcome';
 export { renderServiceAlertEmail, type ServiceAlertEmailParams } from './service-alert';
+export { renderOnboardingNudgeEmail, type OnboardingNudgeEmailParams } from './onboarding-nudges';

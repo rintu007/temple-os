@@ -62,5 +62,9 @@ export const platformSubscriptions = pgTable('platform_subscriptions', {
   currentPeriodEnd: timestamp({ withTimezone: true }),
   /** Set once a "trial ending soon" email has been sent, so the reminder cron never repeats itself for the same trial. */
   trialReminderSentAt: timestamp({ withTimezone: true }),
+  /** Onboarding drip sequence (M83 follow-up) — set once each day-N nudge has gone out, so the cron never repeats one. */
+  onboardingDay1SentAt: timestamp({ withTimezone: true }),
+  onboardingDay3SentAt: timestamp({ withTimezone: true }),
+  onboardingDay7SentAt: timestamp({ withTimezone: true }),
   ...timestamps,
 });

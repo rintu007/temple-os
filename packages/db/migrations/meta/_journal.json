@@ -407,6 +407,13 @@
       "when": 1785648023576,
       "tag": "0057_purple_shriek",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1786384309132,
+      "tag": "0058_small_edwin_jarvis",
+      "breakpoints": true
     }
   ]
 }

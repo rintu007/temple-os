@@ -241,6 +241,29 @@ describe.skipIf(!hasDb)('billing: trial provisioning + access control (live db)'
     const results = await billing$.listTrialsEndingSoon(3);
     expect(results.some((t) => t.organizationId === orgId)).toBe(false);
   });
+
+  it('lists a freshly-created org for onboarding nudges, then drops it once all three are sent', async () => {
+    await admin
+      .update(platformSubscriptions)
+      .set({ onboardingDay1SentAt: null, onboardingDay3SentAt: null, onboardingDay7SentAt: null })
+      .where(eq(platformSubscriptions.organizationId, orgId));
+
+    const before = await billing$.listOrgsForOnboardingNudges();
+    const match = before.find((o) => o.organizationId === orgId);
+    expect(match?.ownerEmail).toBe(owner.email);
+    expect(match?.onboardingDay1SentAt).toBeNull();
+
+    await billing$.markOnboardingNudgeSent(orgId, 1);
+    const afterDay1 = await billing$.listOrgsForOnboardingNudges();
+    const afterDay1Match = afterDay1.find((o) => o.organizationId === orgId);
+    expect(afterDay1Match?.onboardingDay1SentAt).not.toBeNull();
+    expect(afterDay1Match?.onboardingDay3SentAt).toBeNull();
+
+    await billing$.markOnboardingNudgeSent(orgId, 3);
+    await billing$.markOnboardingNudgeSent(orgId, 7);
+    const afterAll3 = await billing$.listOrgsForOnboardingNudges();
+    expect(afterAll3.some((o) => o.organizationId === orgId)).toBe(false);
+  });
 });
 
 describe.skipIf(!hasDb)('billing webhook without Stripe configured', () => {

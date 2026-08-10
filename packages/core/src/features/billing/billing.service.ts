@@ -144,6 +144,16 @@ export function createBillingService({ db }: { db: Db }) {
       return repo.markTrialReminderSent(organizationId);
     },
 
+    /** Orgs created within the last 30 days that haven't yet received all three onboarding nudges — used by the onboarding cron route. */
+    async listOrgsForOnboardingNudges() {
+      return repo.listOrgsForOnboardingNudges();
+    },
+
+    /** Marks a specific day-N onboarding nudge as sent so the cron never repeats it for the same org. */
+    async markOnboardingNudgeSent(organizationId: string, day: 1 | 3 | 7) {
+      return repo.markOnboardingNudgeSent(organizationId, day);
+    },
+
     async handleStripeEvent(rawBody: string, signature: string, client?: StripeBillingClient) {
       const stripe = client ?? stripeBillingFromEnv();
       if (!stripe || !stripe.webhookSecret) return { outcome: 'not_configured' as const };

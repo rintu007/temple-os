@@ -155,6 +155,62 @@ export function createBillingRepository(db: Db) {
           .where(eq(platformSubscriptions.organizationId, organizationId));
       });
     },
+
+    /**
+     * Cross-tenant scan for the onboarding drip cron — see
+     * packages/db/sql/0010_onboarding_nudge_function.sql. Same reasoning as
+     * listTrialsEndingSoon: no bypass-RLS credential exists in production
+     * for a job like this to iterate every organization.
+     */
+    async listOrgsForOnboardingNudges(): Promise<
+      Array<{
+        organizationId: string;
+        organizationName: string;
+        createdAt: Date;
+        ownerEmail: string;
+        ownerName: string | null;
+        onboardingDay1SentAt: Date | null;
+        onboardingDay3SentAt: Date | null;
+        onboardingDay7SentAt: Date | null;
+      }>
+    > {
+      const rows = await db.execute<{
+        organization_id: string;
+        organization_name: string;
+        created_at: Date;
+        owner_email: string;
+        owner_name: string | null;
+        onboarding_day1_sent_at: Date | null;
+        onboarding_day3_sent_at: Date | null;
+        onboarding_day7_sent_at: Date | null;
+      }>(sql`SELECT * FROM app_list_orgs_for_onboarding_nudges()`);
+      return rows.map((r) => ({
+        organizationId: r.organization_id,
+        organizationName: r.organization_name,
+        createdAt: r.created_at,
+        ownerEmail: r.owner_email,
+        ownerName: r.owner_name,
+        onboardingDay1SentAt: r.onboarding_day1_sent_at,
+        onboardingDay3SentAt: r.onboarding_day3_sent_at,
+        onboardingDay7SentAt: r.onboarding_day7_sent_at,
+      }));
+    },
+
+    async markOnboardingNudgeSent(organizationId: string, day: 1 | 3 | 7): Promise<void> {
+      const now = new Date();
+      const set =
+        day === 1
+          ? { onboardingDay1SentAt: now }
+          : day === 3
+            ? { onboardingDay3SentAt: now }
+            : { onboardingDay7SentAt: now };
+      await withTenantContext(db, { organizationId }, async (tx) => {
+        await tx
+          .update(platformSubscriptions)
+          .set(set)
+          .where(eq(platformSubscriptions.organizationId, organizationId));
+      });
+    },
   };
 }
 
