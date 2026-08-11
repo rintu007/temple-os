@@ -24,14 +24,30 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '8mb',
     },
   },
-  // No Content-Security-Policy yet: this app has no third-party checkout
-  // scripts, but a CSP shared with apps/sites would need to be verified
-  // against the live Razorpay checkout flow first — see apps/sites/next.config.ts.
+  // Content-Security-Policy: no third-party checkout scripts here (unlike
+  // apps/sites), so this is stricter — only Supabase Storage for the
+  // website/gallery admin page's <img> tags needs an allowance.
+  // 'unsafe-inline' on script-src/style-src: same deliberate compromise as
+  // apps/sites/next.config.ts (no CSP-nonce wiring through middleware yet).
   async headers() {
+    const supabaseOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
+    const csp = [
+      `default-src 'self'`,
+      `script-src 'self' 'unsafe-inline'`,
+      `style-src 'self' 'unsafe-inline'`,
+      `img-src 'self' data: ${supabaseOrigin}`.trim(),
+      `font-src 'self'`,
+      `connect-src 'self'`,
+      `object-src 'none'`,
+      `base-uri 'self'`,
+      `frame-ancestors 'none'`,
+    ].join('; ');
+
     return [
       {
         source: '/:path*',
         headers: [
+          { key: 'Content-Security-Policy', value: csp },
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
